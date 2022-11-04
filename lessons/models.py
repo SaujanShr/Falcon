@@ -2,7 +2,7 @@ from django.db import models
 from django.core.validators import MinLengthValidator, MinValueValidator, MaxValueValidator
 
 class DayOfTheWeek(models.Model):
-    day = models.CharField(editable=False)
+    day = models.CharField(max_length=10, editable=False)
 
     class Meta:
         ordering = ['day']
