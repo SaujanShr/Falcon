@@ -26,7 +26,7 @@ class RequestModelTestCase(TestCase):
     
     def _assert_request_is_invalid(self):
         with self.assertRaises(ValidationError):
-            self.user.full_clean()
+            self.request.full_clean()
     
     def test_request_is_valid(self):
         self._assert_request_is_valid()
