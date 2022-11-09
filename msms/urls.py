@@ -20,4 +20,6 @@ from lessons import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('student_page/', views.student_page, name='student_page'),
+    path('request_view/', views.request_view, name='request_view'),
+    path('new_request/', views.request_view, name='request_view')
 ]
