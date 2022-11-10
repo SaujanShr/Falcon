@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
+from datetime import date
 
 class DayOfTheWeek(models.Model):
     class Day(models.TextChoices):
@@ -44,3 +45,22 @@ class Request(models.Model):
     duration_of_lessons = models.PositiveIntegerField(choices=LessonDuration.choices)
     further_information = models.CharField(blank=False, max_length=500)
     fulfilled = models.BooleanField(blank=False, default=False)
+
+class BankTransaction(models.Model):
+    date = models.DateField(
+        blank=False,
+        validators=[MaxValueValidator(
+            limit_value=date.today,
+            message='')]
+        )
+    student = models.ForeignKey(User, blank=False, on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=6, decimal_places=2, blank=False)
+    invoice_number = models.CharField(
+        max_length=8,
+        unique=True,
+        blank=False,
+        validators=[RegexValidator(
+            regex=r'^\d{4}-\d{3}$',
+            message='Invoice number must follow the format xxxx-yyy where x is the student number and y is the invoice number.'
+        )]
+    )
