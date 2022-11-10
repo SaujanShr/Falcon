@@ -11,13 +11,13 @@ class DayOfTheWeek(models.Model):
         FRIDAY = 'Friday'
         SATURDAY = 'Saturday'
         SUNDAY = 'Sunday'
-        
+
     order = models.PositiveIntegerField(validators=[MaxValueValidator(6)])
     day = models.CharField(max_length=10, editable=False)
 
     class Meta:
         ordering = ['order']
-    
+
     def __str__(self):
         return self.day
 
@@ -35,7 +35,7 @@ class Request(models.Model):
         THIRTY_MINUTES = 30, '30 Minutes'
         FOURTY_FIVE_MINUTES = 45, '45 Minutes'
         SIXTY_MINUTES = 60, '60 Minutes'
-    
+
     date = models.CharField(blank=False, unique=True, max_length=50)
     user = models.ForeignKey(User, blank=False, on_delete=models.CASCADE)
     availability = models.ManyToManyField(DayOfTheWeek, blank=False)
@@ -44,3 +44,22 @@ class Request(models.Model):
     duration_of_lessons = models.PositiveIntegerField(choices=LessonDuration.choices)
     further_information = models.CharField(blank=False, max_length=500)
     fulfilled = models.BooleanField(blank=False, default=False)
+
+class Booking(models.Model):
+    class IntervalBetweenLessons(models.IntegerChoices):
+        ONE_WEEK = 1, '1 Week'
+        TWO_WEEKS = 2, '2 Weeks'
+
+    class LessonDuration(models.IntegerChoices):
+        THIRTY_MINUTES = 30, '30 Minutes'
+        FOURTY_FIVE_MINUTES = 45, '45 Minutes'
+        SIXTY_MINUTES = 60, '60 Minutes'
+
+    day_of_the_week = models.ManyToManyField(DayOfTheWeek, blank=False)
+    time_of_the_day = models.TimeField(auto_now=False, auto_now_add=False)
+    student = models.ForeignKey(User, blank=False, on_delete=models.CASCADE)  # The same as user in Request model
+    teacher = models.CharField(blank=False, max_length=100)
+    start_date = models.DateField(blank=False)
+    duration_of_lessons = models.PositiveIntegerField(choices=LessonDuration.choices)
+    interval_between_lessons = models.PositiveIntegerField(choices=IntervalBetweenLessons.choices)
+    further_information = models.CharField(blank=False, max_length=500)
