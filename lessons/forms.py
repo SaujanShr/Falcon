@@ -12,3 +12,7 @@ class RequestViewForm(forms.ModelForm):
         label="Available Days", 
         widget=forms.CheckboxSelectMultiple
     )
+
+class LogInForm(forms.Form):
+    username = forms.CharField(label='Username')
+    password = forms.CharField(label='Password', widget=forms.PasswordInput())

@@ -24,7 +24,9 @@ class DayOfTheWeek(models.Model):
 
 
 class User(AbstractUser):
-    # Add code here. I've added placeholder code in the meantime.
+    first_name = models.CharField(max_length = 50, blank=False, unique = False)
+    last_name = models.CharField(max_length = 50, blank=False, unique = False)
+    email = models.EmailField(unique = True, blank = False)
     pass
 
 class Request(models.Model):

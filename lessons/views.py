@@ -1,6 +1,8 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from .models import Request
-from .forms import RequestViewForm
+from .forms import RequestViewForm, LogInForm
+from django.contrib import messages
+from django.contrib.auth import authenticate, login
 
 def student_page(request):
     requests = Request.objects.all()
@@ -21,3 +23,24 @@ def request_view(request):
                 }
             )
         return render(request, 'request_view.html', {'form':form})
+
+def home(request):
+    return render(request, 'home.html')
+
+def log_in(request):
+    if request.method == 'POST':
+        form = LogInForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(username=username, password= password)
+            if user is not None:
+                login(request, user)
+                return redirect('feed')
+        # Credentials are incorrect
+        messages.add_message(request, messages.ERROR, "The credentials provided were invalid!")
+    form = LogInForm()
+    return render(request, 'log_in.html', {'form': form})
+
+def sign_up(request):
+    return render(request, 'home.html')
