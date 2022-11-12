@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
+from django.utils import timezone
 from datetime import date
 
 class DayOfTheWeek(models.Model):
@@ -37,7 +38,13 @@ class Request(models.Model):
         FOURTY_FIVE_MINUTES = 45, '45 Minutes'
         SIXTY_MINUTES = 60, '60 Minutes'
     
-    date = models.CharField(blank=False, unique=True, max_length=50)
+    date = models.DateTimeField(
+        blank=False, 
+        unique=True, 
+        validators=[MaxValueValidator(
+            limit_value=timezone.now,
+            message='')]
+        )
     user = models.ForeignKey(User, blank=False, on_delete=models.CASCADE)
     availability = models.ManyToManyField(DayOfTheWeek, blank=False)
     number_of_lessons = models.PositiveIntegerField(validators=[MinValueValidator(1)])

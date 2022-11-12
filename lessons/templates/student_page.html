@@ -16,12 +16,12 @@
           <th style="width: 5%">Fulfilled</th>
         </tr>
       </thead>
-      {% if requests %}
-        {% for request in requests %}
+      {% if date_requests %}
+        {% for date_request in date_requests %}
           <tr><form action="/request_view/" method="get">
-              <td><input type="submit" name="date" value="{{ request.date }}"/></td>
-              <td>{{ request.further_information }}</td>
-              <td>{{ request.fulfilled }}</td>
+              <td><input type="submit" name="date" value="{{ date_request.0 }}"/></td>
+              <td>{{ date_request.1.further_information }}</td>
+              <td>{{ date_request.1.fulfilled }}</td>
             </form></tr>
         {% endfor %}
       {% else %}

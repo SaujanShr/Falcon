@@ -4,7 +4,11 @@ from .forms import RequestViewForm
 
 def student_page(request):
     requests = Request.objects.all()
-    return render(request, 'student_page.html', {'requests':requests})
+    date_requests = []
+    for req in requests:
+        date_requests.append([str(req.date), req])
+        
+    return render(request, 'student_page.html', {'date_requests':date_requests})
 
 def request_view(request):
     if request.method == 'GET':

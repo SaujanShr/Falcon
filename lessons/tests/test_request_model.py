@@ -3,6 +3,30 @@ from django.core.exceptions import ValidationError
 from lessons.models import User, Request, DayOfTheWeek
 from django.utils import timezone
 
+'''
+from lessons.models import User, Request, DayOfTheWeek
+from django.utils import timezone
+DayOfTheWeek.objects.create(order = 0, day = DayOfTheWeek.Day.MONDAY)
+DayOfTheWeek.objects.create(order = 1, day = DayOfTheWeek.Day.TUESDAY)
+DayOfTheWeek.objects.create(order = 2, day = DayOfTheWeek.Day.WEDNESDAY)
+DayOfTheWeek.objects.create(order = 3, day = DayOfTheWeek.Day.THURSDAY)
+DayOfTheWeek.objects.create(order = 4, day = DayOfTheWeek.Day.FRIDAY)
+DayOfTheWeek.objects.create(order = 5, day = DayOfTheWeek.Day.SATURDAY)
+DayOfTheWeek.objects.create(order = 6, day = DayOfTheWeek.Day.SUNDAY)
+request1 = Request.objects.create(
+user = User.objects.create_user(
+username='username',
+password='password'
+),
+date = timezone.datetime(2000, 1, 1, 1, 1, 1, tzinfo=timezone.utc),
+number_of_lessons = 1,
+interval_between_lessons = Request.IntervalBetweenLessons.ONE_WEEK,
+duration_of_lessons = Request.LessonDuration.THIRTY_MINUTES,
+further_information = 'Some information...'
+)
+request1.availability.set([DayOfTheWeek.objects.get(day = DayOfTheWeek.Day.MONDAY), DayOfTheWeek.objects.get(day = DayOfTheWeek.Day.WEDNESDAY), DayOfTheWeek.objects.get(day = DayOfTheWeek.Day.SUNDAY)])
+'''
+
 class RequestModelTestCase(TestCase):
     def setUp(self):
         DayOfTheWeek.objects.create(order = 0, day = DayOfTheWeek.Day.MONDAY)
@@ -17,7 +41,7 @@ class RequestModelTestCase(TestCase):
                 username='username',
                 password='password'
             ),
-            date = timezone.now(),
+            date = timezone.datetime(2000, 1, 1, 1, 1, 1, tzinfo=timezone.utc),
             number_of_lessons = 1,
             interval_between_lessons = Request.IntervalBetweenLessons.ONE_WEEK,
             duration_of_lessons = Request.LessonDuration.THIRTY_MINUTES,
@@ -32,7 +56,7 @@ class RequestModelTestCase(TestCase):
                 username='username2',
                 password='password'
             ),
-            date = timezone.now(),
+            date = timezone.datetime(2001, 2, 2, 2, 2, 2, tzinfo=timezone.utc),
             number_of_lessons = 2,
             interval_between_lessons = Request.IntervalBetweenLessons.TWO_WEEKS,
             duration_of_lessons = Request.LessonDuration.SIXTY_MINUTES,
@@ -61,6 +85,14 @@ class RequestModelTestCase(TestCase):
     
     def test_date_must_be_unique(self):
         self.request1.date = self.request2.date
+        self._assert_request_is_invalid()
+    
+    def test_date_can_be_today(self):
+        self.request1.date = timezone.datetime.now(tz=timezone.utc)
+        self._assert_request_is_valid()
+    
+    def test_date_cannot_be_in_the_future(self):
+        self.request1.date = timezone.datetime(9999, 1, 1, 1, 1, 1, tzinfo=timezone.utc)
         self._assert_request_is_invalid()
     
     def test_user_must_exist(self):
