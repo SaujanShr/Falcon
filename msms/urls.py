@@ -24,5 +24,6 @@ urlpatterns = [
     path('new_request/', views.request_view, name='request_view'),
     path('',views.home,name='home'),
     path('log_in/',views.log_in,name='log_in'),
-    path('sign_up/',views.home,name='sign_up')
+    path('sign_up/',views.home,name='sign_up'),
+    path('test_view/',views.test_redirect_view,name='redirect')
 ]

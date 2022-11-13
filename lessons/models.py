@@ -27,6 +27,16 @@ class User(AbstractUser):
     first_name = models.CharField(max_length = 50, blank=False, unique = False)
     last_name = models.CharField(max_length = 50, blank=False, unique = False)
     email = models.EmailField(unique = True, blank = False)
+    username = models.CharField(
+        max_length=30,
+        unique=True,
+        validators=[RegexValidator(
+            regex=r'^@\w{3,}$',
+            message='Username must consist of @ followed by at least three alphanumericals'
+        )]
+    )
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
     pass
 
 class Request(models.Model):

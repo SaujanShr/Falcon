@@ -14,5 +14,5 @@ class RequestViewForm(forms.ModelForm):
     )
 
 class LogInForm(forms.Form):
-    username = forms.CharField(label='Username')
+    email = forms.CharField(label='Email')
     password = forms.CharField(label='Password', widget=forms.PasswordInput())
