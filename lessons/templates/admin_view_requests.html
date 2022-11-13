@@ -2,9 +2,32 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Current Bookings & Requests</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
 </head>
 <body>
-Hey
+<h1>Current Bookings</h1>
+<table class="table table-dark table-striped">
+    <thead>
+    <tr>
+        <th>Teacher</th>
+        <th>Student</th>
+        <th>Day</th>
+        <th>Time</th>
+        <th>Duration</th>
+        <th>Starting</th>
+        <th>Frequency</th>
+        <th style="width: 25%">Further Information</th>
+        <th style="width: 10%">Invoice ID</th>
+    </tr>
+    </thead>
+</table>
+<h1>Current Requests</h1>
+{% if bookings %}
+        {% for booking in bookings %}
+            <p>Hey</p>
+        {% endfor %}
+    {% endif %}
 </body>
 </html>

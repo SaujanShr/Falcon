@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .models import Request
+from .models import Request, Booking
 from .forms import RequestViewForm
 
 def student_page(request):
@@ -24,5 +24,8 @@ def request_view(request):
 
 def admin_bookings_requests_view(request):
     if request.method == 'GET':
-        return render(request, 'admin_view_requests.html')
+        requests = Request.objects.all()
+        bookings = Booking.objects.all()
+        return render(request, 'admin_view_requests.html', {'requests': requests,
+                                                            'bookings': bookings})
 
