@@ -25,6 +25,6 @@ class SignUpForm(forms.ModelForm):
         model = User
         fields = ['first_name', 'last_name', 'email']
 
-    new_password = forms.CharField(label='Password')
+    new_password = forms.CharField(label='Password', widget=forms.PasswordInput())
     password_confirmation = forms.CharField(label='Password Confirmation', widget=forms.PasswordInput())
 
