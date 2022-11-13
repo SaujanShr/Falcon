@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from .models import Request
-from .forms import RequestViewForm
+from .forms import RequestViewForm, TransactionSubmitForm
 
 def student_page(request):
     requests = Request.objects.all()
@@ -21,3 +21,13 @@ def request_view(request):
                 }
             )
         return render(request, 'request_view.html', {'form':form})
+
+def transaction_admin_view(request):
+    if request.method == 'POST':
+        form = TransactionSubmitForm(request.POST)
+        if form.is_valid():
+            form.save()
+    else:
+        form = TransactionSubmitForm()
+    
+    return render(request, 'transaction_admin_view.html', {'form' : form})
