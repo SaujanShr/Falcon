@@ -10,7 +10,7 @@ from django.conf import settings
 @login_required
 @allowed_groups(["Student"])
 def student_page(request):
-    requests = Request.objects.all()
+    requests = Request.objects.filter(user =request.user.id)
     return render(request, 'student_page.html', {'requests':requests})
 
 @login_required
