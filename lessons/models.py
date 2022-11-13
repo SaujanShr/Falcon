@@ -1,7 +1,10 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractBaseUser
 from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
 from datetime import date
+from django.utils import timezone
+from .user_manager import UserManager
+from django.contrib.auth.models import PermissionsMixin
 
 class DayOfTheWeek(models.Model):
     class Day(models.TextChoices):
@@ -23,21 +26,50 @@ class DayOfTheWeek(models.Model):
         return self.day
 
 
-class User(AbstractUser):
+class User(AbstractBaseUser,PermissionsMixin):
     first_name = models.CharField(max_length = 50, blank=False, unique = False)
     last_name = models.CharField(max_length = 50, blank=False, unique = False)
     email = models.EmailField(unique = True, blank = False)
-    username = models.CharField(
-        max_length=30,
-        unique=True,
-        validators=[RegexValidator(
-            regex=r'^@\w{3,}$',
-            message='Username must consist of @ followed by at least three alphanumericals'
-        )]
+    is_active = models.BooleanField(
+        ('active'),
+        default=True,
+        help_text=(
+            'Designates whether this user should be '
+            'treated as active. Unselect this instead '
+            'of deleting accounts.'
+        ),
     )
+    is_superuser = models.BooleanField(
+        ('staff status'),
+        default=False,
+        help_text=(
+            'Designates whether the user can log into '
+            'this admin site.'
+        ),
+    )
+    is_staff = models.BooleanField(
+        ('staff status'),
+        default=False,
+        help_text=(
+            'Designates whether the user can log into '
+            'this admin site.'
+        ),
+    )
+    date_joined = models.DateTimeField(
+        ('date joined'),
+        default=timezone.now,
+    )
+    # username = models.CharField(
+    #     max_length=30,
+    #     unique=True,
+    #     validators=[RegexValidator(
+    #         regex=r'^@\w{3,}$',
+    #         message='Username must consist of @ followed by at least three alphanumericals'
+    #     )]
+    # )
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
-    pass
+    objects = UserManager()
 
 class Request(models.Model):
     class IntervalBetweenLessons(models.IntegerChoices):

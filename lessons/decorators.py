@@ -5,7 +5,11 @@ from django.http import HttpResponse
 def login_prohibited(view_function):
     def modified_view_function(request):
         if request.user.is_authenticated:
-            return redirect(settings.REDIRECT_URL_WHEN_LOGGED_IN)
+            if (request.user.groups.all()[0].name == 'Student'):
+                    user_specific_redirect = settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_STUDENT
+            elif (request.user.groups.all()[0].name == 'Admin'):
+                user_specific_redirect = settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_ADMIN
+            return redirect(user_specific_redirect)
         else:
             return view_function(request)
             # execute
@@ -19,8 +23,13 @@ def allowed_groups(allowed_groups_names = []):
                 group = request.user.groups.all()[0].name
             
             if group in allowed_groups_names:
-                return view_func(request,*args,**kwargs)
+                return view_function(request)
             else:
-                return HttpResponse("ERROR 404: We can create an Error 404 Page")
+                if group == 'Admin':
+                    return redirect('redirect')
+                elif group == 'Student':
+                    return redirect('student_page')
+                else:
+                    return HttpResponse("pb")
         return wrapper
     return decorator
