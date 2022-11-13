@@ -21,3 +21,8 @@ def request_view(request):
                 }
             )
         return render(request, 'request_view.html', {'form':form})
+
+def admin_bookings_requests_view(request):
+    if request.method == 'GET':
+        return render(request, 'admin_view_requests.html')
+

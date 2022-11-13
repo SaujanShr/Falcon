@@ -52,7 +52,7 @@ class Booking(models.Model):
 
     class LessonDuration(models.IntegerChoices):
         THIRTY_MINUTES = 30, '30 Minutes'
-        FOURTY_FIVE_MINUTES = 45, '45 Minutes'
+        FORTY_FIVE_MINUTES = 45, '45 Minutes'
         SIXTY_MINUTES = 60, '60 Minutes'
 
     day_of_the_week = models.ManyToManyField(DayOfTheWeek, blank=False)

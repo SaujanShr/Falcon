@@ -12,3 +12,4 @@ class RequestViewForm(forms.ModelForm):
         label="Available Days", 
         widget=forms.CheckboxSelectMultiple
     )
+
