@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from .models import Request
-from .forms import RequestViewForm, LogInForm
+from .forms import RequestViewForm, LogInForm, TransactionSubmitForm
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
@@ -65,3 +65,13 @@ def sign_up(request):
 @allowed_groups(["Admin"])
 def test_redirect_view(request):
     return render(request, 'test_redirect.html')
+
+def transaction_admin_view(request):
+    if request.method == 'POST':
+        form = TransactionSubmitForm(request.POST)
+        if form.is_valid():
+            form.save()
+    else:
+        form = TransactionSubmitForm()
+    
+    return render(request, 'transaction_admin_view.html', {'form' : form})

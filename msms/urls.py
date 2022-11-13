@@ -26,4 +26,5 @@ urlpatterns = [
     path('log_in/',views.log_in,name='log_in'),
     path('sign_up/',views.home,name='sign_up'),
     path('test_view/',views.test_redirect_view,name='redirect')
+    path('transactions/admin', views.transaction_admin_view, name='transaction_admin_view')
 ]
