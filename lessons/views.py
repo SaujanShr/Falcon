@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .models import Request, Booking
+from .models import Request, Booking, DayOfTheWeek, User #TODO: remove dayoftheweek
 from .forms import RequestViewForm
 
 def student_page(request):

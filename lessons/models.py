@@ -58,9 +58,9 @@ class Booking(models.Model):
     invoice_id = models.CharField(blank=False, max_length=10)
     day_of_the_week = models.ManyToManyField(DayOfTheWeek, blank=False)
     time_of_the_day = models.TimeField(auto_now=False, auto_now_add=False)
-    student = models.ForeignKey(User, blank=False, on_delete=models.CASCADE)  # The same as user in Request model
+    student = models.ForeignKey(User, blank=True, on_delete=models.CASCADE)  # The same as user in Request model
     teacher = models.CharField(blank=False, max_length=100)
     start_date = models.DateField(blank=False)
-    duration_of_lessons = models.PositiveIntegerField(choices=LessonDuration.choices)
-    interval_between_lessons = models.PositiveIntegerField(choices=IntervalBetweenLessons.choices)
+    duration_of_lessons = models.PositiveIntegerField(blank=False, choices=LessonDuration.choices)
+    interval_between_lessons = models.PositiveIntegerField(choices=IntervalBetweenLessons.choices, blank=False)
     further_information = models.CharField(blank=False, max_length=500)
