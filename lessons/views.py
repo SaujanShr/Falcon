@@ -48,5 +48,11 @@ def log_in(request):
 
 
 def sign_up(request):
-    form = SignUpForm()
+    if request.method == 'POST':
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('home') # TEMP redirect back to home
+    else:
+        form = SignUpForm()
     return render(request, 'sign_up.html', {'form': form})
