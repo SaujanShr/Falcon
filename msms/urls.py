@@ -23,4 +23,10 @@ urlpatterns = [
     path('request_view/', views.request_view, name='request_view'),
     path('new_request/', views.request_view, name='request_view'),
     path('admin_view_requests_and_bookings/', views.admin_bookings_requests_view, name='admin_request_view')
+    path('new_request/', views.request_view, name='request_view'),
+    path('',views.home,name='home'),
+    path('log_in/',views.log_in,name='log_in'),
+    path('sign_up/',views.home,name='sign_up'),
+    path('test_view/',views.test_redirect_view,name='redirect'),
+    path('transactions/admin', views.transaction_admin_view, name='transaction_admin_view')
 ]
