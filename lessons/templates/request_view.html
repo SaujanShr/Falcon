@@ -8,7 +8,7 @@
   </head>
   <body>
     <h1> Request </h1>
-    <form action="/request_view/" method="post">
+    <form action="/request_list/" method="post">
         {% csrf_token %}
         {{ form.as_p }}
         <input type="submit" name="edit" value="Edit">

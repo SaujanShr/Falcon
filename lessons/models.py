@@ -3,7 +3,6 @@ from django.contrib.auth.models import AbstractBaseUser
 from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
 from django.utils import timezone
 from datetime import date
-from django.utils import timezone
 from .user_manager import UserManager
 from django.contrib.auth.models import PermissionsMixin
 

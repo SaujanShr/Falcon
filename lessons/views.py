@@ -6,44 +6,33 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from .decorators import login_prohibited, allowed_groups
 from django.conf import settings
+from functions import *
 
 @login_required
 @allowed_groups(["Student"])
 def student_page(request):
-    if request.method == 'POST':
-        form = request.POST
-        if 'delete' in form:
-            Request.objects.get(date=form['date']).delete()
-        elif 'edit' in form:
-            if form.is_valid():
-                Request.objects.get(date=form['date']).delete()
-                form.save()
-    
-    requests = Request.objects.filter(user=request.user)
-    date_requests = []
-    for req in requests:
-        date_requests.append([str(req.date), req])
-        
-    return render(request, 'student_page.html', {'date_requests':date_requests})
+    return render(request, 'student_page.html')
 
+@login_required
+@allowed_groups(["Student"])
+def request_list(request):
+    if request.method == 'POST':
+        data = request.POST
+        if 'delete' in data:
+            delete_request(data)
+        elif 'edit' in data:
+            if data.is_valid():
+                update_request(data)
+                
+    user_requests = get_user_requests(request.user)
+    return render(request, 'request_list.html', {'user_requests':user_requests})
 
 @login_required
 @allowed_groups(["Student"])
 def request_view(request):
-    if request.method == 'GET':
-        this_request = Request.objects.get(date=request.GET['date'])
-        form = RequestViewForm(
-            initial={
-                'date':this_request.date,
-                'availability':this_request.availability.all(),
-                'number_of_lessons':this_request.number_of_lessons,
-                'interval_between_lessons':this_request.interval_between_lessons,
-                'duration_of_lessons':this_request.duration_of_lessons,
-                'further_information':this_request.further_information,
-                'fulfilled':this_request.fulfilled
-                }
-            )
-        return render(request, 'request_view.html', {'form':form})
+    data = request.GET
+    form = get_request_view_form(data)
+    return render(request, 'request_view.html', {'form':form})
 
 @login_prohibited
 def home(request):
