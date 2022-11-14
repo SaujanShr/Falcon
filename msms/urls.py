@@ -22,9 +22,10 @@ urlpatterns = [
     path('student_page/', views.student_page, name='student_page'),
     path('request_view/', views.request_view, name='request_view'),
     path('new_request/', views.request_view, name='request_view'),
-    path('',views.home,name='home'),
-    path('log_in/',views.log_in,name='log_in'),
-    path('sign_up/',views.home,name='sign_up'),
-    path('test_view/',views.test_redirect_view,name='redirect'),
-    path('transactions/admin', views.transaction_admin_view, name='transaction_admin_view')
+    path('', views.home, name='home'),
+    path('log_in/', views.log_in, name='log_in'),
+    path('sign_up/', views.home, name='sign_up'),
+    path('test_view/', views.test_redirect_view, name='redirect'),
+    path('transactions/admin', views.transaction_admin_view, name='transaction_admin_view'),
+    path('new_request_view', views.new_request_view, name='new_request_view')
 ]

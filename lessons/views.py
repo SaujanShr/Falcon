@@ -36,6 +36,24 @@ def request_view(request):
             )
         return render(request, 'request_view.html', {'form':form})
 
+
+    #     return
+
+
+def new_request_view(request):
+    # if request.method == 'POST':
+    #     form = LogInForm(request.POST)
+    #     if form.is_valid():
+    #         date = form.cleaned_data.get('date')
+    #         availability = form.cleaned_data.get('availability')
+    #         number_of_lessons = form.cleaned_data.get('number_of_lessons')
+    #         interval_between_lessons = form.cleaned_data.get('interval_between_lessons')
+    #         duration_of_lessons = form.cleaned_data.get('duration_of_lessons')
+    #         further_information = form.cleaned_data.get('further_information')
+    #         fulfilled = form.cleaned_data.get('fulfilled')
+    return render(request, 'new_request_view.html')
+
+
 @login_prohibited
 def home(request):
     return render(request, 'home.html')
