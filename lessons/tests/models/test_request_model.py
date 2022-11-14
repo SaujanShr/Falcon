@@ -14,7 +14,7 @@ class RequestModelTestCase(TestCase):
         DayOfTheWeek.objects.create(order = 6, day = DayOfTheWeek.Day.SUNDAY)
         self.request1 = Request.objects.create(
             user = User.objects.create_user(
-                username='username',
+                email='email@email.com',
                 password='password'
             ),
             date = timezone.now(),
@@ -29,7 +29,7 @@ class RequestModelTestCase(TestCase):
 
         self.request2 = Request.objects.create(
             user = User.objects.create_user(
-                username='username2',
+                email='email2@email.com',
                 password='password'
             ),
             date = timezone.now(),
