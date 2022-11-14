@@ -10,7 +10,16 @@ from django.conf import settings
 @login_required
 @allowed_groups(["Student"])
 def student_page(request):
-    requests = Request.objects.filter(user=request.user.id)
+    if request.method == 'POST':
+        form = request.POST
+        if 'delete' in form:
+            Request.objects.get(date=form['date']).delete()
+        elif 'edit' in form:
+            if form.is_valid():
+                Request.objects.get(date=form['date']).delete()
+                form.save()
+    
+    requests = Request.objects.filter(user=request.user)
     date_requests = []
     for req in requests:
         date_requests.append([str(req.date), req])
