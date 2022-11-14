@@ -7,7 +7,7 @@ import datetime
 class TransactionFormTestCase(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
-                username='username',
+                email='email1@email.com',
                 password='password'
             )
 
