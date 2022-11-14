@@ -1,6 +1,6 @@
 from django.test import TestCase
 from django.core.exceptions import ValidationError
-from lessons.models import User, Request, DayOfTheWeek, Booking
+from lessons.models import User, DayOfTheWeek, Booking
 from django.utils import timezone
 
 class BookingModelTestCase(TestCase):
@@ -46,13 +46,13 @@ class BookingModelTestCase(TestCase):
 
     def _assert_request_is_valid(self):
         try:
-            self.request1.full_clean()
+            self.booking1.full_clean()
         except (ValidationError):
             self.fail('Test request should be valid.')
 
     def _assert_request_is_invalid(self):
         with self.assertRaises(ValidationError):
-            self.request1.full_clean()
+            self.booking1.full_clean()
 
     def test_booking_is_valid(self):
         self._assert_request_is_valid()

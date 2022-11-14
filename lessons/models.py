@@ -55,7 +55,7 @@ class Booking(models.Model):
         FORTY_FIVE_MINUTES = 45, '45 Minutes'
         SIXTY_MINUTES = 60, '60 Minutes'
 
-    invoice_id = models.CharField(blank=False, max_length=10)
+    invoice_id = models.CharField(unique=True, blank=False, max_length=10)
     day_of_the_week = models.ManyToManyField(DayOfTheWeek, blank=False)
     time_of_the_day = models.TimeField(auto_now=False, auto_now_add=False)
     student = models.ForeignKey(User, blank=True, on_delete=models.CASCADE)  # The same as user in Request model
