@@ -1,8 +1,11 @@
-from .models import Request
+from .models import Request, Booking
 from .forms import RequestViewForm
 
 def get_user_requests(request_user):
     return Request.objects.filter(user=request_user)
+
+def get_user_bookings(request_user):
+    return Booking.objects.filter(user=request_user)
 
 def delete_request(request_data):
     Request.objects.get(date=request_data['date']).delete()

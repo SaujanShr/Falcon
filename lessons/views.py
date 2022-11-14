@@ -11,7 +11,8 @@ from .functions import *
 @login_required
 @allowed_groups(['Student'])
 def student_page(request):
-    return render(request, 'student_page.html')
+    user_bookings = get_user_bookings(request.user)
+    return render(request, 'student_page.html', {'user_bookings':user_bookings})
 
 @login_required
 @allowed_groups(['Student'])
@@ -30,7 +31,7 @@ def request_list(request):
 @login_required
 @allowed_groups(['Student'])
 def request_view(request):
-    data = request.GET
+    data = request.POST
     form = get_request_view_form(data)
     return render(request, 'request_view.html', {'form':form})
 
