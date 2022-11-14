@@ -31,6 +31,7 @@ class User(AbstractBaseUser,PermissionsMixin):
     first_name = models.CharField(max_length = 50, blank=False, unique = False)
     last_name = models.CharField(max_length = 50, blank=False, unique = False)
     email = models.EmailField(unique = True, blank = False)
+    balance = models.IntegerField(default=0)
     is_active = models.BooleanField(
         ('active'),
         default=True,
@@ -60,14 +61,7 @@ class User(AbstractBaseUser,PermissionsMixin):
         ('date joined'),
         default=timezone.now,
     )
-    # username = models.CharField(
-    #     max_length=30,
-    #     unique=True,
-    #     validators=[RegexValidator(
-    #         regex=r'^@\w{3,}$',
-    #         message='Username must consist of @ followed by at least three alphanumericals'
-    #     )]
-    # )
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
     objects = UserManager()
