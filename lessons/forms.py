@@ -1,8 +1,9 @@
 from django import forms
-from django.forms import DateInput
 
 from .models import DayOfTheWeek, Request, BankTransaction
 
+class DateInput(forms.DateInput):
+    input_type = 'date'
 class RequestViewForm(forms.ModelForm):
     class Meta:
         model = Request
