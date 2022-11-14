@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from .decorators import login_prohibited, allowed_groups
 from django.conf import settings
 from django.shortcuts import render
-from .models import Request, Booking, DayOfTheWeek, User #TODO: remove dayoftheweek
+from .models import Request, Booking
 from .forms import RequestViewForm
 
 @login_required

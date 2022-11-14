@@ -107,15 +107,24 @@ class Booking(models.Model):
         FORTY_FIVE_MINUTES = 45, '45 Minutes'
         SIXTY_MINUTES = 60, '60 Minutes'
 
+    class DayOfWeek(models.IntegerChoices):
+        MONDAY = 1, 'Monday'
+        TUESDAY = 2, 'Tuesday'
+        WEDNESDAY = 3, 'Wednesday'
+        THURSDAY = 4, 'Thursday'
+        FRIDAY = 5, 'Friday'
+        SATURDAY = 6, 'Saturday'
+        SUNDAY = 7, 'Sunday'
+
     invoice_id = models.CharField(unique=True, blank=False, max_length=10)
-    day_of_the_week = models.ManyToManyField(DayOfTheWeek, blank=False)
+    day_of_the_week = models.PositiveIntegerField(blank=False, choices=DayOfWeek.choices)
     time_of_the_day = models.TimeField(auto_now=False, auto_now_add=False)
     student = models.ForeignKey(User, blank=True, on_delete=models.CASCADE)  # The same as user in Request model
     teacher = models.CharField(blank=False, max_length=100)
     start_date = models.DateField(blank=False)
     duration_of_lessons = models.PositiveIntegerField(blank=False, choices=LessonDuration.choices)
     interval_between_lessons = models.PositiveIntegerField(choices=IntervalBetweenLessons.choices, blank=False)
-    number_of_lessons = models.PositiveIntegerField(blank=False)
+    number_of_lessons = models.PositiveIntegerField(blank=False, validators=[MinValueValidator(1)])
     further_information = models.CharField(blank=False, max_length=500)
 
 

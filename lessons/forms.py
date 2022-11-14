@@ -1,5 +1,7 @@
 from django import forms
-from .models import DayOfTheWeek, Request
+from django.forms import DateInput
+
+from .models import DayOfTheWeek, Request, BankTransaction
 
 class RequestViewForm(forms.ModelForm):
     class Meta:

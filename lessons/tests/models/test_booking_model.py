@@ -18,28 +18,29 @@ class BookingModelTestCase(TestCase):
                 password="password"
             ),
             invoice_id="0001-001",
-            day_of_the_week=DayOfTheWeek.Day.MONDAY,
             time_of_the_day="12:00",
             teacher="Mr Smith",
             number_of_lessons=20,
             start_date="2022-11-21",
             duration_of_lessons=Booking.LessonDuration.FORTY_FIVE_MINUTES,
             interval_between_lessons=Booking.IntervalBetweenLessons.TWO_WEEKS,
+            day_of_the_week=Booking.DayOfWeek.MONDAY,
             further_information="Extra Information"
         )
+
         self.booking2 = Booking.objects.create(
             student=User.objects.create_user(
                 email='janedoe@gmail.com',
                 password="password"
             ),
             invoice_id="0002-001",
-            day_of_the_week=DayOfTheWeek.Day.TUESDAY,
             time_of_the_day="9:00",
             teacher="Mr Singh",
             number_of_lessons=15,
             start_date="2022-11-22",
             duration_of_lessons=Booking.LessonDuration.THIRTY_MINUTES,
             interval_between_lessons=Booking.IntervalBetweenLessons.ONE_WEEK,
+            day_of_the_week=Booking.DayOfWeek.TUESDAY,
             further_information="Extra Information 2"
         )
 
@@ -73,8 +74,8 @@ class BookingModelTestCase(TestCase):
         self.booking1.date = timezone.datetime(9999, 1, 1, 1, 1, 1, tzinfo=timezone.utc)
         self._assert_request_is_valid()
 
-    def test_user_must_exist(self):
-        self.booking1.user.delete()
+    def test_student_must_exist(self):
+        self.booking1.student.delete()
         self._assert_request_is_invalid()
 
     def test_student_may_be_the_same(self):
