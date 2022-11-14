@@ -6,11 +6,11 @@ import datetime
 class TransactionModelTestCase(TestCase):
     def setUp(self):
         self.user1 = User.objects.create_user(
-            username = 'user1',
+            email = 'user1@test.com',
             password = 'pass1'
         )
         self.user2 = User.objects.create_user(
-            username = 'user2',
+            email = 'user2@test.com',
             password = 'pass2'
         )
         
