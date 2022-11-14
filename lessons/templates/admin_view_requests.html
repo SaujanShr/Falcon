@@ -8,7 +8,7 @@
 </head>
 <body>
 <h1>Current Bookings</h1>
-<table class="table table-dark table-striped">
+<table class="table table-dark table-striped" style="text-align: center; vertical-align: top">
     <thead>
     <tr>
         <th>Teacher</th>
@@ -24,15 +24,15 @@
     {% if bookings %}
         {% for booking in bookings %}
             <tr>
-                <td>{{ booking.teacher }}</td>
-                <td>{{ booking.student.first_name}}</td>
-                <td>{{ booking.day_of_the_week }}</td>
-                <td>{{ booking.time_of_the_day}}</td>
-                <td>{{ booking.duration_of_lessons }}</td>
-                <td>{{ booking.start_date }}</td>
-                <td>{{ booking.interval_between_lessons }}</td>
-                <td>{{ booking.further_information }}</td>
-                <td>{{ booking.invoice_id }}</td>
+                <td style="vertical-align: top">{{ booking.teacher }}</td>
+                <td style="vertical-align: top">{{ booking.student.email}} ({{ booking.student.first_name }} {{ booking.student.last_name }})</td>
+                <td style="vertical-align: top">{{ booking.day_of_the_week }}</td>
+                <td style="vertical-align: top">{{ booking.time_of_the_day}}</td>
+                <td style="vertical-align: top">{{ booking.duration_of_lessons }}</td>
+                <td style="vertical-align: top">{{ booking.start_date }}</td>
+                <td style="vertical-align: top">{{ booking.interval_between_lessons }}</td>
+                <td style="vertical-align: top">{{ booking.further_information }}</td>
+                <td style="vertical-align: top">{{ booking.invoice_id }}</td>
             </tr>
         {% endfor %}
     {% else %}
@@ -51,7 +51,7 @@
     </thead>
 </table>
 <h1>Current Requests</h1>
-<table class="table table-dark table-striped">
+<table class="table table-dark table-striped" style="text-align: center; vertical-align: top">
     <thead>
     <tr>
         <th>Date</th>
@@ -66,17 +66,20 @@
     {% if requests %}
         {% for request in requests %}
             <tr>
-                <td>{{ request.date }}</td>
-                <td>{{ request.user.email}}</td>
-                <td>{{ request.availability }}</td>
-                <td>{{ request.number_of_lessons}}</td>
-                <td>{{ request.interval_between_lessons }}</td>
-                <td>{{ request.duration_of_lessons }}</td>
-                <td>{{ request.further_information }}</td>
+                <td style="vertical-align: top">{{ request.date }}</td>
+                <td style="vertical-align: top">{{ request.user.email}}</td>
+                <td style="vertical-align: top">
+                    {% for day in request.availability.all %}
+                        {{ day }}
+                    {% endfor %}</td>
+                <td style="vertical-align: top">{{ request.number_of_lessons}}</td>
+                <td style="vertical-align: top">{{ request.interval_between_lessons }}</td>
+                <td style="vertical-align: top">{{ request.duration_of_lessons }}</td>
+                <td style="vertical-align: top">{{ request.further_information }}</td>
                 {% if request.fulfilled %}
-                    <td>True</td>
+                    <td style="vertical-align: top">True</td>
                 {% else %}
-                    <td><a href="/fulfill_request/?id={{ request.user.email }}">False</a></td> <!--TODO: Replace this with actual ID once we have those.-->
+                    <td style="vertical-align: top"><a href="/fulfill_request/?id={{ request.user.email }}">False</a></td> <!--TO DO: Replace this with actual ID once we have those.-->
                 {% endif %}
             </tr>
         {% endfor %}

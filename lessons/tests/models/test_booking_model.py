@@ -5,13 +5,6 @@ from django.utils import timezone
 
 class BookingModelTestCase(TestCase):
     def setUp(self):
-        DayOfTheWeek.objects.create(order=0, day=DayOfTheWeek.Day.MONDAY)
-        DayOfTheWeek.objects.create(order=1, day=DayOfTheWeek.Day.TUESDAY)
-        DayOfTheWeek.objects.create(order=2, day=DayOfTheWeek.Day.WEDNESDAY)
-        DayOfTheWeek.objects.create(order=3, day=DayOfTheWeek.Day.THURSDAY)
-        DayOfTheWeek.objects.create(order=4, day=DayOfTheWeek.Day.FRIDAY)
-        DayOfTheWeek.objects.create(order=5, day=DayOfTheWeek.Day.SATURDAY)
-        DayOfTheWeek.objects.create(order=6, day=DayOfTheWeek.Day.SUNDAY)
         self.booking1 = Booking.objects.create(
             student=User.objects.create_user(
                 email='johndoe@gmail.com',
@@ -117,6 +110,13 @@ class BookingModelTestCase(TestCase):
 
     def test_invoice_id_cannot_be_the_same(self):
         self.booking1.invoice_id = self.booking2.invoice_id
+        self._assert_request_is_invalid()
+
+    def test_invoice_id_cannot_be_less_than_8_characters(self):
+        self.booking1.invoice_id = "0001-01"
+        self._assert_request_is_invalid()
+    def test_invoice_id_cannot_be_more_than_8_characters(self):
+        self.booking1.invoice_id = "0001-0001"
         self._assert_request_is_invalid()
 
     def test_number_of_lessons_cannot_be_below_one(self):

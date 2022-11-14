@@ -6,6 +6,8 @@ class AdminRequestsViewTestCase(TestCase):
     """Tests of the admin page to see all bookings and requests."""
 
     def setUp(self):
+        pass
+        """
         DayOfTheWeek.objects.create(order = 0, day = DayOfTheWeek.Day.MONDAY)
         DayOfTheWeek.objects.create(order = 1, day = DayOfTheWeek.Day.TUESDAY)
         DayOfTheWeek.objects.create(order = 2, day = DayOfTheWeek.Day.WEDNESDAY)
@@ -42,6 +44,7 @@ class AdminRequestsViewTestCase(TestCase):
         self.request2.availability.set([DayOfTheWeek.objects.get(day = DayOfTheWeek.Day.TUESDAY),
                                         DayOfTheWeek.objects.get(day = DayOfTheWeek.Day.THURSDAY),
                                         DayOfTheWeek.objects.get(day = DayOfTheWeek.Day.FRIDAY)])
+        """
 """
     def test_get_admin_request_view_page(self):
         url = '/'
