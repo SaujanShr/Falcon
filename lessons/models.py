@@ -60,18 +60,15 @@ class User(AbstractBaseUser,PermissionsMixin):
         ('date joined'),
         default=timezone.now,
     )
-    # username = models.CharField(
-    #     max_length=30,
-    #     unique=True,
-    #     validators=[RegexValidator(
-    #         regex=r'^@\w{3,}$',
-    #         message='Username must consist of @ followed by at least three alphanumericals'
-    #     )]
-    # )
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
     objects = UserManager()
 
+class Student(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE,related_name='user_record', blank=False)
+    balance = models.IntegerField(default=0)
+    
 class Request(models.Model):
     class IntervalBetweenLessons(models.IntegerChoices):
         ONE_WEEK = 1, '1 Week'
