@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from .models import Request
-from .forms import RequestViewForm, LogInForm, TransactionSubmitForm
+from .forms import RequestViewForm, LogInForm, TransactionSubmitForm, NewRequestViewForm
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
@@ -42,15 +42,13 @@ def request_view(request):
 
 def new_request_view(request):
     if request.method == 'POST':
-        form = RequestViewForm(request.POST)
+        form = NewRequestViewForm(request.POST)
         if form.is_valid():
-            # date = form.cleaned_data.get('date')
             # availability = form.cleaned_data.get('availability')
             # number_of_lessons = form.cleaned_data.get('number_of_lessons')
             # interval_between_lessons = form.cleaned_data.get('interval_between_lessons')
             # duration_of_lessons = form.cleaned_data.get('duration_of_lessons')
             # further_information = form.cleaned_data.get('further_information')
-            # fulfilled = form.cleaned_data.get('fulfilled')
             form.save()
             return redirect('student_page')
         # Add error message
