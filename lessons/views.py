@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from .forms import RequestViewForm, LogInForm, TransactionSubmitForm, NewRequestViewForm, SignUpForm
 from .models import Request, Booking
 from django.contrib import messages
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from .decorators import login_prohibited, allowed_groups
 from django.conf import settings
@@ -112,6 +112,11 @@ def sign_up(request):
     return render(request, 'sign_up.html', {'form': form})
 
 
+def log_out(request):
+    logout(request)
+    return redirect('home')
+
+
 # THIS VIEW IS FOR TESTING PURPOSES, TO DELETE FOR LATER VERSIONS
 @login_required
 @allowed_groups(["Admin"])
@@ -181,7 +186,7 @@ def admin_bookings_requests_view(request):
         for booking in bookings:
             booking.day_of_the_week = booking.DayOfWeek.choices[booking.day_of_the_week - 1][1]
             booking.interval_between_lessons = \
-            booking.IntervalBetweenLessons.choices[booking.interval_between_lessons - 1][1]
+                booking.IntervalBetweenLessons.choices[booking.interval_between_lessons - 1][1]
             for duration in booking.LessonDuration.choices:
                 if duration[0] == booking.duration_of_lessons:
                     booking.duration_of_lessons = duration[1]
