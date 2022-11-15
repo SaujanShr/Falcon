@@ -106,7 +106,7 @@ def sign_up(request):
         form = SignUpForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('home')  # TEMP redirect back to home
+            return redirect('log_in')  # redirect back to log-in, unless they should be redirected to the student page.
     else:
         form = SignUpForm()
     return render(request, 'sign_up.html', {'form': form})

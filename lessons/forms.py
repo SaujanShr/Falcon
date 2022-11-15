@@ -64,15 +64,14 @@ class SignUpForm(forms.ModelForm):
     def save(self):
         super().save(commit=False)  # Do everything the save function would normally do except for storing the record in the database.
         user = User.objects.create_user(
-            self.cleaned_data.get('email'),
             first_name=self.cleaned_data.get('first_name'),
             last_name=self.cleaned_data.get('last_name'),
             email=self.cleaned_data.get('email'),
             password=self.cleaned_data.get('new_password'),
         )
         return user
-    email = forms.CharField(label='Email')
-    password = forms.CharField(label='Password', widget=forms.PasswordInput())
+    #email = forms.EmailField(label='Email')
+    #password = forms.CharField(label='Password', widget=forms.PasswordInput())
 
 
 class TransactionSubmitForm(forms.ModelForm):
