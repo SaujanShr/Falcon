@@ -90,8 +90,8 @@ def log_in(request):
                 login(request, user)
                 if (user.groups.all()[0].name == 'Student'):
                     user_specific_redirect = settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_STUDENT
-                elif (user.groups.all()[0].name == 'Admin'):
-                    user_specific_redirect = settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_ADMIN
+                elif (user.groups.all()[0].name == 'Administrator'):
+                    user_specific_redirect = settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_ADMINISTRATOR
                 redirect_url = request.POST.get('next') or user_specific_redirect
                 return redirect(redirect_url)
         messages.add_message(request, messages.ERROR,
@@ -114,7 +114,7 @@ def sign_up(request):
 
 # THIS VIEW IS FOR TESTING PURPOSES, TO DELETE FOR LATER VERSIONS
 @login_required
-@allowed_groups(["Admin"])
+@allowed_groups(["Administrator"])
 def test_redirect_view(request):
     return render(request, 'test_redirect.html')
 
@@ -131,7 +131,7 @@ def transaction_admin_view(request):
 
 
 # @login_required
-# @allowed_groups(["Admin"])
+# @allowed_groups(["Administrator"])
 def admin_bookings_requests_view(request):
     if request.method == 'GET':
 
