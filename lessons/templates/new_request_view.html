@@ -6,7 +6,7 @@
         <div class="col-sm-12 col-md-6 offset-md-3">
             <h1>New Request</h1>
 
-            <form action="{% url 'new_request' %}" method="post">
+            <form action="{% url 'new_request_view' %}" method="post">
                 {% csrf_token %}
                 {% include 'partials/bootstrap_form.html' with form=form %}
                 <input type="submit" value="Submit" class="btn btn-primary">
