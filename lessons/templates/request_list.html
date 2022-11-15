@@ -32,7 +32,7 @@
       </thead>
       {% if user_requests %}
         {% for user_request in user_requests %}
-          <tr><form action="/request_view/" method="post">
+          <tr><form action="/request_view/" method="get">
               <input type="hidden" name="date" value="{{ user_request.date }}"/>
               <td><input type="submit" value="{{ user_request.date }}"/></td>
               <td>{{ user_request.further_information }}</td>
