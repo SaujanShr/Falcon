@@ -20,13 +20,15 @@ from lessons import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('student_page/', views.student_page, name='student_page'),
+    path('request_list/', views.request_list, name='request_list'),
     path('request_view/', views.request_view, name='request_view'),
     path('new_request/', views.request_view, name='request_view'),
+    path('log_in/', views.log_in, name='log_in'),
+    path('', views.home, name='home'),
+    path('sign_up/', views.home, name='sign_up'),
+    path('test_view/', views.test_redirect_view, name='redirect'),
+    path('transactions/admin', views.transaction_admin_view, name='transaction_admin_view'),
+    path('new_request_view', views.new_request_view, name='new_request_view'),
     path('admin_view_requests_and_bookings/', views.admin_bookings_requests_view, name='admin_request_view'),
-    path('new_request/', views.request_view, name='request_view'),
-    path('',views.home,name='home'),
-    path('log_in/',views.log_in,name='log_in'),
-    path('sign_up/',views.home,name='sign_up'),
-    path('test_view/',views.test_redirect_view,name='redirect'),
-    path('transactions/admin', views.transaction_admin_view, name='transaction_admin_view')
+    # path('new_request/', views.request_view, name='request_view'), # Please replace all instances of new_request with new_request_view
 ]

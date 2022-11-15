@@ -3,7 +3,6 @@ from django.contrib.auth.models import AbstractBaseUser
 from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
 from django.utils import timezone
 from datetime import date
-from django.utils import timezone
 from .user_manager import UserManager
 from django.contrib.auth.models import PermissionsMixin
 
@@ -31,6 +30,7 @@ class User(AbstractBaseUser,PermissionsMixin):
     first_name = models.CharField(max_length = 50, blank=False, unique = False)
     last_name = models.CharField(max_length = 50, blank=False, unique = False)
     email = models.EmailField(unique = True, blank = False)
+    balance = models.IntegerField(default=0)
     is_active = models.BooleanField(
         ('active'),
         default=True,

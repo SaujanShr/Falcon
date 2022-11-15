@@ -1,44 +1,59 @@
 from django.shortcuts import render, redirect
-from .models import Request
-from .forms import RequestViewForm, LogInForm, TransactionSubmitForm
+from .forms import RequestViewForm, LogInForm, TransactionSubmitForm, NewRequestViewForm
+from .models import Request, Booking
+
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from .decorators import login_prohibited, allowed_groups
 from django.conf import settings
-from django.shortcuts import render
-from .models import Request, Booking, User, DayOfTheWeek
-from django.utils import timezone
-from .forms import RequestViewForm
+from .functions import *
 
 @login_required
-@allowed_groups(["Student"])
+@allowed_groups(['Student'])
 def student_page(request):
-    requests = Request.objects.filter(user=request.user.id)
-    date_requests = []
-    for req in requests:
-        date_requests.append([str(req.date), req])
-
-    return render(request, 'student_page.html', {'date_requests':date_requests})
-
+    return render(request, 'student_page.html')
 
 @login_required
-@allowed_groups(["Student"])
+@allowed_groups(['Student'])
+def request_list(request):
+    if request.method == 'POST':
+        data = request.POST
+        if 'delete' in data:
+            delete_request(data)
+        elif 'update' in data:
+            update_request(data)
+    
+    user_requests = get_user_requests(request.user)
+    return render(request, 'request_list.html', {'user_requests':user_requests})
+        
+
+@login_required
+@allowed_groups(['Student'])
 def request_view(request):
-    if request.method == 'GET':
-        this_request = Request.objects.get(date=request.GET['date'])
-        form = RequestViewForm(
-            initial={
-                'date':this_request.date,
-                'availability':this_request.availability.all(),
-                'number_of_lessons':this_request.number_of_lessons,
-                'interval_between_lessons':this_request.interval_between_lessons,
-                'duration_of_lessons':this_request.duration_of_lessons,
-                'further_information':this_request.further_information,
-                'fulfilled':this_request.fulfilled
-                }
-            )
-        return render(request, 'request_view.html', {'form':form})
+    data = request.GET
+    form = get_request_view_form(data)
+    return render(request, 'request_view.html', {'form':form})
+
+
+    #     return
+
+
+def new_request_view(request):
+    if request.method == 'POST':
+        form = NewRequestViewForm(request.POST)
+        if form.is_valid():
+            # availability = form.cleaned_data.get('availability')
+            # number_of_lessons = form.cleaned_data.get('number_of_lessons')
+            # interval_between_lessons = form.cleaned_data.get('interval_between_lessons')
+            # duration_of_lessons = form.cleaned_data.get('duration_of_lessons')
+            # further_information = form.cleaned_data.get('further_information')
+            form.save()
+            return redirect('student_page')
+        # Add error message
+        messages.add_message(request, messages.ERROR, "The details provided were invalid!")
+    return render(request, 'new_request_view.html', {'form': form})
+
 
 @login_prohibited
 def home(request):
