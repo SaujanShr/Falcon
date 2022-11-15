@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Current Bookings & Requests</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
+</head>
+<body>
+<h1>Current Bookings</h1>
+<table class="table table-dark table-striped" style="text-align: center; vertical-align: top">
+    <thead>
+    <tr>
+        <th>Teacher</th>
+        <th>Student</th>
+        <th>Day</th>
+        <th>Time</th>
+        <th>Duration</th>
+        <th>Starting</th>
+        <th>Frequency</th>
+        <th style="width: 25%">Further Information</th>
+        <th style="width: 10%">Invoice ID</th>
+    </tr>
+    {% if bookings %}
+        {% for booking in bookings %}
+            <tr>
+                <td style="vertical-align: top">{{ booking.teacher }}</td>
+                <td style="vertical-align: top">{{ booking.student.email}} ({{ booking.student.first_name }} {{ booking.student.last_name }})</td>
+                <td style="vertical-align: top">{{ booking.day_of_the_week }}</td>
+                <td style="vertical-align: top">{{ booking.time_of_the_day}}</td>
+                <td style="vertical-align: top">{{ booking.duration_of_lessons }}</td>
+                <td style="vertical-align: top">{{ booking.start_date }}</td>
+                <td style="vertical-align: top">{{ booking.interval_between_lessons }}</td>
+                <td style="vertical-align: top">{{ booking.further_information }}</td>
+                <td style="vertical-align: top">{{ booking.invoice_id }}</td>
+            </tr>
+        {% endfor %}
+    {% else %}
+        <tr>
+            <td style="text-align: left">No bookings yet...</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+    {% endif %}
+    </thead>
+</table>
+<h1>Current Requests</h1>
+<table class="table table-dark table-striped" style="text-align: center; vertical-align: top">
+    <thead>
+    <tr>
+        <th>Date</th>
+        <th>User</th>
+        <th>Availability</th>
+        <th># of Lessons</th>
+        <th>Frequency</th>
+        <th>Duration</th>
+        <th style="width: 25%">Further Information</th>
+        <th style="width: 10%">Fulfilled</th>
+    </tr>
+    {% if requests %}
+        {% for request in requests %}
+            <tr>
+                <td style="vertical-align: top">{{ request.date }}</td>
+                <td style="vertical-align: top">{{ request.user.email}}</td>
+                <td style="vertical-align: top">
+                    {% for day in request.availability.all %}
+                        {{ day }}
+                    {% endfor %}</td>
+                <td style="vertical-align: top">{{ request.number_of_lessons}}</td>
+                <td style="vertical-align: top">{{ request.interval_between_lessons }}</td>
+                <td style="vertical-align: top">{{ request.duration_of_lessons }}</td>
+                <td style="vertical-align: top">{{ request.further_information }}</td>
+                {% if request.fulfilled %}
+                    <td style="vertical-align: top">True</td>
+                {% else %}
+                    <td style="vertical-align: top"><a href="/fulfill_request/?id={{ request.user.email }}">False</a></td> <!--TO DO: Replace this with actual ID once we have those.-->
+                {% endif %}
+            </tr>
+        {% endfor %}
+    {% else %}
+        <tr>
+            <td style="text-align: left">No bookings yet...</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+    {% endif %}
+    </thead>
+</table>
+</body>
+</html>
