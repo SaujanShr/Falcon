@@ -88,10 +88,16 @@ def log_in(request):
             user = authenticate(email=email, password=password)
             if user is not None:
                 login(request, user)
-                if (user.groups.all()[0].name == 'Student'):
-                    user_specific_redirect = settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_STUDENT
-                elif (user.groups.all()[0].name == 'Admin'):
-                    user_specific_redirect = settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_ADMIN
+                if user.groups.exists():
+                    if (user.groups.all()[0].name == 'Student'):
+                        user_specific_redirect = settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_STUDENT
+                    elif (user.groups.all()[0].name == 'Admin'):
+                        user_specific_redirect = settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_ADMIN
+                else:
+                    if user.is_staff:
+                        user_specific_redirect = settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_DIRECTOR
+                    else:
+                        user_specific_redirect = ''
                 redirect_url = request.POST.get('next') or user_specific_redirect
                 return redirect(redirect_url)
         messages.add_message(request, messages.ERROR,
@@ -114,7 +120,7 @@ def sign_up(request):
 
 # THIS VIEW IS FOR TESTING PURPOSES, TO DELETE FOR LATER VERSIONS
 @login_required
-@allowed_groups(["Admin"])
+@allowed_groups(["Admin","Director"])
 def test_redirect_view(request):
     return render(request, 'test_redirect.html')
 
