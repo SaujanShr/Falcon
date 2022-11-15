@@ -6,6 +6,7 @@ from datetime import date
 from .user_manager import UserManager
 from django.contrib.auth.models import PermissionsMixin
 
+
 class DayOfTheWeek(models.Model):
     class Day(models.TextChoices):
         MONDAY = 'Monday'
@@ -24,7 +25,6 @@ class DayOfTheWeek(models.Model):
 
     def __str__(self):
         return self.day
-
 
 class User(AbstractBaseUser,PermissionsMixin):
     first_name = models.CharField(max_length = 50, blank=False, unique = False)
@@ -130,14 +130,13 @@ class Booking(models.Model):
     number_of_lessons = models.PositiveIntegerField(blank=False, validators=[MinValueValidator(1)])
     further_information = models.CharField(blank=False, max_length=500)
 
-
 class BankTransaction(models.Model):
     date = models.DateField(
         blank=False,
         validators=[MaxValueValidator(
             limit_value=date.today,
             message='')]
-        )
+    )
     student = models.ForeignKey(User, blank=False, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=6, decimal_places=2, blank=False)
     invoice_number = models.CharField(
