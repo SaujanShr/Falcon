@@ -114,6 +114,19 @@ class LogInViewTestCase(TestCase, LogInTester):
         self.assertTemplateUsed(response, 'test_redirect.html')
         messages_list = list(response.context['messages'])
         self.assertEqual(len(messages_list), 0)
+    
+    def test_successful_log_in_director(self):
+        user = User.objects.get(email = "janedoe@email.com")
+        user.is_staff=True
+        form_input = {'email': 'janedoe@email.com', 'password': 'Password123'}
+        response = self.client.post(self.url, form_input, follow=True)
+        self.assertTrue(self._is_logged_in())
+        response_url = reverse('redirect')
+        self.assertRedirects(response, response_url,
+                             status_code=302, target_status_code=200)
+        self.assertTemplateUsed(response, 'test_redirect.html')
+        messages_list = list(response.context['messages'])
+        self.assertEqual(len(messages_list), 0)
 
     def test_successful_log_in_with_redirect(self):
         redirect_url = reverse('student_page')
