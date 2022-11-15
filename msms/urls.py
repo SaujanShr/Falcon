@@ -28,7 +28,7 @@ urlpatterns = [
     path('sign_up/', views.home, name='sign_up'),
     path('test_view/', views.test_redirect_view, name='redirect'),
     path('transactions/admin', views.transaction_admin_view, name='transaction_admin_view'),
-    path('new_request_view', views.new_request_view, name='new_request_view')
+    path('new_request_view', views.new_request_view, name='new_request_view'),
     path('admin_view_requests_and_bookings/', views.admin_bookings_requests_view, name='admin_request_view'),
     # path('new_request/', views.request_view, name='request_view'), # Please replace all instances of new_request with new_request_view
 ]
