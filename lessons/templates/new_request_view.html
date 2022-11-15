@@ -4,13 +4,12 @@
 <div class="container">
     <div class="row">
         <div class="col-sm-12 col-md-6 offset-md-3">
-            <h1>Log in</h1>
+            <h1>New Request</h1>
 
-            <form action="{% url 'log_in' %}" method="post">
+            <form action="{% url 'new_request_view' %}" method="post">
                 {% csrf_token %}
-                <input type="hidden" name="next" value="{{ next }}">
                 {% include 'partials/bootstrap_form.html' with form=form %}
-                <input type="submit" value="Log in" class="btn btn-primary">
+                <input type="submit" value="Submit" class="btn btn-primary">
             </form>
         </div>
     </div>
