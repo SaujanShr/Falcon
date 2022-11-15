@@ -30,7 +30,6 @@ class User(AbstractBaseUser,PermissionsMixin):
     first_name = models.CharField(max_length = 50, blank=False, unique = False)
     last_name = models.CharField(max_length = 50, blank=False, unique = False)
     email = models.EmailField(unique = True, blank = False)
-    balance = models.IntegerField(default=0)
     is_active = models.BooleanField(
         ('active'),
         default=True,
