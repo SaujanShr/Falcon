@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
 from faker import Faker
-from microblogs.models import User
+from lessons.models import User
 
 
 class Command(BaseCommand):
@@ -13,10 +13,10 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         user_count = 0
+        self.create_mandatory_users()
         while user_count < Command.USER_COUNT:
             print(f'Seeding user {user_count}',  end='\r')
             try:
-                self.create_mandatory_users()
                 self._create_random_users()
             except (django.db.utils.IntegrityError):
                 continue
