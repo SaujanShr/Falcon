@@ -1,6 +1,6 @@
 from django import forms
 from django.core.validators import RegexValidator
-
+from django.contrib.auth.models import Group
 from .models import User, DayOfTheWeek, Request, BankTransaction
 
 
@@ -69,6 +69,8 @@ class SignUpForm(forms.ModelForm):
             email=self.cleaned_data.get('email'),
             password=self.cleaned_data.get('new_password'),
         )
+        student_group = Group.objects.get(name='Student')
+        student_group.user_set.add(user) # Add user as a Student
         return user
     #email = forms.EmailField(label='Email')
     #password = forms.CharField(label='Password', widget=forms.PasswordInput())
