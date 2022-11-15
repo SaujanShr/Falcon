@@ -8,17 +8,58 @@
   </head>
   <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-dark">
-      <a class="navbar-brand" href="{% url 'student_page'  %}">Dashboard</a>
+      <a class="navbar-brand text-white" href="{% url 'student_page'  %}">Dashboard</a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
         <div class="navbar-nav">
-          <a class="nav-item nav-link" href="{% url 'student_page'  %}">Home</a>
-          <a class="nav-item nav-link" href="{% url 'request_list' %}">Requests</a>
+          <a class="nav-item nav-link text-secondary" href="{% url 'student_page'  %}">Home</a>
+          <a class="nav-item nav-link text-secondary" href="{% url 'request_list' %}">Requests</a>
         </div>
       </div>
     </nav>
+    <h1>Bookings</h1>
+    <table class="table table-dark table-striped">
+      <thead>
+        <tr>
+          <th>Start Date</th>
+          <th>Day of the Week</th>
+          <th>Time of Day</th>
+          <th>Teacher</th>
+          <th>Duration of Lessons</th>
+          <th>Interval between Lessons</th>
+          <th>Number of Lessons</th>
+          <th>Further Information</th>
+        </tr>
+      </thead>
+      {% if user_bookings %}
+        {% for user_booking in user_bookings %}
+          <tr><form action="/request_view/" method="post">
+              <td>{{ user_bookings.start_date }}</td>
+              <td>{{ user_bookings.day_of_the_week }}</td>
+              <td>{{ user_bookings.time_of_day }}</td>
+              <td>{{ user_bookings.teacher }}</td>
+              <td>{{ user_bookings.duration_of_lessons }}</td>
+              <td>{{ user_bookings.interval_between_lessions }}</td>
+              <td>{{ user_bookings.number_of_lessons }}</td>
+              <td>{{ user_bookings.further_information }}</td>
+            </form></tr>
+        {% endfor %}
+      {% else %}
+        <tr>
+          <td>No requests yet...</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+      {% endif %}
+    </table>
+    <p><a href="{% url 'new_request_view' %}" class=" btn btn-sm btn-primary">New Request</a></p>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3" crossorigin="anonymous"></script>
   </body>
 </html>

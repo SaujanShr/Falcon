@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
+from .forms import RequestViewForm, LogInForm, TransactionSubmitForm, NewRequestViewForm
 from .models import Request, Booking
-from .forms import LogInForm, TransactionSubmitForm
+
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
@@ -33,6 +34,26 @@ def request_view(request):
     data = request.GET
     form = get_request_view_form(data)
     return render(request, 'request_view.html', {'form':form})
+
+
+    #     return
+
+
+def new_request_view(request):
+    if request.method == 'POST':
+        form = NewRequestViewForm(request.POST)
+        if form.is_valid():
+            # availability = form.cleaned_data.get('availability')
+            # number_of_lessons = form.cleaned_data.get('number_of_lessons')
+            # interval_between_lessons = form.cleaned_data.get('interval_between_lessons')
+            # duration_of_lessons = form.cleaned_data.get('duration_of_lessons')
+            # further_information = form.cleaned_data.get('further_information')
+            form.save()
+            return redirect('student_page')
+        # Add error message
+        messages.add_message(request, messages.ERROR, "The details provided were invalid!")
+    return render(request, 'new_request_view.html', {'form': form})
+
 
 @login_prohibited
 def home(request):
