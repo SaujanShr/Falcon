@@ -4,12 +4,18 @@ from django.test import TestCase
 from lessons.forms import SignUpForm
 from lessons.models import User
 from django.contrib.auth.hashers import check_password
+from io import StringIO
+from django.core.management import call_command
 
 
 class SignUpFormTestCase(TestCase):
     """Unit tests of the sign-up form."""
 
     def setUp(self):
+        # Run the create_groups command on test database:
+        out = StringIO()
+        call_command('create_groups', stdout=out)
+
         self.form_input = {
             'first_name': 'John',
             'last_name': 'Doe',
@@ -53,8 +59,7 @@ class SignUpFormTestCase(TestCase):
 
     # New password has correct format
     def test_password_must_contain_uppercase_character(self):
-        self.form_input[
-            'new_password'] = 'password123'  # This input meets all other requirements for a password except uppercase characters.
+        self.form_input['new_password'] = 'password123'  # This input meets all other requirements for a password except uppercase characters.
         self.form_input['password_confirmation'] = 'password123'
         form = SignUpForm(data=self.form_input)
         self.assertFalse(form.is_valid())
@@ -77,23 +82,17 @@ class SignUpFormTestCase(TestCase):
         form = SignUpForm(data=self.form_input)
         self.assertFalse(form.is_valid())
 
-    # This test case breaks, unsure on how to fix this problem.
-    # This breaks this test, the user matching the query does not exit. The error is that the user group deos not exist. Do you need to run "python3 manage.py create_groups" for this to work? how would you add this for this test.
+    def test_form_must_save_correctly(self):
+        form = SignUpForm(data=self.form_input)
 
-    # def test_form_must_save_correctly(self):
-    #     form = SignUpForm(data=self.form_input)
-    #
-    #
-    #     before_count = User.objects.count()
-    #     form.save()
-    #     after_count = User.objects.count()
-    #     self.assertEqual(after_count, before_count + 1)  # Check that the user count has increased by 1
-    #
-    #
-    #     user = User.objects.get(email='johndoe@example.org')
-    #     self.assertEqual(user.first_name, 'John')
-    #     self.assertEqual(user.last_name, 'Doe')
-    #     self.assertEqual(user.email, 'johndoe@example.org')
-    #     is_password_correct = check_password('Password123',
-    #                                          user.password)  # Uses check_password as the password stored is a hash, using this will allow us to compare whether the given password is the same as the one stored as a hash.
-    #     self.assertTrue(is_password_correct)
+        before_count = User.objects.count()
+        form.save()
+        after_count = User.objects.count()
+        self.assertEqual(after_count, before_count + 1)  # Check that the user count has increased by 1
+
+        user = User.objects.get(email='johndoe@example.org')
+        self.assertEqual(user.first_name, 'John')
+        self.assertEqual(user.last_name, 'Doe')
+        self.assertEqual(user.email, 'johndoe@example.org')
+        is_password_correct = check_password('Password123', user.password)  # Uses check_password as the password stored is a hash, using this will allow us to compare whether the given password is the same as the one stored as a hash.
+        self.assertTrue(is_password_correct)
