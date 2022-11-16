@@ -8,17 +8,6 @@
   </head>
   <body>
     {% include 'partials/navbar.html' %}
-    <nav class="navbar navbar-expand-lg navbar-light bg-dark">
-        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-          <div class="navbar-nav">
-            <a class="nav-item nav-link" href="{% url 'student_page'  %}">Home</a>
-            <a class="nav-item nav-link" href="{% url 'request_list' %}">Requests</a>
-          </div>
-        </div>
-    </nav>
-    <form action="/create_request/" method="post">
-      <input type="submit" value="Create New Request"/>
-    </form>
     <table class="table table-dark table-striped">
       <thead>
         <tr>
@@ -27,13 +16,13 @@
           <th style="width: 5%">Fulfilled</th>
         </tr>
       </thead>
-      {% if user_requests %}
-        {% for user_request in user_requests %}
+      {% if date_user_request_pairs %}
+        {% for date_user_request_pair in date_user_request_pairs %}
           <tr><form action="/request_view/" method="get">
-              <input type="hidden" name="date" value="{{ user_request.date }}"/>
-              <td><input type="submit" value="{{ user_request.date }}"/></td>
-              <td>{{ user_request.further_information }}</td>
-              <td>{{ user_request.fulfilled }}</td>
+              <input type="hidden" name="date" value="{{ date_user_request_pair.date }}"/>
+              <td><input type="submit" value="{{ date_user_request_pair.request.date }}"/></td>
+              <td>{{ date_user_request_pair.request.further_information }}</td>
+              <td>{{ date_user_request_pair.request.fulfilled }}</td>
             </form></tr>
         {% endfor %}
       {% else %}

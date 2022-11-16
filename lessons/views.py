@@ -1,18 +1,12 @@
 from django.shortcuts import render, redirect
 from .forms import RequestViewForm, LogInForm, TransactionSubmitForm, NewRequestViewForm, SignUpForm
-from .models import Request, Booking
+from .models import Student, Request, Booking
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from .decorators import login_prohibited, allowed_groups
 from django.conf import settings
-from .functions import *
-
-
-def student_page(request):
-    requests = Request.objects.all()
-    return render(request, 'student_page.html', {'requests': requests})
-
+from .views_functions import *
 
 @login_required
 @allowed_groups(['Student'])
@@ -24,36 +18,19 @@ def student_page(request):
 @allowed_groups(['Student'])
 def request_list(request):
     if request.method == 'POST':
-        data = request.POST
-        if 'delete' in data:
-            delete_request(data)
-        elif 'update' in data:
-            update_request(data)
+        if 'delete' in request.POST:
+            delete_request(request)
+        elif 'update' in request.POST:
+            update_request(request)
 
-    user_requests = get_user_requests(request.user)
-    return render(request, 'request_list.html', {'user_requests': user_requests})
+    date_user_request_pairs = get_date_user_request_pairs(request)
+    return render(request, 'request_list.html', {'date_user_request_pairs': date_user_request_pairs})
 
 
 @login_required
 @allowed_groups(['Student'])
 def request_view(request):
-    if request.method == 'GET':
-        this_request = Request.objects.get(date=request.GET['date'])
-        form = RequestViewForm(
-            initial={
-                'date': this_request.date,
-                'availability': this_request.availability.all(),
-                'number_of_lessons': this_request.number_of_lessons,
-                'interval_between_lessons': this_request.interval_between_lessons,
-                'duration_of_lessons': this_request.duration_of_lessons,
-                'further_information': this_request.further_information,
-                'fulfilled': this_request.fulfilled
-            }
-        )
-        return render(request, 'request_view.html', {'form': form})
-
-    data = request.GET
-    form = get_request_view_form(data)
+    form = get_request_view_form(request)
     return render(request, 'request_view.html', {'form': form})
 
 
