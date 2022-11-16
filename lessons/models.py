@@ -66,14 +66,8 @@ class User(AbstractBaseUser,PermissionsMixin):
 
 class Student(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE,related_name='user_record', blank=False)
-<<<<<<< HEAD
     balance = models.DecimalField(default=0,max_digits=6, decimal_places=2, blank=False)
     
-=======
-    balance = models.IntegerField(default=0)
-
-
->>>>>>> request_page
 class Request(models.Model):
     class IntervalBetweenLessons(models.IntegerChoices):
         ONE_WEEK = 1, '1 Week'
