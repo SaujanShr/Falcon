@@ -25,10 +25,10 @@ def delete_request(request):
     get_request_object(request).delete()
 
 def update_request(request):
-    form = get_request_view_form(request)
-    form.user = request.user
-    #delete_request(request)
-    
+    delete_request(request)
+    data = request.POST.copy()
+    data['user'] = request.user
+    form = RequestViewForm(data)
     if form.is_valid():
         form.save()
     else:

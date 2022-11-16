@@ -4,8 +4,7 @@ from django import forms
 from django.core.validators import RegexValidator
 from django.contrib.auth.models import Group
 from .models import User, DayOfTheWeek, Request, BankTransaction, Student
-from decimal import Decimal
-
+from django.utils import timezone
 
 class DateInput(forms.DateInput):
     input_type = 'date'
@@ -25,26 +24,25 @@ class NewRequestViewForm(forms.ModelForm):
     def save(self,user): #Pass in user? This is kind of bad. Unsure of a work around for this.
         super().save(commit=False)
         request = Request.objects.create(
-            date=datetime.datetime.now(),
+            date=timezone.datetime.now(tz=timezone.utc),
             user=user,
-            #availability=self.cleaned_data.get('availability'),
             number_of_lessons=self.cleaned_data.get('number_of_lessons'),
             interval_between_lessons=self.cleaned_data.get('interval_between_lessons'),
             duration_of_lessons=self.cleaned_data.get('duration_of_lessons'),
             further_information=self.cleaned_data.get('further_information')
         )
-        for avail in self.cleaned_data.get('availability'):
-            request.availability.add(avail)
-
-        #request.availability.add(self.cleaned_data.get('availability'))
+        for available_day in self.cleaned_data.get('availability'):
+            request.availability.add(available_day)
+            
         return request
 
 
 class RequestViewForm(forms.ModelForm):
     class Meta:
         model = Request
-        fields = ['date', 'availability', 'number_of_lessons', 'interval_between_lessons',
+        fields = ['date', 'user', 'availability', 'number_of_lessons', 'interval_between_lessons',
                   'duration_of_lessons', 'further_information', 'fulfilled']
+        widgets = {'user': forms.HiddenInput()}
 
     availability = forms.ModelMultipleChoiceField(
         queryset=DayOfTheWeek.objects.all(),
