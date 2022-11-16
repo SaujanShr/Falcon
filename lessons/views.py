@@ -61,12 +61,7 @@ def new_request_view(request):
     if request.method == 'POST':
         form = NewRequestViewForm(request.POST)
         if form.is_valid():
-            # availability = form.cleaned_data.get('availability')
-            # number_of_lessons = form.cleaned_data.get('number_of_lessons')
-            # interval_between_lessons = form.cleaned_data.get('interval_between_lessons')
-            # duration_of_lessons = form.cleaned_data.get('duration_of_lessons')
-            # further_information = form.cleaned_data.get('further_information')
-            form.save()
+            form.save(request.user)
             return redirect('student_page')
     else:
         form = NewRequestViewForm()

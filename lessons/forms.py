@@ -1,3 +1,5 @@
+import datetime
+
 from django import forms
 from django.core.validators import RegexValidator
 from django.contrib.auth.models import Group
@@ -19,6 +21,22 @@ class NewRequestViewForm(forms.ModelForm):
         label="Available Days",
         widget=forms.CheckboxSelectMultiple
     )
+    def save(self,user): #Pass in user? This is kind of bad. Unsure of a work around for this.
+        super().save(commit=False)
+        request = Request.objects.create(
+            date=datetime.datetime.now(),
+            user=user,
+            #availability=self.cleaned_data.get('availability'),
+            number_of_lessons=self.cleaned_data.get('number_of_lessons'),
+            interval_between_lessons=self.cleaned_data.get('interval_between_lessons'),
+            duration_of_lessons=self.cleaned_data.get('duration_of_lessons'),
+            further_information=self.cleaned_data.get('further_information')
+        )
+        for avail in self.cleaned_data.get('availability'):
+            request.availability.add(avail)
+
+        #request.availability.add(self.cleaned_data.get('availability'))
+        return request
 
 
 class RequestViewForm(forms.ModelForm):
