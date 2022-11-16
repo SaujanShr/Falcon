@@ -40,16 +40,15 @@ class TransactionAdminViewTestCase(TestCase):
         self.assertTrue(isinstance(form, TransactionSubmitForm))
         self.assertTrue(form.is_bound)
 
-    """    def test_valid_transaction_entered(self):
+    def test_valid_transaction_entered(self):
         url = self.url
         response = self.client.post(url, self.form_input)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'transaction_admin_view.html')
         form = response.context['form']
         self.assertTrue(isinstance(form, TransactionSubmitForm))
-        #self.assertFalse(form.is_bound)
         transaction = BankTransaction.objects.get(invoice_number=self.form_input['invoice_number'])
         self.assertEqual(transaction.date, self.form_input['date'])
         self.assertEqual(transaction.student, self.form_input['student'])
         self.assertEqual(transaction.amount, self.form_input['amount'])
-        self.assertEqual(transaction.invoice_number, self.form_input['invoice_number']) """
+        self.assertEqual(transaction.invoice_number, self.form_input['invoice_number']) 
