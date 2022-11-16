@@ -67,28 +67,29 @@ class LogInFormTestCase(TestCase):
         form = NewRequestViewForm(data=self.form_input)
         self.assertTrue(form.is_valid())
 
+    def test_number_of_lessons_cannot_be_empty(self):
+        self.form_input['number_of_lessons'] = None
+        form = NewRequestViewForm(data=self.form_input)
+
+        self.assertFalse(form.is_valid())
+
     def test_number_of_lessons_can_be_1(self):
         self.form_input['number_of_lessons'] = 1
         form = NewRequestViewForm(data=self.form_input)
 
         self.assertTrue(form.is_valid())
 
-    def test_number_of_lessons_can_be_2(self):
+    def test_number_of_lessons_can_greater_than_1(self):
         self.form_input['number_of_lessons'] = 2
         form = NewRequestViewForm(data=self.form_input)
 
         self.assertTrue(form.is_valid())
 
-    def test_number_of_lessons_can_only_be_1_or_2(self):
-        self.form_input['number_of_lessons'] = 3
-        form = NewRequestViewForm(data=self.form_input)
-        lessonsGreaterThan2 = form.is_valid()
-
+    def test_number_of_lessons_cannot_be_less_than_1(self):
         self.form_input['number_of_lessons'] = 0
         form = NewRequestViewForm(data=self.form_input)
-        lessonsLessThan1 = form.is_valid()
 
-        self.assertFalse(lessonsGreaterThan2 and lessonsLessThan1)
+        self.assertFalse(form.is_valid())
 
     def test_interval_between_lessons_cannot_be_empty(self):
         self.form_input['interval_between_lessons'] = None
