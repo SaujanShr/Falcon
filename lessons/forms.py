@@ -2,6 +2,7 @@ from django import forms
 from django.core.validators import RegexValidator
 from django.contrib.auth.models import Group
 from .models import User, DayOfTheWeek, Request, BankTransaction, Student
+from decimal import Decimal
 
 
 class DateInput(forms.DateInput):
@@ -89,12 +90,21 @@ class TransactionSubmitForm(forms.ModelForm):
 
     def save(self):
         super().save(commit=False)
+
         BankTransaction.objects.create(
             date=self.cleaned_data.get('date'),
             student=self.cleaned_data.get('student'),
             amount=self.cleaned_data.get('amount'),
             invoice_number=self.cleaned_data.get('invoice_number')
         )
+
+        student=self.cleaned_data.get('student')
+        amount=self.cleaned_data.get('amount')
+        current_balance = student.balance
+        student.balance = current_balance + amount
+        student.save()
+
+
 
     def generate_invoice_num(self, student):
         # check student object to see the number of transactions that have been made by the student
