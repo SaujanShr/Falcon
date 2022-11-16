@@ -45,22 +45,3 @@ class TransactionAdmin(admin.ModelAdmin):
         'number_of_lessons',
         'further_information'
     ]
-
-"""class BankTransaction(models.Model):
-    date = models.DateField(
-        blank=False,
-        validators=[MaxValueValidator(
-            limit_value=date.today,
-            message='')]
-    )
-    student = models.ForeignKey(User, blank=False, on_delete=models.CASCADE)
-    amount = models.DecimalField(max_digits=6, decimal_places=2, blank=False)
-    invoice_number = models.CharField(
-        max_length=8,
-        unique=True,
-        blank=False,
-        validators=[RegexValidator(
-            regex=r'^\d{4}-\d{3}$',
-            message='Invoice number must follow the format xxxx-yyy where x is the student number and y is the invoice number.'
-        )]
-    )"""
