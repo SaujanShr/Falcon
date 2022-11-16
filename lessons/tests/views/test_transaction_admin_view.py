@@ -2,6 +2,7 @@ from django.test import TestCase
 from django.urls import reverse
 from lessons.forms import TransactionSubmitForm
 from lessons.models import BankTransaction, User, Student
+from decimal import Decimal
 import datetime
 
 class TransactionAdminViewTestCase(TestCase):
@@ -14,7 +15,7 @@ class TransactionAdminViewTestCase(TestCase):
         self.student = Student.objects.create(user = self.user)
         self.form_input = {
             'date': datetime.date.today(),
-            'student': self.student,
+            'student_email': self.user.email,
             'amount': '3.14',
             'invoice_number': '1234-123'
         }
@@ -42,7 +43,7 @@ class TransactionAdminViewTestCase(TestCase):
         self.assertTrue(isinstance(form, TransactionSubmitForm))
         self.assertTrue(form.is_bound)
     
-    """
+    
     def test_valid_transaction_entered(self):
         before_count = BankTransaction.objects.count()
         response = self.client.post(self.url, self.form_input, follow=True)
@@ -53,8 +54,9 @@ class TransactionAdminViewTestCase(TestCase):
         form = response.context['form']
         self.assertTrue(isinstance(form, TransactionSubmitForm))
         transaction = BankTransaction.objects.get(invoice_number='1234-123')
+        amount_in_decimal = Decimal(self.form_input['amount'].replace(',','.'))
         self.assertEqual(transaction.date, self.form_input['date'])
-        self.assertEqual(transaction.student, self.form_input['student'])
-        self.assertEqual(transaction.amount, self.form_input['amount'])
+        self.assertEqual(transaction.student, self.student)
+        self.assertEqual(transaction.amount, amount_in_decimal)
         self.assertEqual(transaction.invoice_number, self.form_input['invoice_number']) 
-    """
+
