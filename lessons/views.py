@@ -38,15 +38,10 @@ def new_request_view(request):
     if request.method == 'POST':
         form = NewRequestViewForm(request.POST)
         if form.is_valid():
-            # availability = form.cleaned_data.get('availability')
-            # number_of_lessons = form.cleaned_data.get('number_of_lessons')
-            # interval_between_lessons = form.cleaned_data.get('interval_between_lessons')
-            # duration_of_lessons = form.cleaned_data.get('duration_of_lessons')
-            # further_information = form.cleaned_data.get('further_information')
-            form.save()
+            form.save(request.user)
             return redirect('student_page')
-        # Add error message
-        messages.add_message(request, messages.ERROR, "The details provided were invalid!")
+    else:
+        form = NewRequestViewForm()
     return render(request, 'new_request_view.html', {'form': form})
 
 
@@ -89,7 +84,7 @@ def sign_up(request):
         form = SignUpForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('log_in')  # redirect back to log-in, unless they should be redirected to the student page.
+            return redirect('log_in')  # redirect back to log-in, unless they should be redirected to the student page?
     else:
         form = SignUpForm()
     return render(request, 'sign_up.html', {'form': form})
