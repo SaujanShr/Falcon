@@ -129,6 +129,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'log_in'
 REDIRECT_URL_WHEN_LOGGED_IN_FOR_STUDENT = 'student_page'
 REDIRECT_URL_WHEN_LOGGED_IN_FOR_ADMIN = 'redirect'
+REDIRECT_URL_WHEN_LOGGED_IN_FOR_DIRECTOR = 'redirect'
+
 # Message level tags should use Bootstrap terms
 MESSAGE_TAGS={
     message_constants.DEBUG : 'dark',

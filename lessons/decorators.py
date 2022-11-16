@@ -5,10 +5,14 @@ from django.http import HttpResponse
 def login_prohibited(view_function):
     def modified_view_function(request):
         if request.user.is_authenticated:
-            if (request.user.groups.all()[0].name == 'Student'):
-                    user_specific_redirect = settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_STUDENT
-            elif (request.user.groups.all()[0].name == 'Admin'):
-                user_specific_redirect = settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_ADMIN
+            user_specific_redirect = ''
+            if request.user.groups.exists():
+                if (request.user.groups.all()[0].name == 'Student'):
+                        user_specific_redirect = settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_STUDENT
+                elif (request.user.groups.all()[0].name == 'Admin'):
+                    user_specific_redirect = settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_ADMIN
+            elif request.user.is_staff:
+                user_specific_redirect = (settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_DIRECTOR)
             return redirect(user_specific_redirect)
         else:
             return view_function(request)
@@ -21,15 +25,18 @@ def allowed_groups(allowed_groups_names = []):
             group = None
             if request.user.groups.exists():
                 group = request.user.groups.all()[0].name
-            
+            elif request.user.is_staff:
+                group = 'Director'
             if group in allowed_groups_names:
                 return view_function(request)
             else:
                 if group == 'Admin':
-                    return redirect('redirect')
+                    return redirect(settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_ADMIN)
                 elif group == 'Student':
-                    return redirect('student_page')
+                    return redirect(settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_STUDENT)
+                elif group == 'Director':
+                    return redirect(settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_DIRECTOR)
                 else:
-                    return HttpResponse("pb")
+                    return HttpResponse("ERROR: you attempted to access a forbidden page. Your account will be submitted for review by our security team.")
         return wrapper
     return decorator
