@@ -10,18 +10,19 @@ class TransactionFormTestCase(TestCase):
                 email='email1@email.com',
                 password='password'
             )
-
-    def test_valid_sign_up_form(self):
-        form_input = {
+        self.form_input = {
             'date': datetime.date.today(),
             'student': self.user,
             'amount': '3.14',
             'invoice_number': '1234-123'
         }
-        form = TransactionSubmitForm(data=form_input)
+
+    def test_valid_sign_up_form(self):
+        
+        form = TransactionSubmitForm(data=self.form_input)
         self.assertFalse(form.errors)
 
-    def test_form_has_necessary_fields(self):
+    def test_transaction_form_has_necessary_fields(self):
         form = TransactionSubmitForm()
         self.assertIn('date', form.fields)
         date_widget = form.fields['date'].widget
@@ -29,3 +30,8 @@ class TransactionFormTestCase(TestCase):
         self.assertIn('student', form.fields)
         self.assertIn('amount', form.fields)
         self.assertIn('invoice_number', form.fields)
+
+    def test_transaction_from_uses_model_validation(self):
+        self.form_input['invoice_number'] = '123-1234'
+        form = TransactionSubmitForm(data=self.form_input)
+        self.assertFalse(form.is_valid())
