@@ -112,6 +112,7 @@ def transaction_admin_view(request):
         form = TransactionSubmitForm(request.POST)
         if form.is_valid():
             form.save()
+            form = TransactionSubmitForm()
     else:
         form = TransactionSubmitForm()
 
