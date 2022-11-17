@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from .forms import RequestViewForm, LogInForm, TransactionSubmitForm, NewRequestViewForm, SignUpForm
-from .models import Student, Request, Booking
+from .models import Student, Request, Booking, BankTransaction
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -113,6 +113,10 @@ def transaction_admin_view(request):
         form = TransactionSubmitForm()
 
     return render(request, 'transaction_admin_view.html', {'form': form})
+
+def transaction_list_admin(request):
+    transactions = BankTransaction.objects.order_by('date')
+    return render(request, 'transaction_list_admin.html', {'transactions': transactions})
 
 
 # @login_required
