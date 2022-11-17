@@ -30,8 +30,9 @@ def request_list(request):
 @login_required
 @allowed_groups(['Student'])
 def request_view(request):
+    date = str(get_request_object(request).date)
     form = get_request_view_form(request)
-    return render(request, 'request_view.html', {'form': form})
+    return render(request, 'request_view.html', {'date':date, 'form':form})
 
 
 def new_request_view(request):
