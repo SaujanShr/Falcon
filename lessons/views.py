@@ -102,7 +102,8 @@ def log_out(request):
 def test_redirect_view(request):
     return render(request, 'test_redirect.html')
 
-
+#@login_required
+#@allowed_groups(["Admin", "Director"])
 def transaction_admin_view(request):
     if request.method == 'POST':
         form = TransactionSubmitForm(request.POST)
@@ -114,9 +115,25 @@ def transaction_admin_view(request):
 
     return render(request, 'transaction_admin_view.html', {'form': form})
 
+#@login_required
+#@allowed_groups(["Admin", "Director"])
 def transaction_list_admin(request):
     transactions = BankTransaction.objects.order_by('date')
-    return render(request, 'transaction_list_admin.html', {'transactions': transactions})
+    return render(request, 'transaction_list.html', {'transactions': transactions})
+
+#@login_required
+#@allowed_groups(["Student"])
+def transaction_list_student(request):
+    #currently errors if user is not logged in
+    r_user = request.user
+    r_student = Student.objects.get(user=r_user)
+
+    if(not r_student):
+        transactions = BankTransaction.objects.none()
+    else:
+        transactions = BankTransaction.objects.order_by('date').filter(student=r_student)
+
+    return render(request, 'transaction_list.html', {'transactions': transactions})
 
 
 # @login_required

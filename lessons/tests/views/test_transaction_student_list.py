@@ -5,7 +5,7 @@ from django.db.models.query import QuerySet
 
 class TransactionAdminListTestCase(TestCase):
     def setUp(self):
-        self.url = reverse('transaction_list_admin')
+        self.url = reverse('transaction_list_student')
         self.user = User.objects.create_user(
                 email='email1@email.com',
                 password='password'
@@ -13,9 +13,10 @@ class TransactionAdminListTestCase(TestCase):
         self.student = Student.objects.create(user = self.user)
 
     def test_transaction_admin_url(self):
-        self.assertEqual(self.url, '/transactions/admin/view')
+        self.assertEqual(self.url, '/transactions/student')
 
-    def test_get_transaction_admin_list(self):
+    def test_get_transaction_student_view(self):
+        self.client.login(email='email1@email.com', password='password')
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'transaction_list.html')
