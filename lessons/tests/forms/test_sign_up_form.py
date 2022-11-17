@@ -4,17 +4,13 @@ from django.test import TestCase
 from lessons.forms import SignUpForm
 from lessons.models import User
 from django.contrib.auth.hashers import check_password
-from io import StringIO
-from django.core.management import call_command
-
+from lessons.tests.helpers import create_user_groups
 
 class SignUpFormTestCase(TestCase):
     """Unit tests of the sign-up form."""
 
     def setUp(self):
-        # Run the create_groups command on test database:
-        out = StringIO()
-        call_command('create_groups', stdout=out)
+        create_user_groups()
 
         self.form_input = {
             'first_name': 'John',
