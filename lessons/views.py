@@ -135,6 +135,12 @@ def transaction_list_student(request):
 
     return render(request, 'transaction_list.html', {'transactions': transactions})
 
+#@login_required
+#@allowed_groups(["Admin", "Director"])
+def balance_list_admin(request):
+    students=Student.objects.all()
+    return render(request, 'balance_list.html', {'students': students})
+
 
 # @login_required
 # @allowed_groups(["Admin"])

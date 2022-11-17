@@ -5,7 +5,7 @@ from django.db.models.query import QuerySet
 
 class TransactionAdminListTestCase(TestCase):
     def setUp(self):
-        self.url = reverse('transaction_list_student')
+        self.url = reverse('balance_list_admin')
         self.user = User.objects.create_user(
                 email='email1@email.com',
                 password='password'
@@ -13,23 +13,23 @@ class TransactionAdminListTestCase(TestCase):
         self.student = Student.objects.create(user = self.user)
 
     def test_transaction_admin_url(self):
-        self.assertEqual(self.url, '/transactions/student')
+        self.assertEqual(self.url, '/balance/admin')
 
     def test_get_transaction_student_view(self):
-        self.client.login(email='email1@email.com', password='password')
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'transaction_list.html')
-        transactions = response.context['transactions']
-        self.assertTrue(isinstance(transactions, QuerySet))
+        self.assertTemplateUsed(response, 'balance_list.html')
+        students = response.context['students']
+        self.assertTrue(isinstance(students, QuerySet))
 
-    #TODO more tests for the transaction list view
+    #TODO more tests for the balance list view
 
-    def test_transaction_student_displays_only_students_transactions(self):
+
+    def test_balance_view_displays_correct_fields(self):
+        pass
+    
+    def test_balance_view_displays_all_students(self):
         pass
 
-    def test_transaction_student_displays_correct_fields(self):
-        pass
-
-    def test_transaction_student_displays_correct_data(self):
+    def test_balance_view_displays_correct_balances(self):
         pass

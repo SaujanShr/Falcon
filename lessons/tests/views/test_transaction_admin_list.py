@@ -23,3 +23,12 @@ class TransactionAdminListTestCase(TestCase):
         self.assertTrue(isinstance(transactions, QuerySet))
 
     #TODO more tests for the transaction list view
+
+    def test_transaction_admin_displays_all_transactions(self):
+        pass
+
+    def test_transaction_admin_displays_correct_fields(self):
+        pass
+
+    def test_transaction_admin_displays_correct_data(self):
+        pass
