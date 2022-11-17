@@ -21,7 +21,7 @@ class TransactionAdminViewTestCase(TestCase):
         }
 
     def test_transaction_admin_url(self):
-        self.assertEqual(self.url, '/transactions/admin')
+        self.assertEqual(self.url, '/transactions/admin/submit')
 
     def test_get_transaction_admin_view(self):
         response = self.client.get(self.url)
