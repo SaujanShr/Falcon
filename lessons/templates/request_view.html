@@ -11,7 +11,8 @@
     <form action="/request_list/" method="post">
         {% csrf_token %}
         {{ form.as_p }}
-        <input type="submit" name="edit" value="Edit">
+        <input type="hidden" name="date" value="{{ date }}">
+        <input type="submit" name="update" value="Update">
         <input type="submit" name="delete" value="Delete">
         <input type="submit" name="return" value="Return">
     </form>

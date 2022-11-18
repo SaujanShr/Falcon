@@ -1,8 +1,10 @@
+import datetime
+
 from django import forms
 from django.core.validators import RegexValidator
 from django.contrib.auth.models import Group
-from .models import User, DayOfTheWeek, Request, BankTransaction
-
+from .models import User, DayOfTheWeek, Request, BankTransaction, Student
+from django.utils import timezone
 
 class DateInput(forms.DateInput):
     input_type = 'date'
@@ -19,13 +21,28 @@ class NewRequestViewForm(forms.ModelForm):
         label="Available Days",
         widget=forms.CheckboxSelectMultiple
     )
+    def save(self,user): #Pass in user? This is kind of bad. Unsure of a work around for this.
+        super().save(commit=False)
+        request = Request.objects.create(
+            date=timezone.datetime.now(tz=timezone.utc),
+            user=user,
+            number_of_lessons=self.cleaned_data.get('number_of_lessons'),
+            interval_between_lessons=self.cleaned_data.get('interval_between_lessons'),
+            duration_of_lessons=self.cleaned_data.get('duration_of_lessons'),
+            further_information=self.cleaned_data.get('further_information')
+        )
+        for available_day in self.cleaned_data.get('availability'):
+            request.availability.add(available_day)
+            
+        return request
 
 
 class RequestViewForm(forms.ModelForm):
     class Meta:
         model = Request
-        fields = ['date', 'availability', 'number_of_lessons', 'interval_between_lessons',
+        fields = ['date', 'user', 'availability', 'number_of_lessons', 'interval_between_lessons',
                   'duration_of_lessons', 'further_information', 'fulfilled']
+        widgets = {'user': forms.HiddenInput()}
 
     availability = forms.ModelMultipleChoiceField(
         queryset=DayOfTheWeek.objects.all(),
@@ -71,7 +88,8 @@ class SignUpForm(forms.ModelForm):
         )
         student_group = Group.objects.get(name='Student')
         student_group.user_set.add(user) # Add user as a Student
-        return user
+        student = Student.objects.create(user=user)
+        return student
     #email = forms.EmailField(label='Email')
     #password = forms.CharField(label='Password', widget=forms.PasswordInput())
 
@@ -88,12 +106,21 @@ class TransactionSubmitForm(forms.ModelForm):
 
     def save(self):
         super().save(commit=False)
+
         BankTransaction.objects.create(
             date=self.cleaned_data.get('date'),
             student=self.cleaned_data.get('student'),
             amount=self.cleaned_data.get('amount'),
             invoice_number=self.cleaned_data.get('invoice_number')
         )
+
+        student=self.cleaned_data.get('student')
+        amount=self.cleaned_data.get('amount')
+        current_balance = student.balance
+        student.balance = current_balance + amount
+        student.save()
+
+
 
     def generate_invoice_num(self, student):
         # check student object to see the number of transactions that have been made by the student

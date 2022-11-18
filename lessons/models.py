@@ -66,8 +66,8 @@ class User(AbstractBaseUser,PermissionsMixin):
 
 class Student(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE,related_name='user_record', blank=False)
-    balance = models.IntegerField(default=0)
-    
+    balance = models.DecimalField(default=0,max_digits=6, decimal_places=2, blank=False)
+
 class Request(models.Model):
     class IntervalBetweenLessons(models.IntegerChoices):
         ONE_WEEK = 1, '1 Week'
@@ -137,7 +137,7 @@ class BankTransaction(models.Model):
             limit_value=date.today,
             message='')]
     )
-    student = models.ForeignKey(User, blank=False, on_delete=models.CASCADE)
+    student = models.ForeignKey(Student, blank=False, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=6, decimal_places=2, blank=False)
     invoice_number = models.CharField(
         max_length=8,

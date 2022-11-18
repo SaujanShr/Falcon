@@ -1,6 +1,6 @@
 from django.test import TestCase
 from django.core.exceptions import ValidationError
-from lessons.models import User, BankTransaction
+from lessons.models import User, BankTransaction, Student
 import datetime
 
 class TransactionModelTestCase(TestCase):
@@ -13,15 +13,18 @@ class TransactionModelTestCase(TestCase):
             email = 'user2@test.com',
             password = 'pass2'
         )
+
+        self.student1 = Student.objects.create(user=self.user1)
+        self.student2 = Student.objects.create(user=self.user2)
         
         self.transaction1 = BankTransaction.objects.create(
-            student = self.user1,
+            student = self.student1,
             amount = '3.14',
             invoice_number = '1234-567',
             date = datetime.date(2022, 2, 21)
         )
         self.transaction2 = BankTransaction.objects.create(
-            student = self.user2,
+            student = self.student2,
             amount = '3.15',
             invoice_number = '1234-569',
             date = datetime.date(2022, 2, 22)
