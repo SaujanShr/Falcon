@@ -4,7 +4,7 @@ from lessons import models
 
 class Command(BaseCommand):
     GROUPS_PERMISSIONS = {
-    'Admin': {
+    'Administrator': {
         models.BankTransaction: ['add', 'change', 'delete', 'view'],
         models.Request: ['change', 'delete', 'view'],
         models.User: ['add', 'change', 'delete', 'view'],

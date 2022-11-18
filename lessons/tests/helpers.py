@@ -5,7 +5,7 @@ from django.contrib.auth.models import Group,Permission
 from lessons import models
 
 GROUPS_PERMISSIONS = {
-    'Admin': {
+    'Administrator': {
         models.BankTransaction: ['add', 'change', 'delete', 'view'],
         models.Request: ['change', 'delete', 'view'],
         models.User: ['add', 'change', 'delete', 'view'],
@@ -49,5 +49,5 @@ class HandleGroups:
     def set_other_user_to_admin():
         create_user_groups()
         other_user = User.objects.get(email='janedoe@email.com')
-        admin_group = Group.objects.get(name='Admin') 
+        admin_group = Group.objects.get(name='Administrator') 
         admin_group.user_set.add(other_user)

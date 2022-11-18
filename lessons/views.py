@@ -61,16 +61,15 @@ def log_in(request):
             user = authenticate(email=email, password=password)
             if user is not None:
                 login(request, user)
+                user_specific_redirect = ''
                 if user.groups.exists():
                     if (user.groups.all()[0].name == 'Student'):
                         user_specific_redirect = settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_STUDENT
-                    elif (user.groups.all()[0].name == 'Admin'):
-                        user_specific_redirect = settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_ADMIN
+                    elif (user.groups.all()[0].name == 'Administrator'):
+                        user_specific_redirect = settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_ADMINISTRATOR
                 else:
                     if user.is_staff:
                         user_specific_redirect = settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_DIRECTOR
-                    else:
-                        user_specific_redirect = ''
                 redirect_url = request.POST.get('next') or user_specific_redirect
                 return redirect(redirect_url)
         messages.add_message(request, messages.ERROR,

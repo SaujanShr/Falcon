@@ -9,7 +9,7 @@ def login_prohibited(view_function):
             if request.user.groups.exists():
                 if (request.user.groups.all()[0].name == 'Student'):
                         user_specific_redirect = settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_STUDENT
-                elif (request.user.groups.all()[0].name == 'Admin'):
+                elif (request.user.groups.all()[0].name == 'Administrator'):
                     user_specific_redirect = settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_ADMINISTRATOR
             elif request.user.is_staff:
                 user_specific_redirect = (settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_DIRECTOR)
@@ -32,8 +32,6 @@ def allowed_groups(allowed_groups_names = []):
             else:
                 if group == 'Administrator':
                     return redirect(settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_ADMINISTRATOR)
-                if group == 'Admin':
-                    return redirect(settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_ADMIN)
                 elif group == 'Student':
                     return redirect(settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_STUDENT)
                 elif group == 'Director':
