@@ -1,7 +1,8 @@
 from django.core.management.base import BaseCommand, CommandError
 from faker import Faker
 from lessons.models import User
-
+from django.contrib.auth.models import Group,Permission
+from django.db.utils import IntegrityError
 
 class Command(BaseCommand):
     PASSWORD = "Password123"
@@ -18,7 +19,7 @@ class Command(BaseCommand):
             print(f'Seeding user {user_count}',  end='\r')
             try:
                 self._create_random_users()
-            except (django.db.utils.IntegrityError):
+            except (IntegrityError):
                 continue
             user_count += 1
         print('User seeding complete')
@@ -30,12 +31,15 @@ class Command(BaseCommand):
             {'first_name': 'Marty', 'last_name': 'Major', 'email': 'marty.major@example.org', 'password': Command.PASSWORD}]
 
         for user in users:
-            User.objects.create_user(
-                user['email'], 
-                first_name=user['first_name'],
-                last_name=user['last_name'], 
-                password=user['password']
-            )
+            try:
+                User.objects.create_user(
+                    user['email'], 
+                    first_name=user['first_name'],
+                    last_name=user['last_name'], 
+                    password=user['password']
+                )
+            except(IntegrityError):
+                print(user['first_name'])
 
         student_user = User.objects.get(email="john.doe@example.org")
         student_group = Group.objects.get(name='Student') 
@@ -49,12 +53,17 @@ class Command(BaseCommand):
         director_user.is_staff = True
         director_user.is_superuser = True
 
-  
-
+    def _create_random_users(self):
+        first_name = self.faker.first_name()
+        last_name = self.faker.last_name()
+        email = self._email(first_name, last_name)
+        User.objects.create_user(
+            email,
+            first_name=first_name,
+            last_name=last_name,
+            password=Command.PASSWORD,
+        )
+        
     def _email(self, first_name, last_name):
         email = f'{first_name}.{last_name}@example.org'
         return email
-
-    def _username(self, first_name, last_name):
-        username = f'@{first_name}{last_name}'
-        return username
