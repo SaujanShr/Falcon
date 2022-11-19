@@ -97,24 +97,33 @@ class SignUpForm(forms.ModelForm):
 class TransactionSubmitForm(forms.ModelForm):
     class Meta:
         model = BankTransaction
-        fields = ['date', 'student', 'amount', 'invoice_number']
+        fields = ['date', 'amount', 'invoice_number']
         widgets = {
             'date': DateInput()
         }
 
-    # TODO: generate invoice number automatically from student chosen, for now manually submit the invoice number, prone to error.
+    student_email = forms.EmailField(label='Student\'s email', required=False)
+
+    def clean(self):
+        super().clean()
+        student_email = self.cleaned_data.get('student_email')
+        if(not(User.objects.filter(email=student_email).exists())):
+            self.add_error('student_email', 'Student email does not exist in database.')
 
     def save(self):
         super().save(commit=False)
 
+        s_email = self.cleaned_data.get('student_email')
+        student_user=User.objects.get(email=s_email)
+        student=Student.objects.get(user=student_user)
+
         BankTransaction.objects.create(
             date=self.cleaned_data.get('date'),
-            student=self.cleaned_data.get('student'),
+            student=student,
             amount=self.cleaned_data.get('amount'),
             invoice_number=self.cleaned_data.get('invoice_number')
         )
 
-        student=self.cleaned_data.get('student')
         amount=self.cleaned_data.get('amount')
         current_balance = student.balance
         student.balance = current_balance + amount

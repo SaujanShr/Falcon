@@ -130,6 +130,21 @@ class Booking(models.Model):
     number_of_lessons = models.PositiveIntegerField(blank=False, validators=[MinValueValidator(1)])
     further_information = models.CharField(blank=False, max_length=500)
 
+class Invoice(models.Model):
+    invoice_number = models.CharField(
+        primary_key=True,
+        max_length=8,
+        unique=True,
+        blank=False,
+        validators=[RegexValidator(
+            regex=r'^\d{4}-\d{3}$',
+            message='Invoice number must follow the format xxxx-yyy where x is the student number and y is the invoice number.'
+        )]
+    )
+    full_amount = models.DecimalField(max_digits=8, decimal_places=2, blank=False)
+    paid_amount = models.DecimalField(max_digits=8, decimal_places=2, blank=False, default='0.00')
+    fully_paid = models.BooleanField(default=False, blank=False)
+
 class BankTransaction(models.Model):
     date = models.DateField(
         blank=False,
@@ -139,6 +154,7 @@ class BankTransaction(models.Model):
     )
     student = models.ForeignKey(Student, blank=False, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=6, decimal_places=2, blank=False)
+    #TODO Change invoice_number interaction.
     invoice_number = models.CharField(
         max_length=8,
         unique=True,

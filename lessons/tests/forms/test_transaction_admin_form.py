@@ -14,7 +14,7 @@ class TransactionFormTestCase(TestCase):
         self.student = Student.objects.create(user = self.user)
         self.form_input = {
             'date': datetime.date.today(),
-            'student': self.student,
+            'student_email': self.user.email,
             'amount': '3.14',
             'invoice_number': '1234-123'
         }
@@ -22,18 +22,24 @@ class TransactionFormTestCase(TestCase):
     def test_valid_transaction_form(self):
         form = TransactionSubmitForm(data=self.form_input)
         self.assertTrue(form.is_valid())
+        
 
     def test_transaction_form_has_necessary_fields(self):
         form = TransactionSubmitForm()
         self.assertIn('date', form.fields)
         date_widget = form.fields['date'].widget
         self.assertTrue(isinstance(date_widget, forms.DateInput))
-        self.assertIn('student', form.fields)
+        self.assertIn('student_email', form.fields)
         self.assertIn('amount', form.fields)
         self.assertIn('invoice_number', form.fields)
 
     def test_transaction_form_uses_model_validation(self):
         self.form_input['invoice_number'] = '123-1234'
+        form = TransactionSubmitForm(data=self.form_input)
+        self.assertFalse(form.is_valid())
+
+    def test_student_email_must_exist(self):
+        self.form_input['student_email'] = 'bademail@email.com'
         form = TransactionSubmitForm(data=self.form_input)
         self.assertFalse(form.is_valid())
 
@@ -46,7 +52,7 @@ class TransactionFormTestCase(TestCase):
         transaction = BankTransaction.objects.get(invoice_number='1234-123')
         amount_in_decimal = Decimal(self.form_input['amount'].replace(',','.'))
         self.assertEqual(transaction.date, self.form_input['date'])
-        self.assertEqual(transaction.student, self.form_input['student'])
+        self.assertEqual(transaction.student, self.student)
         self.assertEqual(transaction.amount, amount_in_decimal)
         self.assertEqual(transaction.invoice_number, self.form_input['invoice_number']) 
 

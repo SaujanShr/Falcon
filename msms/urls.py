@@ -28,8 +28,11 @@ urlpatterns = [
     path('sign_up/', views.sign_up, name='sign_up'),
     path('test_view/', views.test_redirect_view, name='redirect'),
     path('transactions/admin', views.transaction_admin_view, name='transaction_admin_view'),
-    path('new_request_view/', views.new_request_view, name='new_request_view'),
+    path('transactions/admin/submit', views.transaction_admin_view, name='transaction_admin_view'),
+    path('transactions/admin/view', views.transaction_list_admin, name='transaction_list_admin'),
+    path('transactions/student', views.transaction_list_student, name='transaction_list_student'),
+    path('balance/admin', views.balance_list_admin, name='balance_list_admin'),
     path('admin_view_requests_and_bookings/', views.admin_bookings_requests_view, name='admin_request_view'),
     path('log_out/', views.log_out, name='log_out'),
-    # path('new_request/', views.request_view, name='request_view'), # Please replace all instances of new_request with new_request_view
+    #path('new_request/', views.request_view, name='request_view'), # Please replace all instances of new_request with new_request_view
 ]
