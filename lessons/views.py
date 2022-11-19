@@ -1,12 +1,12 @@
 from django.shortcuts import render, redirect
-from .forms import RequestViewForm, LogInForm, TransactionSubmitForm, NewRequestViewForm, SignUpForm
-from .models import Student, Request, Booking, BankTransaction
+from .forms import LogInForm, TransactionSubmitForm, NewRequestViewForm, SignUpForm
+from .models import Student, Booking, BankTransaction
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from .decorators import login_prohibited, allowed_groups
-from django.conf import settings
 from .views_functions import *
+
 
 @login_required
 @allowed_groups(['Student'])
@@ -32,9 +32,11 @@ def request_list(request):
 def request_view(request):
     date = str(get_request_object(request).date)
     form = get_request_view_form(request)
-    return render(request, 'request_view.html', {'date':date, 'form':form})
+    return render(request, 'request_view.html', {'date': date, 'form': form})
 
 
+@login_required
+@allowed_groups(['Student'])
 def new_request_view(request):
     if request.method == 'POST':
         form = NewRequestViewForm(request.POST)
@@ -56,41 +58,30 @@ def log_in(request):
     if request.method == 'POST':
         form = LogInForm(request.POST)
         if form.is_valid():
-            email = form.cleaned_data.get('email')
-            password = form.cleaned_data.get('password')
-            user = authenticate(email=email, password=password)
+            user = get_user(form)
             if user is not None:
                 login(request, user)
-                if user.groups.exists():
-                    if (user.groups.all()[0].name == 'Student'):
-                        user_specific_redirect = settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_STUDENT
-                    elif (user.groups.all()[0].name == 'Admin'):
-                        user_specific_redirect = settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_ADMIN
-                else:
-                    if user.is_staff:
-                        user_specific_redirect = settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_DIRECTOR
-                    else:
-                        user_specific_redirect = ''
-                redirect_url = request.POST.get('next') or user_specific_redirect
+                redirect_url = get_redirect_url(user, request)
                 return redirect(redirect_url)
-        messages.add_message(request, messages.ERROR,
-                             "The credentials provided were invalid!")
+        messages.add_message(request, messages.ERROR, "The credentials provided were invalid!")
     form = LogInForm()
-    next = request.GET.get('next') or ''
-    return render(request, 'log_in.html', {'form': form, 'next': next})
+    next_url = request.GET.get('next') or ''
+    return render(request, 'log_in.html', {'form': form, 'next': next_url})
 
 
+@login_prohibited
 def sign_up(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('log_in')  # redirect back to log-in, unless they should be redirected to the student page?
+            return redirect('log_in')
     else:
         form = SignUpForm()
     return render(request, 'sign_up.html', {'form': form})
 
 
+@login_required()
 def log_out(request):
     logout(request)
     return redirect('home')
@@ -98,12 +89,13 @@ def log_out(request):
 
 # THIS VIEW IS FOR TESTING PURPOSES, TO DELETE FOR LATER VERSIONS
 @login_required
-@allowed_groups(["Admin","Director"])
+@allowed_groups(["Admin", "Director"])
 def test_redirect_view(request):
     return render(request, 'test_redirect.html')
 
-#@login_required
-#@allowed_groups(["Admin", "Director"])
+
+# @login_required
+# @allowed_groups(["Admin", "Director"])
 def transaction_admin_view(request):
     if request.method == 'POST':
         form = TransactionSubmitForm(request.POST)
@@ -115,30 +107,33 @@ def transaction_admin_view(request):
 
     return render(request, 'transaction_admin_view.html', {'form': form})
 
-#@login_required
-#@allowed_groups(["Admin", "Director"])
+
+# @login_required
+# @allowed_groups(["Admin", "Director"])
 def transaction_list_admin(request):
     transactions = BankTransaction.objects.order_by('date')
     return render(request, 'transaction_list.html', {'transactions': transactions})
 
-#@login_required
-#@allowed_groups(["Student"])
+
+# @login_required
+# @allowed_groups(["Student"])
 def transaction_list_student(request):
-    #currently errors if user is not logged in
+    # currently errors if user is not logged in
     r_user = request.user
     r_student = Student.objects.get(user=r_user)
 
-    if(not r_student):
+    if (not r_student):
         transactions = BankTransaction.objects.none()
     else:
         transactions = BankTransaction.objects.order_by('date').filter(student=r_student)
 
     return render(request, 'transaction_list.html', {'transactions': transactions})
 
-#@login_required
-#@allowed_groups(["Admin", "Director"])
+
+# @login_required
+# @allowed_groups(["Admin", "Director"])
 def balance_list_admin(request):
-    students=Student.objects.all()
+    students = Student.objects.all()
     return render(request, 'balance_list.html', {'students': students})
 
 
