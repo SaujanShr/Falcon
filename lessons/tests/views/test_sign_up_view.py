@@ -4,17 +4,14 @@ from django.test import TestCase
 from django.urls import reverse
 from lessons.forms import SignUpForm
 from lessons.models import User
-from io import StringIO
-from django.core.management import call_command
-
+from lessons.tests.helpers import create_user_groups
 
 class SignUpViewTestCase(TestCase):
     """Tests of the sign-up view"""
 
     def setUp(self):
         # Run the create_groups command on test database:
-        out = StringIO()
-        call_command('create_groups', stdout=out)
+        create_user_groups()
 
         self.url = reverse('sign_up')
         self.form_input = {
