@@ -4,17 +4,14 @@ from django.test import TestCase
 from lessons.forms import SignUpForm
 from lessons.models import User
 from django.contrib.auth.hashers import check_password
-from io import StringIO
-from django.core.management import call_command
+from lessons.tests.helpers import create_user_groups
 
 
 class SignUpFormTestCase(TestCase):
     """Unit tests of the sign-up form."""
 
     def setUp(self):
-        # Run the create_groups command on test database:
-        out = StringIO()
-        call_command('create_groups', stdout=out)
+        create_user_groups()
 
         self.form_input = {
             'first_name': 'John',
@@ -59,7 +56,8 @@ class SignUpFormTestCase(TestCase):
 
     # New password has correct format
     def test_password_must_contain_uppercase_character(self):
-        self.form_input['new_password'] = 'password123'  # This input meets all other requirements for a password except uppercase characters.
+        self.form_input[
+            'new_password'] = 'password123'  # This input meets all other requirements for a password except uppercase characters.
         self.form_input['password_confirmation'] = 'password123'
         form = SignUpForm(data=self.form_input)
         self.assertFalse(form.is_valid())
@@ -94,5 +92,6 @@ class SignUpFormTestCase(TestCase):
         self.assertEqual(user.first_name, 'John')
         self.assertEqual(user.last_name, 'Doe')
         self.assertEqual(user.email, 'johndoe@example.org')
-        is_password_correct = check_password('Password123', user.password)  # Uses check_password as the password stored is a hash, using this will allow us to compare whether the given password is the same as the one stored as a hash.
+        is_password_correct = check_password('Password123',
+                                             user.password)  # Uses check_password as the password stored is a hash, using this will allow us to compare whether the given password is the same as the one stored as a hash.
         self.assertTrue(is_password_correct)
