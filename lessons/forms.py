@@ -52,7 +52,7 @@ class RequestViewForm(forms.ModelForm):
 
 
 class LogInForm(forms.Form):
-    email = forms.CharField(label='email')
+    email = forms.CharField(label='Email')
     password = forms.CharField(label='Password', widget=forms.PasswordInput())
 
 
@@ -66,17 +66,17 @@ class SignUpForm(forms.ModelForm):
         widget=forms.PasswordInput(),
         validators=[RegexValidator(
             regex=r'^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).*$',
-            message='password must contain an uppercase character, a lower case character and a number'
+            message='Password must contain an uppercase character, a lower case character and a number'
         )]
     )
-    password_confirmation = forms.CharField(label='Password confirmation', widget=forms.PasswordInput())
+    password_confirmation = forms.CharField(label='Password Confirmation', widget=forms.PasswordInput())
 
     def clean(self):
         super().clean()
         new_password = self.cleaned_data.get('new_password')
         password_confirmation = self.cleaned_data.get('password_confirmation')
         if new_password != password_confirmation:
-            self.add_error('password_confirmation', 'confirmation does not match password.')
+            self.add_error('password_confirmation', 'Confirmation does not match password.')
 
     def save(self):
         super().save(commit=False)  # Do everything the save function would normally do except for storing the record in the database.
