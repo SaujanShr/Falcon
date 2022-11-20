@@ -49,6 +49,18 @@ class RequestViewForm(forms.ModelForm):
         label="Available Days",
         widget=forms.CheckboxSelectMultiple
     )
+    
+    def __init__(self, *args, **kwargs):
+        super(RequestViewForm, self).__init__(*args, **kwargs)
+        self.fields['date'].disabled = True
+        self.fields['fulfilled'].disabled = True
+    
+    def setReadOnly(self):
+        self.fields['availability'].disabled = True
+        self.fields['number_of_lessons'].disabled = True
+        self.fields['interval_between_lessons'].disabled = True
+        self.fields['duration_of_lessons'].disabled = True
+        self.fields['further_information'].disabled = True
 
 
 class LogInForm(forms.Form):
