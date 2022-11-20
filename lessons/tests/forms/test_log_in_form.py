@@ -13,7 +13,7 @@ class LogInFormTestCase(TestCase):
         self.assertIn('email', form.fields)
         self.assertIn('password', form.fields)
         password_field = form.fields['password']
-        self.assertTrue(isinstance(password_field.widget,forms.PasswordInput))
+        self.assertTrue(isinstance(password_field.widget, forms.PasswordInput))
 
     def test_form_accepts_valid_input(self):
         form = LogInForm(data=self.form_input)
@@ -30,11 +30,11 @@ class LogInFormTestCase(TestCase):
         self.assertFalse(form.is_valid())
 
     def test_form_accepts_incorrect_email(self):
-        self.form_input['username'] = 'ja'
+        self.form_input['email'] = 'IncorrectEmail'
         form = LogInForm(data=self.form_input)
         self.assertTrue(form.is_valid())
 
     def test_form_accepts_incorrect_password(self):
-        self.form_input['password'] = 'pwd'
+        self.form_input['password'] = 'IncorrectPassword'
         form = LogInForm(data=self.form_input)
         self.assertTrue(form.is_valid())

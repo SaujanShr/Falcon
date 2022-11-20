@@ -8,7 +8,7 @@
 
             <form action="{% url 'new_request_view' %}" method="post">
                 {% csrf_token %}
-                {% include 'partials/bootstrap_form.html' with form=form %}
+                {{ form.as_p }}
                 <input type="submit" value="Submit" class="btn btn-primary">
             </form>
         </div>

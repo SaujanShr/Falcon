@@ -2,8 +2,8 @@
 from django.test import TestCase
 from django.urls import reverse
 from lessons.forms import NewRequestViewForm
-from lessons.models import DayOfTheWeek, Request
-from lessons.tests.helpers import create_user_groups, HandleGroups
+from lessons.models import Request, DayOfTheWeek
+from lessons.tests.helpers import create_user_groups, HandleGroups, create_days_of_the_week
 
 
 class NewRequestViewTestCase(TestCase):
@@ -17,15 +17,9 @@ class NewRequestViewTestCase(TestCase):
 
         self.url = reverse('new_request_view')
 
-        DayOfTheWeek.objects.create(order=0, day=DayOfTheWeek.Day.MONDAY)
-        DayOfTheWeek.objects.create(order=1, day=DayOfTheWeek.Day.TUESDAY)
-        DayOfTheWeek.objects.create(order=2, day=DayOfTheWeek.Day.WEDNESDAY)
-        DayOfTheWeek.objects.create(order=3, day=DayOfTheWeek.Day.THURSDAY)
-        DayOfTheWeek.objects.create(order=4, day=DayOfTheWeek.Day.FRIDAY)
-        DayOfTheWeek.objects.create(order=5, day=DayOfTheWeek.Day.SATURDAY)
-        DayOfTheWeek.objects.create(order=6, day=DayOfTheWeek.Day.SUNDAY)
+        create_days_of_the_week()
 
-        availability = 1  # Check availability as value 1(In the form checkbox), Monday.
+        availability = 1  # Check availability as value 1(In the form checkbox), Monday. It becomes lessons.DayOfTheWeek.None ?? Should be lessons.DayOfTheWeek.Monday
         number_of_lessons = 1
         interval_between_lessons = Request.IntervalBetweenLessons.ONE_WEEK
         duration_of_lessons = Request.LessonDuration.THIRTY_MINUTES
@@ -49,7 +43,6 @@ class NewRequestViewTestCase(TestCase):
         self.assertTrue(isinstance(form, NewRequestViewForm))
         self.assertFalse(form.is_bound)
 
-    # The form is invalid so even a valid form won't work - it doesn't set the availability in the form.
     def test_unsuccessful_new_request(self):
         self.form_input['number_of_lessons'] = -1
         before_count = Request.objects.count()
