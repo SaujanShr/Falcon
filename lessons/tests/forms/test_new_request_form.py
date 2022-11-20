@@ -1,26 +1,29 @@
 """Unit tests of the new requests form."""
+from django.utils import timezone
 from django.test import TestCase
 from lessons.forms import NewRequestViewForm
-from lessons.models import DayOfTheWeek, Request
-from lessons.models import User
-from django.utils import timezone
+from lessons.models import DayOfTheWeek, Request, User
+from lessons.tests.helpers import create_days_of_the_week
+
 
 class LogInFormTestCase(TestCase):
-    def setUp(self):
-        DayOfTheWeek.objects.create(order=0, day=DayOfTheWeek.Day.MONDAY)
-        DayOfTheWeek.objects.create(order=1, day=DayOfTheWeek.Day.TUESDAY)
-        DayOfTheWeek.objects.create(order=2, day=DayOfTheWeek.Day.WEDNESDAY)
-        DayOfTheWeek.objects.create(order=3, day=DayOfTheWeek.Day.THURSDAY)
-        DayOfTheWeek.objects.create(order=4, day=DayOfTheWeek.Day.FRIDAY)
-        DayOfTheWeek.objects.create(order=5, day=DayOfTheWeek.Day.SATURDAY)
-        DayOfTheWeek.objects.create(order=6, day=DayOfTheWeek.Day.SUNDAY)
+    """Unit tests of the new requests form."""
+    fixtures = ['lessons/tests/fixtures/default_user.json']
 
+    def setUp(self):
+        create_days_of_the_week()
+
+        self.user = User.objects.get(email="johndoe@email.com")
+
+        # Create form inputs
         availability = DayOfTheWeek.objects.get(day=DayOfTheWeek.Day.TUESDAY), DayOfTheWeek.objects.get(
             day=DayOfTheWeek.Day.WEDNESDAY)
         number_of_lessons = 1
         interval_between_lessons = Request.IntervalBetweenLessons.ONE_WEEK
         duration_of_lessons = Request.LessonDuration.THIRTY_MINUTES
         further_information = 'Some information'
+
+        # Initialise form input
         self.form_input = {
             'availability': availability,
             'number_of_lessons': number_of_lessons,
@@ -132,6 +135,7 @@ class LogInFormTestCase(TestCase):
         self.assertFalse(form.is_valid())
 
     # Not sure how to do this.
+    # django.db.utils.IntegrityError: NOT NULL constraint failed: lessons_request.user_id
 
     # def test_form_must_save_correctly(self):
     #     form = NewRequestViewForm(data=self.form_input)
@@ -142,18 +146,22 @@ class LogInFormTestCase(TestCase):
     #     form_duration_of_lessons = form.cleaned_data.get('duration_of_lessons')
     #     form_further_information = form.cleaned_data.get('further_information')
     #     Request.objects.create(
-    #         user=User.objects.create_user(
-    #             email='email@email.com',
-    #             password='Password123'
-    #         ),
-    #         date=timezone.datetime(2000, 1, 1, 1, 1, 1, tzinfo=timezone.utc),
+    #         #replace with fixture
+    #         # user=User.objects.create_user(
+    #         #     first_name="john",
+    #         #     last_name="doe",
+    #         #     email='email@email.com',
+    #         #     password='Password123'
+    #         # ),
+    #         date=timezone.datetime.now(tz=timezone.utc),
     #         #availability=form_availability,
     #         number_of_lessons=form_number_of_lessons,
     #         interval_between_lessons=form_interval_between_lessons,
     #         duration_of_lessons=form_duration_of_lessons,
     #         further_information=form_further_information
     #     ).availability.set(form_availability)
+    #
     #     before_count = Request.objects.count()
-    #     form.save()
+    #     form.save(self.user)
     #     after_count = Request.objects.count()
     #     self.assertEqual(after_count, before_count + 1)  # Check that the Request count has increased by 1
