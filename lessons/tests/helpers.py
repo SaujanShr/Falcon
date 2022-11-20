@@ -59,6 +59,18 @@ class HandleGroups:
         student_group = Group.objects.get(name='Student')
         student_group.user_set.add(default_user)
 
+    def set_default_user_to_admin():
+        create_user_groups()
+        default_user = User.objects.get(email='johndoe@email.com')
+        admin_group = Group.objects.get(name='Admin')
+        admin_group.user_set.add(default_user)
+
+    def set_other_user_to_student():
+        create_user_groups()
+        other_user = User.objects.get(email='janedoe@email.com')
+        student_group = Group.objects.get(name='Student')
+        student_group.user_set.add(other_user)
+
     def set_other_user_to_admin():
         create_user_groups()
         other_user = User.objects.get(email='janedoe@email.com')
