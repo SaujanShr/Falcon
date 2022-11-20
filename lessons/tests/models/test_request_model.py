@@ -46,7 +46,7 @@ class RequestModelTestCase(TestCase):
             duration_of_lessons = Request.LessonDuration.THIRTY_MINUTES,
             further_information = 'Some information...'
         )
-        self.request1.availability.set([DayOfTheWeek.objects.get(day = DayOfTheWeek.Day.MONDAY), 
+        self.request1.availability.set([DayOfTheWeek.objects.get(day = DayOfTheWeek.Day.MONDAY),
                                         DayOfTheWeek.objects.get(day = DayOfTheWeek.Day.WEDNESDAY),
                                         DayOfTheWeek.objects.get(day = DayOfTheWeek.Day.SUNDAY)])
 
@@ -61,7 +61,7 @@ class RequestModelTestCase(TestCase):
             duration_of_lessons = Request.LessonDuration.SIXTY_MINUTES,
             further_information = 'Other information'
         )
-        self.request2.availability.set([DayOfTheWeek.objects.get(day = DayOfTheWeek.Day.TUESDAY), 
+        self.request2.availability.set([DayOfTheWeek.objects.get(day = DayOfTheWeek.Day.TUESDAY),
                                         DayOfTheWeek.objects.get(day = DayOfTheWeek.Day.THURSDAY),
                                         DayOfTheWeek.objects.get(day = DayOfTheWeek.Day.FRIDAY)])
     
@@ -124,8 +124,7 @@ class RequestModelTestCase(TestCase):
 
     def test_availability_can_have_more_than_one_available_day(self):
         self.request1.availability.clear()
-        self.request1.availability.add(DayOfTheWeek.objects.get(day=DayOfTheWeek.Day.SATURDAY))
-        self.request1.availability.add(DayOfTheWeek.objects.get(day=DayOfTheWeek.Day.SUNDAY))
+        self.request1.availability.add(DayOfTheWeek.objects.get(day=DayOfTheWeek.Day.SATURDAY), DayOfTheWeek.objects.get(day=DayOfTheWeek.Day.SUNDAY))
         self._assert_request_is_valid()
     
     def test_availability_may_be_the_same(self):
@@ -134,13 +133,7 @@ class RequestModelTestCase(TestCase):
 
     def test_availability_can_have_all_available_days(self):
         self.request1.availability.clear()
-        self.request2.availability.set([DayOfTheWeek.objects.get(day=DayOfTheWeek.Day.MONDAY),
-                                        DayOfTheWeek.objects.get(day=DayOfTheWeek.Day.TUESDAY),
-                                        DayOfTheWeek.objects.get(day=DayOfTheWeek.Day.WEDNESDAY),
-                                        DayOfTheWeek.objects.get(day=DayOfTheWeek.Day.THURSDAY),
-                                        DayOfTheWeek.objects.get(day=DayOfTheWeek.Day.FRIDAY),
-                                        DayOfTheWeek.objects.get(day=DayOfTheWeek.Day.SATURDAY),
-                                        DayOfTheWeek.objects.get(day=DayOfTheWeek.Day.SUNDAY)])
+        self.request2.availability.set(DayOfTheWeek.objects.all())
         self._assert_request_is_valid()
 
     def test_number_of_lessons_cannot_be_empty(self):
