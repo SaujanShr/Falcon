@@ -3,7 +3,7 @@ import datetime
 from django import forms
 from django.core.validators import RegexValidator
 from django.contrib.auth.models import Group
-from .models import User, DayOfTheWeek, Request, BankTransaction, Student
+from .models import User, DayOfTheWeek, Request, BankTransaction, Student, Booking
 from django.utils import timezone
 
 class DateInput(forms.DateInput):
@@ -49,6 +49,57 @@ class RequestViewForm(forms.ModelForm):
         label="Available Days",
         widget=forms.CheckboxSelectMultiple
     )
+
+
+class FulfilRequestForm(forms.ModelForm):
+    class Meta:
+        model = Request
+        fields = ['date', 'user', 'availability', 'number_of_lessons', 'interval_between_lessons',
+                  'duration_of_lessons', 'further_information']
+        widgets = {'user': forms.HiddenInput(), 'date': forms.HiddenInput()}
+
+    availability = forms.ModelChoiceField(
+        queryset=DayOfTheWeek.objects.all(),
+        label="Day of lessons:",
+        widget=forms.Select
+    )
+    time_of_lesson = forms.TimeField(
+        label='Lesson time:',
+        widget=forms.TimeInput(
+            attrs={'type':'time'}
+        )
+    )
+    teacher = forms.CharField(
+        label='Teacher:',
+        widget=forms.TextInput
+    )
+    start_date = forms.DateField(
+        label='Start date:',
+        widget=forms.DateInput(
+            attrs={'type':'date'}
+        )
+    )
+    hourly_cost = forms.CharField(
+        widget=forms.TextInput(
+            attrs={'type':'number'}
+        )
+    )
+    def save(self):
+        super().save(commit=False)
+
+        booking = Booking.objects.create(
+            day_of_the_week=self.cleaned_data.get('availability'),
+            time_of_the_day=self.cleaned_data.get('time_of_lesson'),
+            student=self.cleaned_data.get('user'),
+            teacher=self.cleaned_data.get('teacher'),
+            start_Date=self.cleaned_data.get('start_date'),
+            duration_of_lessons=self.cleaned_data.get('duration_of_lessons'),
+            interval_between_lessons=self.cleaned_data.get('interval_between_lessons'),
+            number_of_lessons=self.cleaned_data.get('number_of_lessons'),
+            further_information=self.cleaned_data.get('further_information')
+        )
+
+        booking.save()
 
 
 class LogInForm(forms.Form):

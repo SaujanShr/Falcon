@@ -77,9 +77,9 @@
                 <td style="vertical-align: top">{{ request.duration_of_lessons }}</td>
                 <td style="vertical-align: top">{{ request.further_information }}</td>
                 {% if request.fulfilled %}
-                    <td style="vertical-align: top">True</td>
+                    <td style="vertical-align: top">Yes</td>
                 {% else %}
-                    <td style="vertical-align: top"><a href="/fulfill_request/?id={{ request.user.email }}">False</a></td> <!--TO DO: Replace this with actual ID once we have those.-->
+                    <td style="vertical-align: top"><a href="/fulfil_request/?date={{ request.raw_date }}">Fulfil</a></td> <!--TO DO: Replace this with actual ID once we have those.-->
                 {% endif %}
             </tr>
         {% endfor %}

@@ -28,8 +28,8 @@ def request_list(request):
 
 
 @login_required
-@allowed_groups(['Student'])
-def request_view(request):
+@allowed_groups(['Admin'])
+def admin_fulfill_request_view(request):
     date = str(get_request_object(request).date)
     form = get_request_view_form(request)
     return render(request, 'request_view.html', {'date':date, 'form':form})
@@ -122,23 +122,36 @@ def transaction_admin_view(request):
     return render(request, 'transaction_admin_view.html', {'form': form})
 
 
-# @login_required
-# @allowed_groups(["Admin"])
+#@login_required
+#@allowed_groups(["Admin","Director"])
 def admin_bookings_requests_view(request):
-    if request.method == 'GET':
-        requests = Request.objects.all()
-        bookings = Booking.objects.all()
-        for req in requests:
-            req.interval_between_lessons = req.IntervalBetweenLessons.choices[req.interval_between_lessons - 1][1]
-            for duration in req.LessonDuration.choices:
-                if duration[0] == req.duration_of_lessons:
-                    req.duration_of_lessons = duration[1]
-        for booking in bookings:
-            booking.day_of_the_week = booking.DayOfWeek.choices[booking.day_of_the_week - 1][1]
-            booking.interval_between_lessons = \
-                booking.IntervalBetweenLessons.choices[booking.interval_between_lessons - 1][1]
-            for duration in booking.LessonDuration.choices:
-                if duration[0] == booking.duration_of_lessons:
-                    booking.duration_of_lessons = duration[1]
-        return render(request, 'admin_view_requests.html', {'requests': requests,
-                                                            'bookings': bookings})
+    if request.method == 'POST':
+        if 'delete' in request.POST:
+            delete_request(request)
+        elif 'fulfil' in request.POST:
+            fulfil_request(request)
+    requests = Request.objects.all()
+    bookings = Booking.objects.all()
+    for req in requests:
+        req.interval_between_lessons = req.IntervalBetweenLessons.choices[req.interval_between_lessons - 1][1]
+        for duration in req.LessonDuration.choices:
+            if duration[0] == req.duration_of_lessons:
+                req.duration_of_lessons = duration[1]
+        req.raw_date = str(req.date).split('+')[0] # To do: Ensure this works regardless of timezone, change
+        # implementation if necessary
+    for booking in bookings:
+        booking.day_of_the_week = booking.DayOfWeek.choices[booking.day_of_the_week - 1][1]
+        booking.interval_between_lessons = \
+            booking.IntervalBetweenLessons.choices[booking.interval_between_lessons - 1][1]
+        for duration in booking.LessonDuration.choices:
+            if duration[0] == booking.duration_of_lessons:
+                booking.duration_of_lessons = duration[1]
+    return render(request, 'admin_view_requests.html', {'requests': requests,
+                                                        'bookings': bookings})
+
+#@login_required
+#@allowed_groups(["Admin","Director"])
+def fulfil_request_view(request):
+    date = str(get_request_object(request).date)
+    form = get_fulfil_request_form(request)
+    return render(request, 'fulfil_view.html', {'date': date, 'form': form})
