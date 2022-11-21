@@ -53,13 +53,16 @@ class RequestViewForm(forms.ModelForm):
 
 class FulfilRequestForm(forms.ModelForm):
     class Meta:
-        model = Request
-        fields = ['date', 'user', 'availability', 'number_of_lessons', 'interval_between_lessons',
+        model = Booking
+        fields = ['availability', 'number_of_lessons', 'interval_between_lessons',
                   'duration_of_lessons', 'further_information']
-        widgets = {'user': forms.HiddenInput(), 'date': forms.HiddenInput()}
 
-    availability = forms.ModelChoiceField(
-        queryset=DayOfTheWeek.objects.all(),
+    date = forms.CharField(
+        widget=forms.HiddenInput
+    )
+
+    availability = forms.ChoiceField(
+        choices=Booking.DayOfWeek.choices,
         label="Day of lessons:",
         widget=forms.Select
     )
@@ -91,19 +94,25 @@ class FulfilRequestForm(forms.ModelForm):
             booking = Booking.objects.create(
                 day_of_the_week=self.cleaned_data.get('availability'),
                 time_of_the_day=self.cleaned_data.get('time_of_lesson'),
-                student=self.cleaned_data.get('user'),
+                student=req.user,
                 teacher=self.cleaned_data.get('teacher'),
-                start_Date=self.cleaned_data.get('start_date'),
+                start_date=self.cleaned_data.get('start_date'),
                 duration_of_lessons=self.cleaned_data.get('duration_of_lessons'),
                 interval_between_lessons=self.cleaned_data.get('interval_between_lessons'),
                 number_of_lessons=self.cleaned_data.get('number_of_lessons'),
-                further_information=self.cleaned_data.get('further_information')
+                further_information=self.cleaned_data.get('further_information'),
+                invoice_id="1234-123"
             )
+            #request.availability.add(available_day)
+
+
 
             #booking.save()
             return booking
         else:
             print("Request already fulfilled")
+            
+
 
 class LogInForm(forms.Form):
     email = forms.CharField(label='email')

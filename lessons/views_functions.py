@@ -62,8 +62,8 @@ def get_fulfil_request_form(request):
     this_request = get_request_object(request)
     form = FulfilRequestForm(
         initial={
+            #'availability': this_request.availability.all(),
             'date': this_request.date,
-            'availability': this_request.availability.all(),
             'number_of_lessons': this_request.number_of_lessons,
             'interval_between_lessons': this_request.interval_between_lessons,
             'duration_of_lessons': this_request.duration_of_lessons,

@@ -112,14 +112,16 @@ class Booking(models.Model):
         SATURDAY = 6, 'Saturday'
         SUNDAY = 7, 'Sunday'
 
+
     invoice_id = models.CharField(max_length=8,
-        unique=True,
+        unique=False, #Change to true
         blank=False,
         validators=[RegexValidator(
             regex=r'^\d{4}-\d{3}$',
             message='Invoice number must follow the format xxxx-yyy where x is the student number and y is the invoice number.'
         )]
     )
+
     day_of_the_week = models.PositiveIntegerField(blank=False, choices=DayOfWeek.choices)
     time_of_the_day = models.TimeField(auto_now=False, auto_now_add=False)
     student = models.ForeignKey(User, blank=True, on_delete=models.CASCADE)  # The same as user in Request model

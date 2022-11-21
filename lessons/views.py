@@ -152,12 +152,14 @@ def fulfil_request_view(request):
     if request.method == 'POST':
         if 'fulfil' in request.POST:
             form = FulfilRequestForm(request.POST)
-            if form.is_valid():
-                form.save()
-                print("Form saved!")
-                return redirect('admin_view_requests_and_bookings')
-            else:
-                print(form.errors)
+            booking = form.save()
+            try:
+                booking.full_clean()
+                booking.save()
+                return redirect('admin_request_view')
+            except ValueError:
+                print('Form incorrect')
+
     date = str(get_request_object(request).date)
     form = get_fulfil_request_form(request)
     return render(request, 'fulfil_view.html', {'date': date, 'form': form})
