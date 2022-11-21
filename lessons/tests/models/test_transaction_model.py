@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.core.exceptions import ValidationError
-from lessons.models import User, BankTransaction, Student
+from lessons.models import User, BankTransaction, Student, Invoice
+from decimal import Decimal
 import datetime
 from lessons.tests.helpers import create_user_groups
 
@@ -18,17 +19,30 @@ class TransactionModelTestCase(TestCase):
 
         self.student1 = Student.objects.create(user=self.user1)
         self.student2 = Student.objects.create(user=self.user2)
+
+        self.invoice1 = Invoice.objects.create(
+            invoice_number='1234-123',
+            student=self.student1,
+            full_amount='100.00'
+        )
+
+        self.invoice2 = Invoice.objects.create(
+            invoice_number='1234-124',
+            student=self.student2,
+            full_amount='100.00'
+        )
         
         self.transaction1 = BankTransaction.objects.create(
             student = self.student1,
-            amount = '3.14',
-            invoice_number = '1234-567',
+            amount = '50.00',
+            invoice = self.invoice1,
             date = datetime.date(2022, 2, 21)
         )
+
         self.transaction2 = BankTransaction.objects.create(
             student = self.student2,
-            amount = '3.15',
-            invoice_number = '1234-569',
+            amount = '55.00',
+            invoice = self.invoice2,
             date = datetime.date(2022, 2, 22)
         )
 
@@ -81,18 +95,31 @@ class TransactionModelTestCase(TestCase):
         self.transaction1.amount = None
         self._assert_transaction_is_invalid()
 
-    def test_invoice_no_must_not_be_over_eight_characters(self):
-        self.transaction1.invoice_number = '1234-1234'
+    def test_invoice_must_exist(self):
+        self.transaction1.invoice.delete()
         self._assert_transaction_is_invalid()
 
-    def test_invoice_no_must_be_unique(self):
-        self.transaction1.invoice_number = self.transaction2.invoice_number
-        self._assert_transaction_is_invalid()
+    def test_invoice_gets_updated(self):
+        self.assertEqual(Decimal(self.transaction1.amount), self.transaction1.invoice.paid_amount)
 
-    def test_invoice_no_must_not_be_blank(self):
-        self.transaction1.invoice_number = ''
-        self._assert_transaction_is_invalid()
-
-    def test_invoice_no_must_follow_format(self):
-        self.transaction1.invoice_number = '12-34567'
-        self._assert_transaction_is_invalid()
+    
+    def test_invoice_overpay_interaction(self):
+        transactionBig = BankTransaction.objects.create(
+            student = self.student1,
+            amount = '105.00',
+            invoice = self.invoice1,
+            date = datetime.date(2022, 2, 22)
+        )
+        self.assertEqual(transactionBig.invoice.fully_paid, True)
+        self.assertEqual(transactionBig.invoice.full_amount, transactionBig.invoice.paid_amount)
+    
+    
+    def test_user_balance_gets_updated_if_overpay(self):
+        transactionBig = BankTransaction.objects.create(
+            student = self.student1,
+            amount = '105.00',
+            invoice = self.invoice1,
+            date = datetime.date(2022, 2, 22)
+        )
+        self.assertEqual(transactionBig.student.balance, Decimal('55.00'))
+    

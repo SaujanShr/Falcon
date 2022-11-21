@@ -6,6 +6,7 @@ from datetime import date
 from .user_manager import UserManager
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import Group
+from decimal import Decimal
 
 class DayOfTheWeek(models.Model):
     class Day(models.TextChoices):
@@ -161,13 +162,16 @@ class BankTransaction(models.Model):
     )
     student = models.ForeignKey(Student, blank=False, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=6, decimal_places=2, blank=False)
-    #TODO Change invoice_number interaction.
-    invoice_number = models.CharField(
-        max_length=8,
-        unique=True,
-        blank=False,
-        validators=[RegexValidator(
-            regex=r'^\d{4}-\d{3}$',
-            message='Invoice number must follow the format xxxx-yyy where x is the student number and y is the invoice number.'
-        )]
-    )
+    invoice = models.ForeignKey(Invoice, blank=False, on_delete=models.CASCADE)
+
+    def save(self, *args, **kwargs):
+        super(BankTransaction, self).save(*args, **kwargs)
+        self.invoice.paid_amount = Decimal(self.invoice.paid_amount) + Decimal(self.amount)
+        overpay = Decimal(self.invoice.paid_amount) - Decimal(self.invoice.full_amount)
+
+        if overpay >= 0:
+            self.invoice.fully_paid = True
+            self.invoice.paid_amount = self.invoice.full_amount
+            self.student.balance = Decimal(self.student.balance) + overpay
+            self.invoice.save()
+            self.student.save()
