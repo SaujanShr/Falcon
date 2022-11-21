@@ -141,6 +141,7 @@ class Invoice(models.Model):
             message='Invoice number must follow the format xxxx-yyy where x is the student number and y is the invoice number.'
         )]
     )
+    student = models.ForeignKey(Student, blank=False, on_delete=models.CASCADE)
     full_amount = models.DecimalField(max_digits=8, decimal_places=2, blank=False)
     paid_amount = models.DecimalField(max_digits=8, decimal_places=2, blank=False, default='0.00')
     fully_paid = models.BooleanField(default=False, blank=False)
