@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from lessons.models import User, Request, DayOfTheWeek
 from django.utils import timezone
 from lessons.tests.helpers import create_days_of_the_week
+from lessons.tests.helpers import create_user_groups
 
 '''
 from lessons.models import User, Request, DayOfTheWeek
@@ -33,6 +34,7 @@ request1.availability.set([DayOfTheWeek.objects.get(day = DayOfTheWeek.Day.MONDA
 class RequestModelTestCase(TestCase):
     """Unit tests of the request model"""
     def setUp(self):
+        create_user_groups()
         create_days_of_the_week()
 
         self.request1 = Request.objects.create(

@@ -2,7 +2,7 @@
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 from lessons.models import User
-
+from lessons.tests.helpers import create_user_groups
 
 class UserModelTestCase(TestCase):
     """Unit tests for the User model."""
@@ -11,6 +11,7 @@ class UserModelTestCase(TestCase):
                 'lessons/tests/fixtures/other_users.json']
 
     def setUp(self):
+        create_user_groups()
         self.user = User.objects.get(email='janedoe@email.com')
 
     def test_valid_user(self):

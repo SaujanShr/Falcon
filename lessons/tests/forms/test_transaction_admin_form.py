@@ -4,9 +4,11 @@ from django import forms
 from lessons.models import BankTransaction, User, Student
 from lessons.forms import TransactionSubmitForm
 import datetime
+from lessons.tests.helpers import create_user_groups
 
 class TransactionFormTestCase(TestCase):
     def setUp(self):
+        create_user_groups()
         self.user = User.objects.create_user(
                 email='email1@email.com',
                 password='password'

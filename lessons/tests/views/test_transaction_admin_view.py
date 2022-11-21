@@ -4,9 +4,11 @@ from lessons.forms import TransactionSubmitForm
 from lessons.models import BankTransaction, User, Student
 from decimal import Decimal
 import datetime
+from lessons.tests.helpers import create_user_groups
 
 class TransactionAdminViewTestCase(TestCase):
     def setUp(self):
+        create_user_groups()
         self.url = reverse('transaction_admin_view')
         self.user = User.objects.create_user(
                 email='email1@email.com',

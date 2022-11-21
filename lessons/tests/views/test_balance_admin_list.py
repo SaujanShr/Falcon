@@ -2,9 +2,11 @@ from django.test import TestCase
 from django.urls import reverse
 from lessons.models import BankTransaction, User, Student
 from django.db.models.query import QuerySet
+from lessons.tests.helpers import create_user_groups
 
 class TransactionAdminListTestCase(TestCase):
     def setUp(self):
+        create_user_groups()
         self.url = reverse('balance_list_admin')
         self.user = User.objects.create_user(
                 email='email1@email.com',

@@ -2,9 +2,11 @@ from django.test import TestCase
 from django.core.exceptions import ValidationError
 from lessons.models import User, BankTransaction, Student
 import datetime
+from lessons.tests.helpers import create_user_groups
 
 class TransactionModelTestCase(TestCase):
     def setUp(self):
+        create_user_groups()
         self.user1 = User.objects.create_user(
             email = 'user1@test.com',
             password = 'pass1'
