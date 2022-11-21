@@ -2,10 +2,12 @@ from django.test import TestCase
 from django.urls import reverse
 from lessons.models import BankTransaction, User, Student, Invoice
 from django.db.models.query import QuerySet
+from lessons.tests.helpers import create_user_groups
 import datetime
 
 class TransactionAdminListTestCase(TestCase):
     def setUp(self):
+        create_user_groups()
         self.url = reverse('transaction_list_student')
 
         self.user1 = User.objects.create_user(

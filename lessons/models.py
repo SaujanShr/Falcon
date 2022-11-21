@@ -5,8 +5,8 @@ from django.utils import timezone
 from datetime import date
 from .user_manager import UserManager
 from django.contrib.auth.models import PermissionsMixin
+from django.contrib.auth.models import Group
 from decimal import Decimal
-
 
 class DayOfTheWeek(models.Model):
     class Day(models.TextChoices):
@@ -68,6 +68,12 @@ class User(AbstractBaseUser,PermissionsMixin):
 class Student(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE,related_name='user_record', blank=False)
     balance = models.DecimalField(default=0,max_digits=6, decimal_places=2, blank=False)
+
+    def save(self, *args, **kwargs):
+        super(Student, self).save(*args, **kwargs)
+        if (not self.user.groups.exists() or self.user.groups.all()[0].name != "Student"):
+            student_group = Group.objects.get(name='Student')
+            student_group.user_set.add(self.user)
 
 class Request(models.Model):
     class IntervalBetweenLessons(models.IntegerChoices):

@@ -2,9 +2,11 @@ from django.test import TestCase
 from django.core.exceptions import ValidationError
 from lessons.models import User, DayOfTheWeek, Booking
 from django.utils import timezone
+from lessons.tests.helpers import create_user_groups
 
 class BookingModelTestCase(TestCase):
     def setUp(self):
+        create_user_groups()
         self.booking1 = Booking.objects.create(
             student=User.objects.create_user(
                 email='johndoe@gmail.com',
