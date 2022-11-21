@@ -87,7 +87,7 @@ class Request(models.Model):
         )
     user = models.ForeignKey(User, blank=False, on_delete=models.CASCADE)
     availability = models.ManyToManyField(DayOfTheWeek, blank=False)
-    number_of_lessons = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    number_of_lessons = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(9223372036854775807)])
     interval_between_lessons = models.PositiveIntegerField(choices=IntervalBetweenLessons.choices)
     duration_of_lessons = models.PositiveIntegerField(choices=LessonDuration.choices)
     further_information = models.CharField(blank=False, max_length=500)
