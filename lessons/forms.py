@@ -86,21 +86,24 @@ class FulfilRequestForm(forms.ModelForm):
     )
     def save(self):
         super().save(commit=False)
+        req = Request.objects.get(date=self.cleaned_data.get('date'))
+        if not req.fulfilled:
+            booking = Booking.objects.create(
+                day_of_the_week=self.cleaned_data.get('availability'),
+                time_of_the_day=self.cleaned_data.get('time_of_lesson'),
+                student=self.cleaned_data.get('user'),
+                teacher=self.cleaned_data.get('teacher'),
+                start_Date=self.cleaned_data.get('start_date'),
+                duration_of_lessons=self.cleaned_data.get('duration_of_lessons'),
+                interval_between_lessons=self.cleaned_data.get('interval_between_lessons'),
+                number_of_lessons=self.cleaned_data.get('number_of_lessons'),
+                further_information=self.cleaned_data.get('further_information')
+            )
 
-        booking = Booking.objects.create(
-            day_of_the_week=self.cleaned_data.get('availability'),
-            time_of_the_day=self.cleaned_data.get('time_of_lesson'),
-            student=self.cleaned_data.get('user'),
-            teacher=self.cleaned_data.get('teacher'),
-            start_Date=self.cleaned_data.get('start_date'),
-            duration_of_lessons=self.cleaned_data.get('duration_of_lessons'),
-            interval_between_lessons=self.cleaned_data.get('interval_between_lessons'),
-            number_of_lessons=self.cleaned_data.get('number_of_lessons'),
-            further_information=self.cleaned_data.get('further_information')
-        )
-
-        booking.save()
-
+            #booking.save()
+            return booking
+        else:
+            print("Request already fulfilled")
 
 class LogInForm(forms.Form):
     email = forms.CharField(label='email')

@@ -8,7 +8,7 @@
   </head>
   <body>
     <h1> Fulfil Request </h1>
-    <form action="/admin_view_requests_and_bookings/" method="post">
+    <form action="/fulfil_request/" method="post">
         {% csrf_token %}
         {{ form.as_p }}
         <input type="hidden" name="date" value="{{ date }}">

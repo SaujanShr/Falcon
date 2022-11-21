@@ -125,11 +125,6 @@ def transaction_admin_view(request):
 #@login_required
 #@allowed_groups(["Admin","Director"])
 def admin_bookings_requests_view(request):
-    if request.method == 'POST':
-        if 'delete' in request.POST:
-            delete_request(request)
-        elif 'fulfil' in request.POST:
-            fulfil_request(request)
     requests = Request.objects.all()
     bookings = Booking.objects.all()
     for req in requests:
@@ -149,9 +144,20 @@ def admin_bookings_requests_view(request):
     return render(request, 'admin_view_requests.html', {'requests': requests,
                                                         'bookings': bookings})
 
+
 #@login_required
 #@allowed_groups(["Admin","Director"])
 def fulfil_request_view(request):
+    print("AY!")
+    if request.method == 'POST':
+        if 'fulfil' in request.POST:
+            form = FulfilRequestForm(request.POST)
+            if form.is_valid():
+                form.save()
+                print("Form saved!")
+                return redirect('admin_view_requests_and_bookings')
+            else:
+                print(form.errors)
     date = str(get_request_object(request).date)
     form = get_fulfil_request_form(request)
     return render(request, 'fulfil_view.html', {'date': date, 'form': form})
