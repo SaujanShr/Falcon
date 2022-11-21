@@ -33,9 +33,10 @@ def request_view(request):
     user_request = get_request_object(request)
     date = str(user_request.date)
     form = get_request_view_form(request)
-    if user_request.fulfilled:
+    request_fulfilled = user_request.fulfilled
+    if request_fulfilled:
         form.setReadOnly()
-    return render(request, 'request_view.html', {'date': date, 'form': form})
+    return render(request, 'request_view.html', {'date': date, 'form': form, 'readonly': request_fulfilled})
 
 
 @login_required
