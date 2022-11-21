@@ -3,7 +3,7 @@ import datetime
 from django import forms
 from django.core.validators import RegexValidator
 from django.contrib.auth.models import Group
-from .models import User, DayOfTheWeek, Request, BankTransaction, Student
+from .models import User, DayOfTheWeek, Request, BankTransaction, Student, Invoice
 from django.utils import timezone
 
 class DateInput(forms.DateInput):
@@ -109,18 +109,23 @@ class SignUpForm(forms.ModelForm):
 class TransactionSubmitForm(forms.ModelForm):
     class Meta:
         model = BankTransaction
-        fields = ['date', 'amount', 'invoice_number']
+        fields = ['date', 'amount']
         widgets = {
             'date': DateInput()
         }
 
     student_email = forms.EmailField(label='Student\'s email', required=False)
+    invoice_number = forms.CharField(label='Invoice number', required=True)
 
     def clean(self):
         super().clean()
         student_email = self.cleaned_data.get('student_email')
         if(not(User.objects.filter(email=student_email).exists())):
             self.add_error('student_email', 'Student email does not exist in database.')
+
+        invoice_no = self.cleaned_data.get('invoice_number')
+        if(not(Invoice.objects.filter(invoice_number=invoice_no).exists())):
+            self.add_error('invoice_number', 'Invoice number does not exist in database.')
 
     def save(self):
         super().save(commit=False)
@@ -129,19 +134,15 @@ class TransactionSubmitForm(forms.ModelForm):
         student_user=User.objects.get(email=s_email)
         student=Student.objects.get(user=student_user)
 
+        invoice_no = self.cleaned_data.get('invoice_number')
+        invoice_obj = Invoice.objects.get(invoice_number=invoice_no)
+
         BankTransaction.objects.create(
             date=self.cleaned_data.get('date'),
             student=student,
             amount=self.cleaned_data.get('amount'),
-            invoice_number=self.cleaned_data.get('invoice_number')
+            invoice=invoice_obj
         )
-
-        amount=self.cleaned_data.get('amount')
-        current_balance = student.balance
-        student.balance = current_balance + amount
-        student.save()
-
-
 
     def generate_invoice_num(self, student):
         # check student object to see the number of transactions that have been made by the student

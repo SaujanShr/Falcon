@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
 from lessons.forms import TransactionSubmitForm
-from lessons.models import BankTransaction, User, Student
+from lessons.models import BankTransaction, User, Student, Invoice
 from decimal import Decimal
 import datetime
 
@@ -13,6 +13,11 @@ class TransactionAdminViewTestCase(TestCase):
                 password='password'
             )
         self.student = Student.objects.create(user = self.user)
+        self.invoice1 = Invoice.objects.create(
+            invoice_number='1234-123',
+            student=self.student,
+            full_amount='100.00'
+        )
         self.form_input = {
             'date': datetime.date.today(),
             'student_email': self.user.email,
@@ -53,10 +58,10 @@ class TransactionAdminViewTestCase(TestCase):
         self.assertTemplateUsed(response, 'transaction_admin_view.html')
         form = response.context['form']
         self.assertTrue(isinstance(form, TransactionSubmitForm))
-        transaction = BankTransaction.objects.get(invoice_number='1234-123')
+        transaction = BankTransaction.objects.get(invoice=self.invoice1)
         amount_in_decimal = Decimal(self.form_input['amount'].replace(',','.'))
         self.assertEqual(transaction.date, self.form_input['date'])
         self.assertEqual(transaction.student, self.student)
         self.assertEqual(transaction.amount, amount_in_decimal)
-        self.assertEqual(transaction.invoice_number, self.form_input['invoice_number']) 
+        self.assertEqual(transaction.invoice, self.invoice1) 
 
