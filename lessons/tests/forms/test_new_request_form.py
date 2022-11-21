@@ -91,7 +91,16 @@ class LogInFormTestCase(TestCase):
     def test_number_of_lessons_cannot_be_less_than_1(self):
         self.form_input['number_of_lessons'] = 0
         form = NewRequestViewForm(data=self.form_input)
+        self.assertFalse(form.is_valid())
 
+    def test_number_of_lessons_can_be_max_int_for_SQLite_DB(self):
+        self.form_input['number_of_lessons'] = 9223372036854775807
+        form = NewRequestViewForm(data=self.form_input)
+        self.assertTrue(form.is_valid())
+
+    def test_number_of_lessons_cannot_be_greater_than_max_int_for_SQLite_DB(self):
+        self.form_input['number_of_lessons'] = 92233720368547758071
+        form = NewRequestViewForm(data=self.form_input)
         self.assertFalse(form.is_valid())
 
     def test_interval_between_lessons_cannot_be_empty(self):
