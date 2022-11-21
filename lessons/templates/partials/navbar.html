@@ -8,7 +8,11 @@
             <span class="navbar-toggler-icon"></span>
         </button>
 
-        {% if user.is_authenticated %}
+        {% if is_director %}
+        {% include 'partials/student_menu.html' %}
+        {% elif is_administrator %}
+        {% include 'partials/student_menu.html' %}
+        {% else %}
         {% include 'partials/student_menu.html' %}
         {% endif %}
     </div>

@@ -11,7 +11,7 @@ from .views_functions import *
 @login_required
 @allowed_groups(['Student'])
 def student_page(request):
-    return render(request, 'student_page.html')
+    return render(request, 'student_page.html',{'is_administrator':False, 'is-director':False})
 
 
 @login_required
@@ -24,7 +24,7 @@ def request_list(request):
             update_request(request)
 
     date_user_request_pairs = get_date_user_request_pairs(request)
-    return render(request, 'request_list.html', {'date_user_request_pairs': date_user_request_pairs})
+    return render(request, 'request_list.html', {'date_user_request_pairs': date_user_request_pairs, 'is_administrator':False, 'is-director':False})
 
 
 @login_required
@@ -35,7 +35,7 @@ def request_view(request):
     form = get_request_view_form(request)
     if user_request.fulfilled:
         form.setReadOnly()
-    return render(request, 'request_view.html', {'date': date, 'form': form})
+    return render(request, 'request_view.html', {'date': date, 'form': form,'is_administrator':False, 'is-director':False})
 
 
 @login_required
@@ -48,7 +48,7 @@ def new_request_view(request):
             return redirect('student_page')
     else:
         form = NewRequestViewForm()
-    return render(request, 'new_request_view.html', {'form': form})
+    return render(request, 'new_request_view.html', {'form': form,'is_administrator':False, 'is-director':False})
 
 
 @login_prohibited
@@ -94,11 +94,13 @@ def log_out(request):
 @login_required
 @allowed_groups(["Admin", "Director"])
 def test_redirect_view(request):
-    return render(request, 'test_redirect.html')
+    if request.user.is_superuser:
+        return render(request, 'test_redirect.html',{'is_administrator':True, 'is-director':False})
+    elif request.user.groups.exists() and request.user.groups.all()[0].name == "Admin":
+        return render(request, 'test_redirect.html',{'is_administrator':False, 'is-director':True})
 
-
-# @login_required
-# @allowed_groups(["Admin", "Director"])
+@login_required
+@allowed_groups(["Admin", "Director"])
 def transaction_admin_view(request):
     if request.method == 'POST':
         form = TransactionSubmitForm(request.POST)
@@ -108,18 +110,24 @@ def transaction_admin_view(request):
     else:
         form = TransactionSubmitForm()
 
-    return render(request, 'transaction_admin_view.html', {'form': form})
+    if request.user.groups.exists() and request.user.groups.all()[0].name == "Admin":
+        return render(request, 'transaction_admin_view.html',{'form': form,'is_administrator':True, 'is-director':False})
+    elif request.user.is_superuser:
+        return render(request, 'transaction_admin_view.html',{'form': form,'is_administrator':False, 'is-director':True})
 
 
-# @login_required
-# @allowed_groups(["Admin", "Director"])
+@login_required
+@allowed_groups(["Admin", "Director"])
 def transaction_list_admin(request):
     transactions = BankTransaction.objects.order_by('date')
-    return render(request, 'transaction_list.html', {'transactions': transactions})
+    if request.user.groups.exists() and request.user.groups.all()[0].name == "Admin":
+        return render(request, 'transaction_list.html',{'transactions': transactions,'is_administrator':True, 'is-director':False})
+    elif request.user.is_superuser:
+        return render(request, 'transaction_list.html',{'transactions': transactions,'is_administrator':False, 'is-director':True})
 
 
-# @login_required
-# @allowed_groups(["Student"])
+@login_required
+@allowed_groups(["Student"])
 def transaction_list_student(request):
     # currently errors if user is not logged in
     r_user = request.user
@@ -130,18 +138,18 @@ def transaction_list_student(request):
     else:
         transactions = BankTransaction.objects.order_by('date').filter(student=r_student)
 
-    return render(request, 'transaction_list.html', {'transactions': transactions})
+    return render(request, 'transaction_list.html', {'transactions': transactions,'is_administrator':False, 'is-director':False })
 
 
-# @login_required
-# @allowed_groups(["Admin", "Director"])
+@login_required
+@allowed_groups(["Admin", "Director"])
 def balance_list_admin(request):
     students = Student.objects.all()
     return render(request, 'balance_list.html', {'students': students})
 
 
-# @login_required
-# @allowed_groups(["Admin"])
+@login_required
+@allowed_groups(["Admin"])
 def admin_bookings_requests_view(request):
     if request.method == 'GET':
 
@@ -195,5 +203,11 @@ def admin_bookings_requests_view(request):
             for duration in booking.LessonDuration.choices:
                 if duration[0] == booking.duration_of_lessons:
                     booking.duration_of_lessons = duration[1]
-        return render(request, 'admin_view_requests.html', {'requests': requests,
-                                                            'bookings': bookings})
+            
+        if request.user.groups.exists() and request.user.groups.all()[0].name == "Admin":
+            return render(request, 'admin_view_requests.html',{'requests': requests,
+                                                            'bookings': bookings,'is_administrator':True, 'is-director':False})
+        elif request.user.is_superuser:
+            return render(request, 'admin_view_requests.html',{'requests': requests,
+                                                            'bookings': bookings,'is_administrator':False, 'is-director':True})
+

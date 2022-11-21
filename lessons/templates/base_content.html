@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block body %}
-{% include 'partials/navbar.html' %}
+{% include 'partials/navbar.html' with is_director=is_director is_administrator=is_administrator %}
 {% include 'partials/messages.html' %}
 {% block content %}
 {% endblock %}
