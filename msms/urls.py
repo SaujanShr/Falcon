@@ -33,5 +33,6 @@ urlpatterns = [
     path('transactions/student', views.transaction_list_student, name='transaction_list_student'),
     path('balance/admin', views.balance_list_admin, name='balance_list_admin'),
     path('admin_view_requests_and_bookings/', views.admin_bookings_requests_view, name='admin_request_view'),
+    path('change_password/', views.password, name='change_password'),
     path('log_out/', views.log_out, name='log_out'),
 ]
