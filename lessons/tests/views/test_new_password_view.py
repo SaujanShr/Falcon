@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.urls import reverse
 from lessons.forms import PasswordForm
 from lessons.models import User
-from lessons.tests.helpers import reverse_with_next
+from lessons.tests.helpers import reverse_with_next, HandleGroups, create_user_groups
 
 
 class PasswordViewTest(TestCase):
@@ -14,6 +14,9 @@ class PasswordViewTest(TestCase):
     ]
 
     def setUp(self):
+        create_user_groups()
+        HandleGroups.set_default_user_to_student()
+
         self.user = User.objects.get(email="johndoe@email.com")
         self.url = reverse('change_password')
         self.form_input = {
@@ -43,11 +46,7 @@ class PasswordViewTest(TestCase):
         response = self.client.post(self.url, self.form_input, follow=True)
         response_url = reverse('student_page')
         self.assertRedirects(response, response_url, status_code=302, target_status_code=200)
-
-        # To Fix:
-        # AssertionError: No templates used to render the response:
-        #self.assertTemplateUsed(response, 'student_page.html')
-
+        self.assertTemplateUsed(response, 'student_page.html')
         self.user.refresh_from_db()
         is_password_correct = check_password('NewPassword123', self.user.password)
         self.assertTrue(is_password_correct)
