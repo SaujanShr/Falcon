@@ -27,12 +27,7 @@ def request_list(request):
     return render(request, 'request_list.html', {'date_user_request_pairs': date_user_request_pairs})
 
 
-@login_required
-@allowed_groups(['Admin'])
-def admin_fulfill_request_view(request):
-    date = str(get_request_object(request).date)
-    form = get_request_view_form(request)
-    return render(request, 'request_view.html', {'date':date, 'form':form})
+
 
 @login_required
 @allowed_groups(['Student'])
