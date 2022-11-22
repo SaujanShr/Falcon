@@ -108,7 +108,7 @@ class FulfilRequestForm(forms.ModelForm):
 
 
             #booking.save()
-            return booking
+            return [booking, req]
         else:
             print("Request already fulfilled")
             
