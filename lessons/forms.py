@@ -106,6 +106,12 @@ class SignUpForm(forms.ModelForm):
     #password = forms.CharField(label='Password', widget=forms.PasswordInput())
 
 
+class UserForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['email', 'first_name', 'last_name']
+
+
 class PasswordForm(forms.Form):
 
     password = forms.CharField(label='Current password', widget=forms.PasswordInput())
