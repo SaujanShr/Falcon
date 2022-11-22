@@ -1,54 +1,48 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
-  </head>
-  <body>
-    {% include 'partials/navbar.html' %}
-    <h1>Bookings</h1>
-    <table class="table table-dark table-striped">
-      <thead>
-        <tr>
-          <th>Start Date</th>
-          <th>Day of the Week</th>
-          <th>Time of Day</th>
-          <th>Teacher</th>
-          <th>Duration of Lessons</th>
-          <th>Interval between Lessons</th>
-          <th>Number of Lessons</th>
-          <th>Further Information</th>
-        </tr>
-      </thead>
-      {% if user_bookings %}
-        {% for user_booking in user_bookings %}
-          <tr><form action="/request_view/" method="post">
-              <td>{{ user_bookings.start_date }}</td>
-              <td>{{ user_bookings.day_of_the_week }}</td>
-              <td>{{ user_bookings.time_of_day }}</td>
-              <td>{{ user_bookings.teacher }}</td>
-              <td>{{ user_bookings.duration_of_lessons }}</td>
-              <td>{{ user_bookings.interval_between_lessions }}</td>
-              <td>{{ user_bookings.number_of_lessons }}</td>
-              <td>{{ user_bookings.further_information }}</td>
-            </form></tr>
-        {% endfor %}
-      {% else %}
-        <tr>
-          <td>No requests yet...</td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-        </tr>
-      {% endif %}
-    </table>
-    <p><a href="{% url 'new_request_view' %}" class=" btn btn-sm btn-primary">New Request</a></p>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3" crossorigin="anonymous"></script>
-  </body>
-</html>
+{% extends 'base_content.html' %}
+{% block content %}
+
+
+<p><a href="{% url 'new_request_view' %}" class=" btn btn-sm btn-primary">New Request</a></p>
+
+<h1>Bookings</h1>
+<table class="table table-dark table-striped">
+  <thead>
+    <tr>
+      <th>Start Date</th>
+      <th>Day of the Week</th>
+      <th>Time of Day</th>
+      <th>Teacher</th>
+      <th>Duration of Lessons</th>
+      <th>Interval between Lessons</th>
+      <th>Number of Lessons</th>
+      <th>Further Information</th>
+    </tr>
+  </thead>
+  {% if user_bookings %}
+    {% for user_booking in user_bookings %}
+      <tr><form action="/request_view/" method="post">
+          <td>{{ user_bookings.start_date }}</td>
+          <td>{{ user_bookings.day_of_the_week }}</td>
+          <td>{{ user_bookings.time_of_day }}</td>
+          <td>{{ user_bookings.teacher }}</td>
+          <td>{{ user_bookings.duration_of_lessons }}</td>
+          <td>{{ user_bookings.interval_between_lessions }}</td>
+          <td>{{ user_bookings.number_of_lessons }}</td>
+          <td>{{ user_bookings.further_information }}</td>
+        </form></tr>
+    {% endfor %}
+  {% else %}
+    <tr>
+      <td>No requests yet...</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+  {% endif %}
+</table>
+
+{% endblock %}

@@ -1,5 +1,7 @@
 from .models import Request
 from .forms import RequestViewForm, FulfilRequestForm
+from django.conf import settings
+from django.contrib.auth import authenticate
 
 
 def get_request_object(request) -> Request:
@@ -13,7 +15,8 @@ def get_request_object(request) -> Request:
 
 def get_user_requests(request):
     user = request.user
-    return Request.objects.filter(user=user)
+    return Request.objects.filter(user=user).order_by('-date')
+
 
 
 def get_date_user_request_pairs(request):
@@ -30,18 +33,27 @@ def delete_request(request):
 
 
 def update_request(request):
-    delete_request(request)
+    user_request = get_request_object(request)
+
+    # Can't update a fulfilled request.
+    if user_request.fulfilled:
+        return
+
     data = request.POST.copy()
-    data['user'] = request.user
+    data['date'] = user_request.date
+    data['user'] = user_request.user
+    data['fulfilled'] = user_request.fulfilled
+    user_request.delete()
+
     form = RequestViewForm(data)
+    form.fields['date'].disabled = False
+    form.fields['fulfilled'].disabled = False
     if form.is_valid():
         form.save()
     else:
         print(form.errors)
 
-def fulfil_request(request):
-    data = request.POST.copy()
-    print(data[''])
+
 def get_request_view_form(request):
     this_request = get_request_object(request)
     form = RequestViewForm(

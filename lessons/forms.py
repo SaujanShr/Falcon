@@ -3,7 +3,7 @@ import datetime
 from django import forms
 from django.core.validators import RegexValidator
 from django.contrib.auth.models import Group
-from .models import User, DayOfTheWeek, Request, BankTransaction, Student, Booking
+from .models import User, DayOfTheWeek, Request, BankTransaction, Student, Booking, Invoice
 from django.utils import timezone
 
 class DateInput(forms.DateInput):
@@ -49,6 +49,18 @@ class RequestViewForm(forms.ModelForm):
         label="Available Days",
         widget=forms.CheckboxSelectMultiple
     )
+
+    def __init__(self, *args, **kwargs):
+        super(RequestViewForm, self).__init__(*args, **kwargs)
+        self.fields['date'].disabled = True
+        self.fields['fulfilled'].disabled = True
+
+    def setReadOnly(self):
+        self.fields['availability'].disabled = True
+        self.fields['number_of_lessons'].disabled = True
+        self.fields['interval_between_lessons'].disabled = True
+        self.fields['duration_of_lessons'].disabled = True
+        self.fields['further_information'].disabled = True
 
 
 class FulfilRequestForm(forms.ModelForm):
@@ -111,11 +123,11 @@ class FulfilRequestForm(forms.ModelForm):
             return [booking, req]
         else:
             print("Request already fulfilled")
-            
+
 
 
 class LogInForm(forms.Form):
-    email = forms.CharField(label='email')
+    email = forms.CharField(label='Email')
     password = forms.CharField(label='Password', widget=forms.PasswordInput())
 
 
@@ -129,17 +141,17 @@ class SignUpForm(forms.ModelForm):
         widget=forms.PasswordInput(),
         validators=[RegexValidator(
             regex=r'^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).*$',
-            message='password must contain an uppercase character, a lower case character and a number'
+            message='Password must contain an uppercase character, a lower case character and a number'
         )]
     )
-    password_confirmation = forms.CharField(label='Password confirmation', widget=forms.PasswordInput())
+    password_confirmation = forms.CharField(label='Password Confirmation', widget=forms.PasswordInput())
 
     def clean(self):
         super().clean()
         new_password = self.cleaned_data.get('new_password')
         password_confirmation = self.cleaned_data.get('password_confirmation')
         if new_password != password_confirmation:
-            self.add_error('password_confirmation', 'confirmation does not match password.')
+            self.add_error('password_confirmation', 'Confirmation does not match password.')
 
     def save(self):
         super().save(commit=False)  # Do everything the save function would normally do except for storing the record in the database.
@@ -160,30 +172,40 @@ class SignUpForm(forms.ModelForm):
 class TransactionSubmitForm(forms.ModelForm):
     class Meta:
         model = BankTransaction
-        fields = ['date', 'student', 'amount', 'invoice_number']
+        fields = ['date', 'amount']
         widgets = {
             'date': DateInput()
         }
 
-    # TODO: generate invoice number automatically from student chosen, for now manually submit the invoice number, prone to error.
+    student_email = forms.EmailField(label='Student\'s email', required=False)
+    invoice_number = forms.CharField(label='Invoice number', required=True)
+
+    def clean(self):
+        super().clean()
+        student_email = self.cleaned_data.get('student_email')
+        if(not(User.objects.filter(email=student_email).exists())):
+            self.add_error('student_email', 'Student email does not exist in database.')
+
+        invoice_no = self.cleaned_data.get('invoice_number')
+        if(not(Invoice.objects.filter(invoice_number=invoice_no).exists())):
+            self.add_error('invoice_number', 'Invoice number does not exist in database.')
 
     def save(self):
         super().save(commit=False)
 
+        s_email = self.cleaned_data.get('student_email')
+        student_user=User.objects.get(email=s_email)
+        student=Student.objects.get(user=student_user)
+
+        invoice_no = self.cleaned_data.get('invoice_number')
+        invoice_obj = Invoice.objects.get(invoice_number=invoice_no)
+
         BankTransaction.objects.create(
             date=self.cleaned_data.get('date'),
-            student=self.cleaned_data.get('student'),
+            student=student,
             amount=self.cleaned_data.get('amount'),
-            invoice_number=self.cleaned_data.get('invoice_number')
+            invoice=invoice_obj
         )
-
-        student=self.cleaned_data.get('student')
-        amount=self.cleaned_data.get('amount')
-        current_balance = student.balance
-        student.balance = current_balance + amount
-        student.save()
-
-
 
     def generate_invoice_num(self, student):
         # check student object to see the number of transactions that have been made by the student

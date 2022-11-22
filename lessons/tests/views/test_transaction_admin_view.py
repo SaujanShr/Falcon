@@ -1,26 +1,34 @@
 from django.test import TestCase
 from django.urls import reverse
 from lessons.forms import TransactionSubmitForm
-from lessons.models import BankTransaction, User, Student
+from lessons.models import BankTransaction, User, Student, Invoice
+from decimal import Decimal
 import datetime
+from lessons.tests.helpers import create_user_groups
 
 class TransactionAdminViewTestCase(TestCase):
     def setUp(self):
+        create_user_groups()
         self.url = reverse('transaction_admin_view')
         self.user = User.objects.create_user(
                 email='email1@email.com',
                 password='password'
             )
         self.student = Student.objects.create(user = self.user)
+        self.invoice1 = Invoice.objects.create(
+            invoice_number='1234-123',
+            student=self.student,
+            full_amount='100.00'
+        )
         self.form_input = {
             'date': datetime.date.today(),
-            'student': self.student,
+            'student_email': self.user.email,
             'amount': '3.14',
             'invoice_number': '1234-123'
         }
 
     def test_transaction_admin_url(self):
-        self.assertEqual(self.url, '/transactions/admin')
+        self.assertEqual(self.url, '/transactions/admin/submit')
 
     def test_get_transaction_admin_view(self):
         response = self.client.get(self.url)
@@ -42,7 +50,7 @@ class TransactionAdminViewTestCase(TestCase):
         self.assertTrue(isinstance(form, TransactionSubmitForm))
         self.assertTrue(form.is_bound)
     
-    """
+    
     def test_valid_transaction_entered(self):
         before_count = BankTransaction.objects.count()
         response = self.client.post(self.url, self.form_input, follow=True)
@@ -52,9 +60,10 @@ class TransactionAdminViewTestCase(TestCase):
         self.assertTemplateUsed(response, 'transaction_admin_view.html')
         form = response.context['form']
         self.assertTrue(isinstance(form, TransactionSubmitForm))
-        transaction = BankTransaction.objects.get(invoice_number='1234-123')
+        transaction = BankTransaction.objects.get(invoice=self.invoice1)
+        amount_in_decimal = Decimal(self.form_input['amount'].replace(',','.'))
         self.assertEqual(transaction.date, self.form_input['date'])
-        self.assertEqual(transaction.student, self.form_input['student'])
-        self.assertEqual(transaction.amount, self.form_input['amount'])
-        self.assertEqual(transaction.invoice_number, self.form_input['invoice_number']) 
-    """
+        self.assertEqual(transaction.student, self.student)
+        self.assertEqual(transaction.amount, amount_in_decimal)
+        self.assertEqual(transaction.invoice, self.invoice1) 
+

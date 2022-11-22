@@ -5,7 +5,8 @@ from django.utils import timezone
 from datetime import date
 from .user_manager import UserManager
 from django.contrib.auth.models import PermissionsMixin
-
+from django.contrib.auth.models import Group
+from decimal import Decimal
 
 class DayOfTheWeek(models.Model):
     class Day(models.TextChoices):
@@ -68,6 +69,12 @@ class Student(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE,related_name='user_record', blank=False)
     balance = models.DecimalField(default=0,max_digits=6, decimal_places=2, blank=False)
 
+    def save(self, *args, **kwargs):
+        super(Student, self).save(*args, **kwargs)
+        if (not self.user.groups.exists() or self.user.groups.all()[0].name != "Student"):
+            student_group = Group.objects.get(name='Student')
+            student_group.user_set.add(self.user)
+
 class Request(models.Model):
     class IntervalBetweenLessons(models.IntegerChoices):
         ONE_WEEK = 1, '1 Week'
@@ -87,7 +94,7 @@ class Request(models.Model):
         )
     user = models.ForeignKey(User, blank=False, on_delete=models.CASCADE)
     availability = models.ManyToManyField(DayOfTheWeek, blank=False)
-    number_of_lessons = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    number_of_lessons = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(9223372036854775807)])
     interval_between_lessons = models.PositiveIntegerField(choices=IntervalBetweenLessons.choices)
     duration_of_lessons = models.PositiveIntegerField(choices=LessonDuration.choices)
     further_information = models.CharField(blank=False, max_length=500)
@@ -132,6 +139,22 @@ class Booking(models.Model):
     number_of_lessons = models.PositiveIntegerField(blank=False, validators=[MinValueValidator(1)])
     further_information = models.CharField(blank=False, max_length=500)
 
+class Invoice(models.Model):
+    invoice_number = models.CharField(
+        primary_key=True,
+        max_length=8,
+        unique=True,
+        blank=False,
+        validators=[RegexValidator(
+            regex=r'^\d{4}-\d{3}$',
+            message='Invoice number must follow the format xxxx-yyy where x is the student number and y is the invoice number.'
+        )]
+    )
+    student = models.ForeignKey(Student, blank=False, on_delete=models.CASCADE)
+    full_amount = models.DecimalField(max_digits=8, decimal_places=2, blank=False)
+    paid_amount = models.DecimalField(max_digits=8, decimal_places=2, blank=False, default='0.00')
+    fully_paid = models.BooleanField(default=False, blank=False)
+
 class BankTransaction(models.Model):
     date = models.DateField(
         blank=False,
@@ -141,12 +164,16 @@ class BankTransaction(models.Model):
     )
     student = models.ForeignKey(Student, blank=False, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=6, decimal_places=2, blank=False)
-    invoice_number = models.CharField(
-        max_length=8,
-        unique=True,
-        blank=False,
-        validators=[RegexValidator(
-            regex=r'^\d{4}-\d{3}$',
-            message='Invoice number must follow the format xxxx-yyy where x is the student number and y is the invoice number.'
-        )]
-    )
+    invoice = models.ForeignKey(Invoice, blank=False, on_delete=models.CASCADE)
+
+    def save(self, *args, **kwargs):
+        super(BankTransaction, self).save(*args, **kwargs)
+        self.invoice.paid_amount = Decimal(self.invoice.paid_amount) + Decimal(self.amount)
+        overpay = Decimal(self.invoice.paid_amount) - Decimal(self.invoice.full_amount)
+
+        if overpay >= 0:
+            self.invoice.fully_paid = True
+            self.invoice.paid_amount = self.invoice.full_amount
+            self.student.balance = Decimal(self.student.balance) + overpay
+            self.invoice.save()
+            self.student.save()

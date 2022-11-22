@@ -10,7 +10,7 @@ class UserAdmin(admin.ModelAdmin):
 @admin.register(BankTransaction)
 class TransactionAdmin(admin.ModelAdmin):
     list_display = [
-        'date', 'student', 'amount', 'invoice_number'
+        'date', 'student', 'amount', 'invoice'
     ]
 
 @admin.register(Student)

@@ -1,7 +1,10 @@
+"""Unit tests of the request model"""
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 from lessons.models import User, Request, DayOfTheWeek
 from django.utils import timezone
+from lessons.tests.helpers import create_days_of_the_week
+from lessons.tests.helpers import create_user_groups
 
 '''
 from lessons.models import User, Request, DayOfTheWeek
@@ -27,15 +30,13 @@ further_information = 'Some information...'
 request1.availability.set([DayOfTheWeek.objects.get(day = DayOfTheWeek.Day.MONDAY), DayOfTheWeek.objects.get(day = DayOfTheWeek.Day.WEDNESDAY), DayOfTheWeek.objects.get(day = DayOfTheWeek.Day.SUNDAY)])
 '''
 
+
 class RequestModelTestCase(TestCase):
+    """Unit tests of the request model"""
     def setUp(self):
-        DayOfTheWeek.objects.create(order = 0, day = DayOfTheWeek.Day.MONDAY)
-        DayOfTheWeek.objects.create(order = 1, day = DayOfTheWeek.Day.TUESDAY)
-        DayOfTheWeek.objects.create(order = 2, day = DayOfTheWeek.Day.WEDNESDAY)
-        DayOfTheWeek.objects.create(order = 3, day = DayOfTheWeek.Day.THURSDAY)
-        DayOfTheWeek.objects.create(order = 4, day = DayOfTheWeek.Day.FRIDAY)
-        DayOfTheWeek.objects.create(order = 5, day = DayOfTheWeek.Day.SATURDAY)
-        DayOfTheWeek.objects.create(order = 6, day = DayOfTheWeek.Day.SUNDAY)
+        create_user_groups()
+        create_days_of_the_week()
+
         self.request1 = Request.objects.create(
             user = User.objects.create_user(
                 email='email@email.com',
@@ -47,7 +48,7 @@ class RequestModelTestCase(TestCase):
             duration_of_lessons = Request.LessonDuration.THIRTY_MINUTES,
             further_information = 'Some information...'
         )
-        self.request1.availability.set([DayOfTheWeek.objects.get(day = DayOfTheWeek.Day.MONDAY), 
+        self.request1.availability.set([DayOfTheWeek.objects.get(day = DayOfTheWeek.Day.MONDAY),
                                         DayOfTheWeek.objects.get(day = DayOfTheWeek.Day.WEDNESDAY),
                                         DayOfTheWeek.objects.get(day = DayOfTheWeek.Day.SUNDAY)])
 
@@ -62,7 +63,7 @@ class RequestModelTestCase(TestCase):
             duration_of_lessons = Request.LessonDuration.SIXTY_MINUTES,
             further_information = 'Other information'
         )
-        self.request2.availability.set([DayOfTheWeek.objects.get(day = DayOfTheWeek.Day.TUESDAY), 
+        self.request2.availability.set([DayOfTheWeek.objects.get(day = DayOfTheWeek.Day.TUESDAY),
                                         DayOfTheWeek.objects.get(day = DayOfTheWeek.Day.THURSDAY),
                                         DayOfTheWeek.objects.get(day = DayOfTheWeek.Day.FRIDAY)])
     
@@ -103,34 +104,44 @@ class RequestModelTestCase(TestCase):
         self.request1.user = self.request2.user
         self._assert_request_is_valid()
 
-    # Not sure how to implement this restraint.
-    '''
-    def test_availability_must_have_at_least_one_available_day(self):
-        self.request.availability.clear()
-        self._assert_request_is_invalid()
-    '''
+    def test_availability_cannot_be_empty(self):
+        self.request3 = Request.objects.create(
+            user=User.objects.create_user(
+                email='email3@email.com',
+                password='password'
+            ),
+            date=timezone.datetime(2002, 1, 1, 1, 1, 1, tzinfo=timezone.utc),
+            number_of_lessons=1,
+            interval_between_lessons=Request.IntervalBetweenLessons.ONE_WEEK,
+            duration_of_lessons=Request.LessonDuration.THIRTY_MINUTES,
+            further_information='Some information...'
+        )
+        self.assertRaises(ValidationError)
+        self.request3.full_clean()
 
     def test_availability_can_have_one_available_day(self):
         self.request1.availability.clear()
-        self.request1.availability.add(DayOfTheWeek.objects.get(day = DayOfTheWeek.Day.SATURDAY))
+        self.request1.availability.add(DayOfTheWeek.objects.get(day=DayOfTheWeek.Day.SATURDAY))
+        self._assert_request_is_valid()
+
+    def test_availability_can_have_more_than_one_available_day(self):
+        self.request1.availability.clear()
+        self.request1.availability.add(DayOfTheWeek.objects.get(day=DayOfTheWeek.Day.SATURDAY), DayOfTheWeek.objects.get(day=DayOfTheWeek.Day.SUNDAY))
         self._assert_request_is_valid()
     
     def test_availability_may_be_the_same(self):
         self.request1.availability.set(self.request2.availability.all())
         self._assert_request_is_valid()
 
-
     def test_availability_can_have_all_available_days(self):
         self.request1.availability.clear()
-        self.request2.availability.set([DayOfTheWeek.objects.get(day = DayOfTheWeek.Day.MONDAY), 
-                                        DayOfTheWeek.objects.get(day = DayOfTheWeek.Day.TUESDAY),
-                                        DayOfTheWeek.objects.get(day = DayOfTheWeek.Day.WEDNESDAY),
-                                        DayOfTheWeek.objects.get(day = DayOfTheWeek.Day.THURSDAY),
-                                        DayOfTheWeek.objects.get(day = DayOfTheWeek.Day.FRIDAY),
-                                        DayOfTheWeek.objects.get(day = DayOfTheWeek.Day.SATURDAY),
-                                        DayOfTheWeek.objects.get(day = DayOfTheWeek.Day.SUNDAY)])
+        self.request2.availability.set(DayOfTheWeek.objects.all())
         self._assert_request_is_valid()
-    
+
+    def test_number_of_lessons_cannot_be_empty(self):
+        self.request1.number_of_lessons = None
+        self._assert_request_is_invalid()
+
     def test_number_of_lessons_cannot_be_below_one(self):
         self.request1.number_of_lessons = 0
         self._assert_request_is_invalid()
@@ -138,6 +149,14 @@ class RequestModelTestCase(TestCase):
     def test_number_of_lessons_may_be_the_same(self):
         self.request1.number_of_lessons = self.request2.number_of_lessons
         self._assert_request_is_valid()
+
+    def test_number_of_lessons_can_be_max_int_for_SQLite_DB(self):
+        self.request1.number_of_lessons = 9223372036854775807
+        self._assert_request_is_valid()
+
+    def test_number_of_lessons_cannot_be_greater_than_max_int_for_SQLite_DB(self):
+        self.request1.number_of_lessons = 92233720368547758071
+        self._assert_request_is_invalid()
     
     def test_interval_between_lessons_may_be_the_same(self):
         self.request1.interval_between_lessons = self.request2.interval_between_lessons
