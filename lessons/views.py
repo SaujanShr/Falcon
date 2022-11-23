@@ -270,7 +270,6 @@ def term_view(request):
             return render(request, "term_view.html", {'form': form, 'old_term_name': old_term_name})
         return redirect('admin_term_view')
     if request.method == 'POST':
-        print(request.POST['old_term_name'])
         term = SchoolTerm.objects.get(term_name=request.POST['old_term_name'])
 
         old_term_name = request.POST['old_term_name']
@@ -279,9 +278,8 @@ def term_view(request):
 
         data = request.POST.copy()
         term.delete()
-
         form = TermViewForm(data)
-        if form.is_valid():
+        if form.is_valid() and form.cleaned_data.get('term_name') is not None:
             form.save()
             messages.add_message(request, messages.SUCCESS, "Term updated!")
         else:
