@@ -8,6 +8,7 @@ from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import Group
 from decimal import Decimal
 
+
 class DayOfTheWeek(models.Model):
     class Day(models.TextChoices):
         MONDAY = 'Monday'
@@ -26,6 +27,7 @@ class DayOfTheWeek(models.Model):
 
     def __str__(self):
         return self.day
+
 
 class User(AbstractBaseUser,PermissionsMixin):
     first_name = models.CharField(max_length = 50, blank=False, unique = False)
@@ -65,6 +67,7 @@ class User(AbstractBaseUser,PermissionsMixin):
     REQUIRED_FIELDS = []
     objects = UserManager()
 
+
 class Student(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE,related_name='user_record', blank=False)
     balance = models.DecimalField(default=0,max_digits=6, decimal_places=2, blank=False)
@@ -74,6 +77,7 @@ class Student(models.Model):
         if (not self.user.groups.exists() or self.user.groups.all()[0].name != "Student"):
             student_group = Group.objects.get(name='Student')
             student_group.user_set.add(self.user)
+
 
 class Request(models.Model):
     class IntervalBetweenLessons(models.IntegerChoices):
@@ -99,6 +103,7 @@ class Request(models.Model):
     duration_of_lessons = models.PositiveIntegerField(choices=LessonDuration.choices)
     further_information = models.CharField(blank=False, max_length=500)
     fulfilled = models.BooleanField(blank=False, default=False)
+
 
 class Booking(models.Model):
     class IntervalBetweenLessons(models.IntegerChoices):
@@ -137,6 +142,7 @@ class Booking(models.Model):
     number_of_lessons = models.PositiveIntegerField(blank=False, validators=[MinValueValidator(1)])
     further_information = models.CharField(blank=False, max_length=500)
 
+
 class Invoice(models.Model):
     invoice_number = models.CharField(
         primary_key=True,
@@ -152,6 +158,7 @@ class Invoice(models.Model):
     full_amount = models.DecimalField(max_digits=8, decimal_places=2, blank=False)
     paid_amount = models.DecimalField(max_digits=8, decimal_places=2, blank=False, default='0.00')
     fully_paid = models.BooleanField(default=False, blank=False)
+
 
 class BankTransaction(models.Model):
     date = models.DateField(
@@ -175,3 +182,44 @@ class BankTransaction(models.Model):
             self.student.balance = Decimal(self.student.balance) + overpay
             self.invoice.save()
             self.student.save()
+
+
+class SchoolTerm(models.Model):
+    term_name = models.CharField(unique=True, blank=False, max_length=8)
+    start_date = models.DateField(blank=False)
+    end_date = models.DateField(blank=False)
+
+    class Meta:
+        ordering = ['start_date']
+
+    def save(self, *args, **kwargs):
+        # Only run if the object has not already been created.
+        if not self.pk:
+            # Need to check that there are no overlaps between the new school term and existing school terms.
+            new_start_date = self.start_date
+            new_end_date = self.end_date
+
+            # Check new date is less than new end date
+            if new_end_date < new_start_date:
+                return
+
+            current_school_terms = SchoolTerm.objects.all()
+
+            # Create the object if there is no School Terms have already been created
+            if SchoolTerm.objects.count() == 0:
+                super(SchoolTerm, self).save(*args, **kwargs)
+                return
+
+            # Check if the new term does not overlap any existing terms.
+            is_valid = True
+            for term in current_school_terms:
+                # Check if the new date is valid, compares to see if the new start date falls between one of the
+                # existing ranges, or if one of the existing start dates falls between the new range.
+                if (term.start_date <= new_start_date < term.end_date) or (new_start_date <= term.start_date < new_end_date):
+                    is_valid = False
+
+            if is_valid:
+                super(SchoolTerm, self).save(*args, **kwargs)
+        else:
+            # Run save() as normal if the object already exists.
+            super(SchoolTerm, self).save(*args, **kwargs)
