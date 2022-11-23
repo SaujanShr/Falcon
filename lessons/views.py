@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from .forms import LogInForm, TransactionSubmitForm, NewRequestViewForm, SignUpForm, PasswordForm, UserForm
-from .models import Student, Booking, BankTransaction
+from .models import Student, Booking, BankTransaction, SchoolTerm
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
@@ -243,3 +243,7 @@ def admin_bookings_requests_view(request):
                     booking.duration_of_lessons = duration[1]
         return render(request, 'admin_view_requests.html', {'requests': requests,
                                                             'bookings': bookings})
+
+def student_term_view(request):
+    terms = SchoolTerm.objects.all()
+    return render(request, 'student_term_view.html', {'terms': terms})
