@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from .forms import LogInForm, TransactionSubmitForm, NewRequestViewForm, SignUpForm, PasswordForm, UserForm
+from .forms import LogInForm, TransactionSubmitForm, NewRequestViewForm, SignUpForm, PasswordForm, UserForm, TermViewForm
 from .models import Student, Booking, BankTransaction, SchoolTerm
 from django.contrib import messages
 from django.contrib.auth import login, logout
@@ -244,6 +244,49 @@ def admin_bookings_requests_view(request):
         return render(request, 'admin_view_requests.html', {'requests': requests,
                                                             'bookings': bookings})
 
+
+#@login_required()
 def student_term_view(request):
     terms = SchoolTerm.objects.all()
     return render(request, 'student_term_view.html', {'terms': terms})
+
+
+# @login_required
+# @allowed_groups(["Admin"])
+def admin_term_view(request):
+    terms = SchoolTerm.objects.all()
+    return render(request, 'admin_term_view.html', {'terms': terms})
+
+
+# @login_required
+# @allowed_groups(["Admin"])
+def term_view(request):
+    if request.method == 'GET':
+        # Check whether the get request contains term_name, otherwise redirect back to term view.
+        if request.GET.__contains__('term_name'):
+            term = SchoolTerm.objects.get(term_name=request.GET['term_name'])
+            form = TermViewForm(instance=term)
+            return render(request, "term_view.html", {'form': form})
+        return redirect('admin_term_view')
+    if request.method == 'POST':
+        term = SchoolTerm.objects.get(term_name=request.POST['term_name'])
+
+        old_term_name = term.term_name
+        old_start_date = term.start_date
+        old_end_date = term.end_date
+
+        data = request.POST.copy()
+        term.delete()
+
+        form = TermViewForm(data)
+        if form.is_valid():
+            form.save()
+            messages.add_message(request, messages.SUCCESS, "Term updated!")
+        else:
+            # Recreate old term again, very bad!
+            SchoolTerm(term_name=old_term_name, start_date=old_start_date, end_date=old_end_date).save()
+            print(form.errors)
+            messages.add_message(request, messages.ERROR, "Invalid form!")
+
+        return redirect('admin_term_view')
+

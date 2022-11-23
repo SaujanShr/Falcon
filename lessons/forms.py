@@ -3,7 +3,7 @@ import datetime
 from django import forms
 from django.core.validators import RegexValidator
 from django.contrib.auth.models import Group
-from .models import User, DayOfTheWeek, Request, BankTransaction, Student, Invoice
+from .models import User, DayOfTheWeek, Request, BankTransaction, Student, Invoice, SchoolTerm
 from django.utils import timezone
 
 class DateInput(forms.DateInput):
@@ -177,4 +177,33 @@ class TransactionSubmitForm(forms.ModelForm):
         # get student id (primary key) from object
         # alter string so that it fits the form xxxx-yyy
         pass
+
+
+class TermViewForm(forms.ModelForm):
+    class Meta:
+        model = SchoolTerm
+        fields = ['term_name', 'start_date', 'end_date']
+
+    def is_valid(self):
+        super().is_valid()
+
+        # Duplicate code from schoolTerm model
+        is_valid = True
+
+        new_start_date = self.cleaned_data.get('start_date')
+        new_end_date = self.cleaned_data.get('end_date')
+
+        if new_end_date < new_start_date:
+            return False
+
+        current_school_terms = SchoolTerm.objects.all()
+
+        for term in current_school_terms:
+            # Check if the new date is valid, compares to see if the new start date falls between one of the
+            # existing ranges, or if one of the existing start dates falls between the new range.
+            if (term.start_date <= new_start_date < term.end_date) or (
+                    new_start_date <= term.start_date < new_end_date):
+                is_valid = False
+
+        return is_valid
 

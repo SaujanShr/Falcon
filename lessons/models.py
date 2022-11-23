@@ -185,7 +185,7 @@ class BankTransaction(models.Model):
 
 
 class SchoolTerm(models.Model):
-    term_name = models.CharField(unique=True, blank=False, max_length=8)
+    term_name = models.CharField(unique=True, blank=False, max_length=18)
     start_date = models.DateField(blank=False)
     end_date = models.DateField(blank=False)
 
@@ -194,7 +194,7 @@ class SchoolTerm(models.Model):
 
     def save(self, *args, **kwargs):
         # Only run if the object has not already been created.
-        if not self.pk:
+        if not SchoolTerm.objects.filter(term_name=self.term_name).exists():
             # Need to check that there are no overlaps between the new school term and existing school terms.
             new_start_date = self.start_date
             new_end_date = self.end_date
@@ -221,5 +221,5 @@ class SchoolTerm(models.Model):
             if is_valid:
                 super(SchoolTerm, self).save(*args, **kwargs)
         else:
-            # Run save() as normal if the object already exists.
+            # Run save() as normal if the object already exists. But it still needs to be validated??? Fix this later!
             super(SchoolTerm, self).save(*args, **kwargs)
