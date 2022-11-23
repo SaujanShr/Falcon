@@ -44,6 +44,11 @@ Create authentication groups:
 $ python3 manage.py create_groups
 ```
 
+Create terms:
+```
+$ python3 manage.py create_terms
+```
+
 Seed the development database with:
 
 ```
