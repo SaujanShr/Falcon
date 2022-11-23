@@ -184,6 +184,14 @@ class TermViewForm(forms.ModelForm):
         model = SchoolTerm
         fields = ['term_name', 'start_date', 'end_date']
 
+        # start_date=forms.DateField(
+        #     validators=[RegexValidator(
+        #         regex=r'^\d{4}-\d{2}-\d{2}$',
+        #         message='Date must be in the form YYYY-MM-DD'
+        #     )],
+        #     help_text="text"
+        # )
+
     def is_valid(self):
         super().is_valid()
 

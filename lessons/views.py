@@ -266,12 +266,14 @@ def term_view(request):
         if request.GET.__contains__('term_name'):
             term = SchoolTerm.objects.get(term_name=request.GET['term_name'])
             form = TermViewForm(instance=term)
-            return render(request, "term_view.html", {'form': form})
+            old_term_name = request.GET['term_name']
+            return render(request, "term_view.html", {'form': form, 'old_term_name': old_term_name})
         return redirect('admin_term_view')
     if request.method == 'POST':
-        term = SchoolTerm.objects.get(term_name=request.POST['term_name'])
+        print(request.POST['old_term_name'])
+        term = SchoolTerm.objects.get(term_name=request.POST['old_term_name'])
 
-        old_term_name = term.term_name
+        old_term_name = request.POST['old_term_name']
         old_start_date = term.start_date
         old_end_date = term.end_date
 
@@ -290,3 +292,16 @@ def term_view(request):
 
         return redirect('admin_term_view')
 
+
+def new_term_view(request):
+    if request.method == 'POST':
+        form = TermViewForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.add_message(request, messages.SUCCESS, "Term created!")
+            return redirect('admin_term_view')
+        else:
+            messages.add_message(request, messages.ERROR, "Invalid form!")
+    else:
+        form = TermViewForm()
+    return render(request, 'new_term_view.html', {'form': form})
