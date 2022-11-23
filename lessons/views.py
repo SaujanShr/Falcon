@@ -291,6 +291,8 @@ def term_view(request):
         return redirect('admin_term_view')
 
 
+# @login_required
+# @allowed_groups(["Admin"])
 def new_term_view(request):
     if request.method == 'POST':
         form = TermViewForm(request.POST)

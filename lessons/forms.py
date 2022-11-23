@@ -211,7 +211,7 @@ class TermViewForm(forms.ModelForm):
             # existing ranges, or if one of the existing start dates falls between the new range.
             if (term.start_date <= new_start_date < term.end_date) or (
                     new_start_date <= term.start_date < new_end_date):
-                is_valid = False
+                return False
 
         return is_valid
 
