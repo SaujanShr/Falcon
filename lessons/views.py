@@ -14,6 +14,11 @@ from django.contrib.auth.hashers import check_password
 def student_page(request):
     return render(request, 'student_page.html')
 
+@login_required
+@allowed_groups(['Admin', 'Director'])
+def admin_page(request):
+    return render(request, 'admin_page.html')
+
 
 @login_required
 @allowed_groups(['Student'])
