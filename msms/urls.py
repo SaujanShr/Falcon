@@ -36,6 +36,7 @@ urlpatterns = [
     path('student_page/terms', views.student_term_view, name='student_term_view'),
     path('admin_term_view', views.admin_term_view, name='admin_term_view'),
     path('admin_term_view/new_term', views.new_term_view, name='new_term_view'),
+    path('admin_term_view/delete_confirmation', views.term_deletion_confirmation_view, name='term_deletion_confirmation_view'),
     path('term_view', views.term_view, name='term_view'),
     path('profile/', views.profile, name='profile'),
     path('change_password/', views.password, name='change_password'),

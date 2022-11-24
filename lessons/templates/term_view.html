@@ -11,6 +11,11 @@
                 <input type="hidden" name="old_term_name" value="{{ old_term_name }}"/>
                 {{ form.as_p }}
                 <input type="submit" value="Submit" class="btn btn-primary">
+            </form><br>
+            <form action="{% url 'term_deletion_confirmation_view' %}" method="get">
+                {% csrf_token %}
+                <input type="hidden" name="old_term_name" value="{{ old_term_name }}"/>
+                <input type="submit" value="Delete" class="btn btn-primary">
             </form>
         </div>
     </div>
