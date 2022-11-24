@@ -2,6 +2,7 @@ from django.test import TestCase
 from django.urls import reverse
 from lessons.forms import TransactionSubmitForm
 from lessons.models import BankTransaction, User, Student, Invoice
+from django.contrib.auth.models import Group
 from decimal import Decimal
 import datetime
 from lessons.tests.helpers import create_user_groups
@@ -27,10 +28,20 @@ class TransactionAdminViewTestCase(TestCase):
             'invoice_number': '1234-123'
         }
 
+        self.superuser = User.objects.create_superuser(
+            email='admin@email.com',
+            password='password'
+        )
+
+        #TODO make superuser creation automatically add the created user to the admin group.
+        admin_group = Group.objects.get(name='Admin')
+        admin_group.user_set.add(self.superuser)
+
     def test_transaction_admin_url(self):
         self.assertEqual(self.url, '/transactions/admin/submit')
 
     def test_get_transaction_admin_view(self):
+        self.client.login(email='admin@email.com', password='password')
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'transaction_admin_view.html')
@@ -39,6 +50,7 @@ class TransactionAdminViewTestCase(TestCase):
         self.assertFalse(form.is_bound)
 
     def test_invalid_transaction_entered(self):
+        self.client.login(email='admin@email.com', password='password')
         self.form_input['invoice_number'] = '123-1234'
         before_count = BankTransaction.objects.count()
         response = self.client.post(self.url, self.form_input)
@@ -52,6 +64,7 @@ class TransactionAdminViewTestCase(TestCase):
     
     
     def test_valid_transaction_entered(self):
+        self.client.login(email='admin@email.com', password='password')
         before_count = BankTransaction.objects.count()
         response = self.client.post(self.url, self.form_input, follow=True)
         after_count = BankTransaction.objects.count()
