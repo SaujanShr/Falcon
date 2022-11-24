@@ -246,6 +246,7 @@ def admin_bookings_requests_view(request):
 
 
 #@login_required()
+# A view for students to see all terms.
 def student_term_view(request):
     terms = SchoolTerm.objects.all()
     return render(request, 'student_term_view.html', {'terms': terms})
@@ -253,6 +254,7 @@ def student_term_view(request):
 
 # @login_required
 # @allowed_groups(["Admin"])
+# A view for admins to see and edit all terms as well access to button to create a new term.
 def admin_term_view(request):
     terms = SchoolTerm.objects.all()
     return render(request, 'admin_term_view.html', {'terms': terms})
@@ -260,15 +262,15 @@ def admin_term_view(request):
 
 # @login_required
 # @allowed_groups(["Admin"])
+# A view for a single term
 def term_view(request):
-    if request.method == 'GET':
-        # Check whether the get request contains term_name, otherwise redirect back to term view.
-        if request.GET.__contains__('term_name'):
-            term = SchoolTerm.objects.get(term_name=request.GET['term_name'])
-            form = TermViewForm(instance=term)
-            old_term_name = request.GET['term_name']
-            return render(request, "term_view.html", {'form': form, 'old_term_name': old_term_name})
-        return redirect('admin_term_view')
+    # Check whether the get request contains term_name, otherwise redirect back to term view.
+    if request.method == 'GET' and request.GET.__contains__('term_name'):
+        term = SchoolTerm.objects.get(term_name=request.GET['term_name'])
+        form = TermViewForm(instance=term)
+        old_term_name = request.GET['term_name']
+        return render(request, "term_view.html", {'form': form, 'old_term_name': old_term_name})
+
     if request.method == 'POST':
         term = SchoolTerm.objects.get(term_name=request.POST['old_term_name'])
 
@@ -288,11 +290,12 @@ def term_view(request):
             print(form.errors)
             messages.add_message(request, messages.ERROR, "Invalid form!")
 
-        return redirect('admin_term_view')
+    return redirect('admin_term_view')
 
 
 # @login_required
 # @allowed_groups(["Admin"])
+# A view for creating a new term
 def new_term_view(request):
     if request.method == 'POST':
         form = TermViewForm(request.POST)
@@ -309,6 +312,7 @@ def new_term_view(request):
 
 # @login_required
 # @allowed_groups(["Admin"])
+# A view to confirm term deletion.
 def term_deletion_confirmation_view(request):
     if request.method == 'GET' and request.GET.__contains__('old_term_name'):
         old_term_name = request.GET['old_term_name']
