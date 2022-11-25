@@ -5,7 +5,7 @@
     <div class="col-sm-12 col-md-6 offset-md-3">
       <h1> Input bank transaction </h1>
       <div class="alert alert-danger" role="alert">
-        Transaction submissions have an immediate effect on the invoice and the student's balance and is non-reversible, please double check before entering trasaction!
+        Transaction submissions have an immediate effect on the invoice and the student's balance and is non-reversible, please double check before submitting!
       </div>
       <form action="{% url 'transaction_admin_view'%}" method="post">
           {% csrf_token %}
