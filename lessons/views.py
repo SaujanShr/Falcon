@@ -272,25 +272,20 @@ def term_view(request):
         return render(request, "term_view.html", {'form': form, 'old_term_name': old_term_name})
 
     if request.method == 'POST':
+        term = SchoolTerm.objects.get(term_name=request.POST['old_term_name'])
         old_term_name = request.POST['old_term_name']
         new_term_name = request.POST['term_name']
-        term = SchoolTerm.objects.get(term_name=old_term_name)
+        # new_start_date = request.POST['start_date']
+        # new_end_date = request.POST['end_date']
+        old_start_date = term.start_date
+        old_end_date = term.end_date
+
         initial_form = TermViewForm(instance=term)
 
         # Check if there already exists a term with the same name if there is a change in the name of the term.
         if term_name_already_exists(old_term_name, new_term_name):
             messages.add_message(request, messages.ERROR, "There already exists a term with this name!")
             return render(request, "term_view.html", {'form': initial_form, 'old_term_name': old_term_name})
-
-        new_start_date = request.POST['start_date']
-        new_end_date = request.POST['end_date']
-        # Check that the dates are valid and start is before end
-        if not term_date_is_valid(new_start_date, new_end_date):
-            messages.add_message(request, messages.ERROR, "Invalid date(s)!")
-            return render(request, 'term_view.html', {'form': initial_form, 'old_term_name': old_term_name})
-
-        old_start_date = term.start_date
-        old_end_date = term.end_date
 
         data = request.POST.copy()
         term.delete()
@@ -302,8 +297,8 @@ def term_view(request):
             # Recreate old term again, very bad!
             SchoolTerm(term_name=old_term_name, start_date=old_start_date, end_date=old_end_date).save()
             print(form.errors)
-            messages.add_message(request, messages.ERROR, "Dates overlap!")
-            return render(request, 'term_view.html', {'form': initial_form, 'old_term_name': old_term_name})
+            messages.add_message(request, messages.ERROR, "Check to see if your dates overlap and are valid!")
+            return render(request, 'term_view.html', {'form': form, 'old_term_name': old_term_name})
 
     return redirect('admin_term_view')
 
@@ -314,12 +309,10 @@ def term_view(request):
 def new_term_view(request):
     if request.method == 'POST':
         form = TermViewForm(request.POST)
-        if form.is_valid():
+        if form.is_valid() and form.cleaned_data.get('term_name') is not None:
             form.save()
             messages.add_message(request, messages.SUCCESS, "Term created!")
             return redirect('admin_term_view')
-        else:
-            messages.add_message(request, messages.ERROR, "Invalid form!")
     else:
         form = TermViewForm()
     return render(request, 'new_term_view.html', {'form': form})
@@ -337,5 +330,3 @@ def term_deletion_confirmation_view(request):
         term.delete()
 
     return redirect(admin_term_view)
-
-

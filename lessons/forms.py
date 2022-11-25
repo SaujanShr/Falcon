@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 
 from django import forms
 from django.core.validators import RegexValidator
@@ -201,7 +201,12 @@ class TermViewForm(forms.ModelForm):
         new_start_date = self.cleaned_data.get('start_date')
         new_end_date = self.cleaned_data.get('end_date')
 
-        if new_end_date < new_start_date:
+        try:
+            start = datetime.strptime(str(new_start_date), '%Y-%m-%d').date()
+            end = datetime.strptime(str(new_end_date), '%Y-%m-%d').date()
+            if not (start < end):
+                raise ValueError
+        except ValueError:
             return False
 
         current_school_terms = SchoolTerm.objects.all()

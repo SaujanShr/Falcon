@@ -207,7 +207,7 @@ class SchoolTerm(models.Model):
 
             # Create the object if there is no School Terms have already been created
             if SchoolTerm.objects.count() == 0:
-                super(SchoolTerm, self).save(*args, **kwargs)
+                super(SchoolTerm, self).save()
                 return
 
             # Check if the new term does not overlap any existing terms.
@@ -219,7 +219,7 @@ class SchoolTerm(models.Model):
                     is_valid = False
 
             if is_valid:
-                super(SchoolTerm, self).save(*args, **kwargs)
+                super(SchoolTerm, self).save()
         else:
             # Run save() as normal if the object already exists. But it still needs to be validated??? Fix this later!
-            super(SchoolTerm, self).save(*args, **kwargs)
+            super(SchoolTerm, self).save()

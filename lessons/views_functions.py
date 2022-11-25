@@ -101,15 +101,4 @@ def term_name_already_exists(old_term_name, new_term_name):
     return False
 
 
-def term_date_is_valid(new_start_date, new_end_date):
-    try:
-        start = datetime.strptime(new_start_date, '%Y-%m-%d').date()
-        end = datetime.strptime(new_end_date, '%Y-%m-%d').date()
-        if not (start < end):
-            raise ValueError
-        return True
-    except ValueError:
-        return False
-
-
 
