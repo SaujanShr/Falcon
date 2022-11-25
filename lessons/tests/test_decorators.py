@@ -40,10 +40,10 @@ class LogInFormTestCase(TestCase):
                           password="Password123")
         student_only_page_url = reverse('student_page')
         response = self.client.get(student_only_page_url, follow=True)
-        redirect_url = reverse('redirect')
+        redirect_url = reverse('admin_page')
         self.assertRedirects(response, redirect_url,
                              status_code=302, target_status_code=200)
-        self.assertTemplateUsed(response, 'test_redirect.html')
+        self.assertTemplateUsed(response, 'admin_page.html')
 
     def test_admin_user_can_access_authorized_page(self):
         self.client.login(email=self.other_user.email,

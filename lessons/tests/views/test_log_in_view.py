@@ -108,10 +108,10 @@ class LogInViewTestCase(TestCase, LogInTester):
         form_input = {'email': 'janedoe@email.com', 'password': 'Password123'}
         response = self.client.post(self.url, form_input, follow=True)
         self.assertTrue(self._is_logged_in())
-        response_url = reverse('redirect')
+        response_url = reverse('admin_page')
         self.assertRedirects(response, response_url,
                              status_code=302, target_status_code=200)
-        self.assertTemplateUsed(response, 'test_redirect.html')
+        self.assertTemplateUsed(response, 'admin_page.html')
         messages_list = list(response.context['messages'])
         self.assertEqual(len(messages_list), 0)
     
@@ -121,10 +121,10 @@ class LogInViewTestCase(TestCase, LogInTester):
         form_input = {'email': 'janedoe@email.com', 'password': 'Password123'}
         response = self.client.post(self.url, form_input, follow=True)
         self.assertTrue(self._is_logged_in())
-        response_url = reverse('redirect')
+        response_url = reverse('admin_page')
         self.assertRedirects(response, response_url,
                              status_code=302, target_status_code=200)
-        self.assertTemplateUsed(response, 'test_redirect.html')
+        self.assertTemplateUsed(response, 'admin_page.html')
         messages_list = list(response.context['messages'])
         self.assertEqual(len(messages_list), 0)
 

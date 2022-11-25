@@ -17,7 +17,8 @@ def student_page(request):
 @login_required
 @allowed_groups(['Admin', 'Director'])
 def admin_page(request):
-    return render(request, 'admin_page.html')
+    transactions = BankTransaction.objects.order_by('date')
+    return render(request, 'admin_page.html', {'transactions': transactions})
 
 
 @login_required
