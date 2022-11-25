@@ -243,3 +243,13 @@ def admin_bookings_requests_view(request):
                     booking.duration_of_lessons = duration[1]
         return render(request, 'admin_view_requests.html', {'requests': requests,
                                                             'bookings': bookings})
+
+@login_required
+@allowed_groups(["Director"])
+def admin_user_list_view(request):
+    users = User.objects.all()
+    for user in users:
+        if user.groups.exists():
+            if request.user.groups.all()[0].name == "Admin":
+                print("test")
+    return render(request,'admin_user_list.html', {'users':users})

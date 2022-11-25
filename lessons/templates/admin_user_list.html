@@ -1,0 +1,42 @@
+{% extends 'base_content.html' %}
+{% block content %}
+<section style="background-color: #eee;">
+    <div class="container h-50">
+        <div class="row d-flex justify-content-center align-items-center h-100">
+            <div class="col col-lg-12 col-xl-12">
+                <div class="card rounded-3">
+                    <div class="card-body p-4">
+
+                        <h4 class="text-center my-3 pb-3">Registered Users</h4>
+                        <table class="table mb-4">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Full Name</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr>
+                                    <th scope="row">1</th>
+                                    <td>{{ user.first_name }}</td>
+                                    <td>{{ user.group }}</td>
+                                    <td>
+                                        {% if user.is_superuser != True %}
+                                        <button type="submit" class="btn btn-success">Promote to Director</button>
+                                        {% endif %}
+                                        <button type="submit" class="btn btn-warning ms-1">Edit</button>
+                                        <button type="submit" class="btn btn-danger ms-1">Delete</button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock content%}

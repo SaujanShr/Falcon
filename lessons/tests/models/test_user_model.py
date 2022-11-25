@@ -2,7 +2,7 @@
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 from lessons.models import User
-from lessons.tests.helpers import create_user_groups
+from lessons.tests.helpers import create_user_groups, HandleGroups
 
 class UserModelTestCase(TestCase):
     """Unit tests for the User model."""
@@ -13,9 +13,26 @@ class UserModelTestCase(TestCase):
     def setUp(self):
         create_user_groups()
         self.user = User.objects.get(email='janedoe@email.com')
+        self.other_user = User.objects.get(email= 'johndoe@email.com')
 
     def test_valid_user(self):
         self._assert_user_is_valid()
+    
+    def test_is_student_returns_true_for_student(self):
+        HandleGroups.set_default_user_to_student()
+        self.assertTrue(self.other_user.is_student())
+    
+    def test_is_student_returns_false_for_non_student(self):
+        HandleGroups.set_default_user_to_admin()
+        self.assertFalse(self.other_user.is_student())
+
+    def test_is_admin_returns_true_for_admin(self):
+        HandleGroups.set_default_user_to_admin()
+        self.assertTrue(self.other_user.is_admin())
+    
+    def test_is_admin_returns_false_for_non_admin(self):
+        HandleGroups.set_default_user_to_student()
+        self.assertFalse(self.other_user.is_admin())
 
     def test_first_name_must_not_be_blank(self):
         self.user.first_name = ''
