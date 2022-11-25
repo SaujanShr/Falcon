@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from .forms import LogInForm, TransactionSubmitForm, NewRequestViewForm, SignUpForm, PasswordForm, UserForm
-from .models import Student, Booking, BankTransaction
+from .models import Student, Booking, BankTransaction, User
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
@@ -247,9 +247,25 @@ def admin_bookings_requests_view(request):
 @login_required
 @allowed_groups(["Director"])
 def admin_user_list_view(request):
-    users = User.objects.all()
-    for user in users:
-        if user.groups.exists():
-            if request.user.groups.all()[0].name == "Admin":
-                print("test")
+    if request.method == 'POST':
+        if 'edit' in request.POST: 
+            id_user_to_edit = request.POST.get("edit","")
+            print(f"EDIT {id_user_to_edit}")
+        elif 'delete' in request.POST:
+            id_user_to_delete = request.POST.get("delete","")
+            user_to_delete = User.objects.get(id=id_user_to_delete)
+            user_to_delete.delete()
+        elif 'promote_director' in request.POST:
+            print("promote")
+            id_user_to_promote = request.POST.get("promote_director","")
+            user_to_promote = User.objects.get(id=id_user_to_promote)
+            print(user_to_promote)
+            if user_to_promote.groups.exists():
+                print("there is ")
+                user_to_promote.groups.clear()
+                print("Cleared")
+            user_to_promote.is_superuser = True
+            user_to_promote.is_staff = True
+            user_to_promote.save()
+    users = User.objects.all().order_by("groups")
     return render(request,'admin_user_list.html', {'users':users})

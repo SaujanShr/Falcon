@@ -97,6 +97,26 @@ class UserModelTestCase(TestCase):
         self.user.email = 'johndoe@@example.org'
         self._assert_user_is_invalid()
 
+    def test_get_group_returns_director_for_a_director(self):
+        self.user.is_superuser = True
+        self.assertEqual(self.user.get_group(), 'Director')
+    
+    def test_get_group_returns_admin_for_an_admin(self):
+        HandleGroups.set_default_user_to_admin()
+        self.assertEqual(self.other_user.get_group(), 'Admin')
+    
+    def test_get_group_returns_student_for_a_student(self):
+        HandleGroups.set_default_user_to_student()
+        self.assertEqual(self.other_user.get_group(), 'Student')
+
+    def test_get_full_name_returns_first_name_coma_last_name(self):
+        self.assertEqual(self.user.get_full_name(), 'Jane, Doe')
+    
+    def test_get_group_returns_empty_string_if_name_not_defined(self):
+        self.user.first_name = ''
+        self.user.last_name = ''
+        self.assertEqual(self.user.get_full_name(), '')
+    
     def _assert_user_is_valid(self):
         try:
             self.user.full_clean()

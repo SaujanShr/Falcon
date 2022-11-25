@@ -17,17 +17,25 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for user in users %}
+                                {% for user_to_display in users %}
                                 <tr>
-                                    <th scope="row">1</th>
-                                    <td>{{ user.first_name }}</td>
-                                    <td>{{ user.group }}</td>
+                                    <td>{{ user_to_display.get_full_name }}</td>
+                                    <td>{{ user_to_display.get_group }}</td>
                                     <td>
-                                        {% if user.is_superuser != True %}
-                                        <button type="submit" class="btn btn-success">Promote to Director</button>
-                                        {% endif %}
-                                        <button type="submit" class="btn btn-warning ms-1">Edit</button>
-                                        <button type="submit" class="btn btn-danger ms-1">Delete</button>
+                                        <form action="" method="post">
+                                            {% csrf_token %}
+                                            <button type="submit" name='edit' value={{user_to_display.id}}
+                                                class="btn btn-warning ms-1">Edit</button>
+                                            {% if user_to_display.id != user.id %}
+                                            <button type="submit" name='delete' value={{user_to_display.id}}
+                                                class="btn btn-danger ms-1">Delete</button>
+                                            {% endif %}
+                                            {% if user_to_display.is_superuser != True %}
+                                            <button type="submit" name='promote_director' value={{user_to_display.id}}
+                                                class="btn btn-success">Promote to
+                                                Director</button>
+                                            {% endif %}
+                                        </form>
                                     </td>
                                 </tr>
                                 {% endfor %}
