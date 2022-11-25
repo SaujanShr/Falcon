@@ -1,8 +1,8 @@
-from .models import Request
+from .models import Request, SchoolTerm
 from .forms import RequestViewForm
 from django.conf import settings
 from django.contrib.auth import authenticate
-
+from datetime import datetime
 
 def get_request_object(request) -> Request:
     if request.method == 'GET':
@@ -86,4 +86,30 @@ def get_user(form):
     email = form.cleaned_data.get('email')
     password = form.cleaned_data.get('password')
     return authenticate(email=email, password=password)
+
+
+def term_name_already_exists(old_term_name, new_term_name):
+    # Run if there has been a change to the term name
+    if old_term_name != new_term_name:
+        current_school_terms = SchoolTerm.objects.all()
+
+        for term in current_school_terms:
+            # If the new name is the same as any existing names:
+            if term.term_name == new_term_name:
+                return True
+
+    return False
+
+
+def term_date_is_valid(new_start_date, new_end_date):
+    try:
+        start = datetime.strptime(new_start_date, '%Y-%m-%d').date()
+        end = datetime.strptime(new_end_date, '%Y-%m-%d').date()
+        if not (start < end):
+            raise ValueError
+        return True
+    except ValueError:
+        return False
+
+
 

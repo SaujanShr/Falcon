@@ -1,4 +1,3 @@
-from datetime import datetime, date
 from django.shortcuts import render, redirect
 from .forms import LogInForm, TransactionSubmitForm, NewRequestViewForm, SignUpForm, PasswordForm, UserForm, TermViewForm
 from .models import Student, Booking, BankTransaction, SchoolTerm
@@ -274,34 +273,22 @@ def term_view(request):
 
     if request.method == 'POST':
         old_term_name = request.POST['old_term_name']
-        term = SchoolTerm.objects.get(term_name= old_term_name)
+        new_term_name = request.POST['term_name']
+        term = SchoolTerm.objects.get(term_name=old_term_name)
         initial_form = TermViewForm(instance=term)
 
-        # If there has been a change to the term name
-        if old_term_name != request.POST['term_name']:
-            current_school_terms = SchoolTerm.objects.all()
-
-            for term in current_school_terms:
-                # If the new name is the same as any existing names:
-                if term.term_name == request.POST['term_name']:
-                    messages.add_message(request, messages.ERROR, "There already exists a term with this name!")
-                    return render(request, "term_view.html", {'form': initial_form, 'old_term_name': old_term_name})
+        # Check if there already exists a term with the same name if there is a change in the name of the term.
+        if term_name_already_exists(old_term_name, new_term_name):
+            messages.add_message(request, messages.ERROR, "There already exists a term with this name!")
+            return render(request, "term_view.html", {'form': initial_form, 'old_term_name': old_term_name})
 
         new_start_date = request.POST['start_date']
         new_end_date = request.POST['end_date']
         # Check that the dates are valid and start is before end
-        try:
-            start = datetime.strptime(new_start_date, '%Y-%m-%d').date()
-            end = datetime.strptime(new_end_date, '%Y-%m-%d').date()
-            if not(start < end):
-                raise ValueError
-        except ValueError:
-            messages.add_message(request, messages.ERROR, "Invalid Dates!")
+        if not term_date_is_valid(new_start_date, new_end_date):
+            messages.add_message(request, messages.ERROR, "Invalid date(s)!")
             return render(request, 'term_view.html', {'form': initial_form, 'old_term_name': old_term_name})
 
-        term = SchoolTerm.objects.get(term_name=request.POST['old_term_name'])
-
-        old_term_name = request.POST['old_term_name']
         old_start_date = term.start_date
         old_end_date = term.end_date
 
