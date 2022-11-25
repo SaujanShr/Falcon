@@ -156,7 +156,7 @@ def admin_bookings_requests_view(request):
         req.raw_date = str(req.date).split('+')[0] # To do: Ensure this works regardless of timezone, change
         # implementation if necessary
     for booking in bookings:
-        booking.day_of_the_week = booking.DayOfWeek.choices[booking.day_of_the_week - 1][1]
+        #booking.day_of_the_week = booking.DayOfWeek.choices[booking.day_of_the_week - 1][1]
         booking.interval_between_lessons = \
             booking.IntervalBetweenLessons.choices[booking.interval_between_lessons - 1][1]
         for duration in booking.LessonDuration.choices:
@@ -173,6 +173,7 @@ def fulfil_request_view(request):
         if 'fulfil' in request.POST:
             form = FulfilRequestForm(request.POST)
             booking_req = form.save()
+
             if not booking_req[1].fulfilled:
                 try:
                     booking_req[0].full_clean()

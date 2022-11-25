@@ -55,17 +55,19 @@ def update_request(request):
 
 
 def get_request_view_form(request):
+
     this_request = get_request_object(request)
     form = RequestViewForm(
         initial={
             'date': this_request.date,
-            'availability': this_request.availability.all(),
+            'availability': this_request.availability.all().first(),
             'number_of_lessons': this_request.number_of_lessons,
             'interval_between_lessons': this_request.interval_between_lessons,
             'duration_of_lessons': this_request.duration_of_lessons,
             'further_information': this_request.further_information,
             'fulfilled': this_request.fulfilled
         }
+
     )
     return form
 
@@ -80,6 +82,7 @@ def get_fulfil_request_form(request):
             'interval_between_lessons': this_request.interval_between_lessons,
             'duration_of_lessons': this_request.duration_of_lessons,
             'further_information': this_request.further_information
-        }
+        },
+        reqe=this_request
     )
     return form

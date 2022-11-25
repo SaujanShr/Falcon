@@ -64,6 +64,16 @@ class RequestViewForm(forms.ModelForm):
 
 
 class FulfilRequestForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        if 'reqe' in kwargs:
+            reqe = kwargs.pop('reqe')
+        super(FulfilRequestForm, self).__init__(*args, **kwargs)
+        if 'reqe' in locals() and isinstance(reqe, Request):
+            self.fields['availability'] = forms.ModelChoiceField(
+                queryset=reqe.availability.all(),
+                label="Day of lessons:",
+                widget=forms.Select
+            )
     class Meta:
         model = Booking
         fields = ['availability', 'number_of_lessons', 'interval_between_lessons',
@@ -73,11 +83,12 @@ class FulfilRequestForm(forms.ModelForm):
         widget=forms.HiddenInput
     )
 
-    availability = forms.ChoiceField(
-        choices=Booking.DayOfWeek.choices,
+    availability = forms.ModelChoiceField(
+        queryset=DayOfTheWeek.objects.all(),
         label="Day of lessons:",
         widget=forms.Select
     )
+
     time_of_lesson = forms.TimeField(
         label='Lesson time:',
         widget=forms.TimeInput(
@@ -99,6 +110,16 @@ class FulfilRequestForm(forms.ModelForm):
             attrs={'type':'number'}
         )
     )
+
+    """
+    def clean(self):
+        super().clean()
+        req = Request.objects.get(date=self.cleaned_data.get('date'))
+        lesson_day = DayOfTheWeek.objects.get(order=(int(self.cleaned_data.get('availability'))-1))
+        if lesson_day not in req.availability.all():
+            self.add_error('availability', 'Student not available on that day.')
+    """
+
     def save(self):
         super().save(commit=False)
         req = Request.objects.get(date=self.cleaned_data.get('date'))
