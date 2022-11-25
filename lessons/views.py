@@ -273,17 +273,19 @@ def term_view(request):
         return render(request, "term_view.html", {'form': form, 'old_term_name': old_term_name})
 
     if request.method == 'POST':
-        # TODO: Check that the name is valid, Check that the start and end dates are valid.
+        old_term_name = request.POST['old_term_name']
+        term = SchoolTerm.objects.get(term_name= old_term_name)
+        initial_form = TermViewForm(instance=term)
 
         # If there has been a change to the term name
-        if request.POST['old_term_name'] != request.POST['term_name']:
+        if old_term_name != request.POST['term_name']:
             current_school_terms = SchoolTerm.objects.all()
 
             for term in current_school_terms:
                 # If the new name is the same as any existing names:
                 if term.term_name == request.POST['term_name']:
-                    messages.add_message(request, messages.ERROR, "Invalid form!")
-                    return redirect('admin_term_view')
+                    messages.add_message(request, messages.ERROR, "There already exists a term with this name!")
+                    return render(request, "term_view.html", {'form': initial_form, 'old_term_name': old_term_name})
 
         new_start_date = request.POST['start_date']
         new_end_date = request.POST['end_date']
@@ -294,10 +296,8 @@ def term_view(request):
             if not(start < end):
                 raise ValueError
         except ValueError:
-            messages.add_message(request, messages.ERROR, "Invalid form!")
-            return redirect('admin_term_view')
-
-
+            messages.add_message(request, messages.ERROR, "Invalid Dates!")
+            return render(request, 'term_view.html', {'form': initial_form, 'old_term_name': old_term_name})
 
         term = SchoolTerm.objects.get(term_name=request.POST['old_term_name'])
 
@@ -315,7 +315,8 @@ def term_view(request):
             # Recreate old term again, very bad!
             SchoolTerm(term_name=old_term_name, start_date=old_start_date, end_date=old_end_date).save()
             print(form.errors)
-            messages.add_message(request, messages.ERROR, "Invalid form!")
+            messages.add_message(request, messages.ERROR, "Dates overlap!")
+            return render(request, 'term_view.html', {'form': initial_form, 'old_term_name': old_term_name})
 
     return redirect('admin_term_view')
 
