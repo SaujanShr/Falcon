@@ -25,11 +25,11 @@ def allowed_groups(allowed_groups_names = []):
             group = None
             if request.user.is_superuser:
                 group = 'Director'
-            elif request.user.is_superuser.is_admin():
+            elif request.user.is_admin():
                 group = 'Admin'
-            elif request.user.is_superuser.is_student():
+            elif request.user.is_student():
                 group = 'Student'
-                
+
             if group in allowed_groups_names:
                 return view_function(request)
             else:
