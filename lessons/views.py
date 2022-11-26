@@ -5,8 +5,8 @@ from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from .decorators import login_prohibited, allowed_groups
-from .views_functions import *
 from django.contrib.auth.hashers import check_password
+from .views_functions import *
 
 
 @login_required
@@ -18,12 +18,6 @@ def student_page(request):
 @login_required
 @allowed_groups(['Student'])
 def request_list(request):
-    if request.method == 'POST':
-        if 'delete' in request.POST:
-            delete_request(request)
-        elif 'update' in request.POST:
-            update_request(request)
-
     date_user_request_pairs = get_date_user_request_pairs(request)
     return render(request, 'request_list.html', {'date_user_request_pairs': date_user_request_pairs})
 
@@ -31,12 +25,22 @@ def request_list(request):
 @login_required
 @allowed_groups(['Student'])
 def request_view(request):
+    if request.method == 'POST':
+        if 'delete' in request.POST: 
+            if delete_request(request):
+                return redirect('request_list')
+        elif 'update' in request.POST: 
+            if update_request(request):
+                return redirect('request_list')
+    
     user_request = get_request_object(request)
     date = str(user_request.date)
     form = get_request_view_form(request)
+    form.set_student_names(request.user)
+    
     request_fulfilled = user_request.fulfilled
-    if request_fulfilled:
-        form.setReadOnly()
+    if request_fulfilled: form.set_read_only()
+    
     return render(request, 'request_view.html', {'date': date, 'form': form, 'readonly': request_fulfilled})
 
 
@@ -44,14 +48,32 @@ def request_view(request):
 @allowed_groups(['Student'])
 def new_request_view(request):
     if request.method == 'POST':
-        form = NewRequestViewForm(request.POST)
-        if form.is_valid():
-            form.save(request.user)
-            return redirect('student_page')
-    else:
-        form = NewRequestViewForm()
+        if save_new_request(request):
+            return redirect('request_list')
+    
+    form = NewRequestViewForm()
+    form.set_student_names(request.user)
     return render(request, 'new_request_view.html', {'form': form})
 
+
+@login_required
+@allowed_groups(['Student'])
+def children_list(request):
+    children = get_children(request)
+    return render(request, 'children_list.html', {'children': children})
+
+
+@login_required
+@allowed_groups(['Student'])
+def child_page(request):
+    child = get_child(request)
+    return render(request, 'child_page.html', {'child': child})
+    
+
+@login_required
+@allowed_groups(['Student'])
+def booking_list(request):
+    return render(request, 'booking_list.html')
 
 @login_prohibited
 def home(request):

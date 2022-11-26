@@ -6,7 +6,7 @@ from lessons.models import DayOfTheWeek, Request, User
 from lessons.tests.helpers import create_days_of_the_week
 
 
-class LogInFormTestCase(TestCase):
+class NewRequestFormTestCase(TestCase):
     """Unit tests of the new requests form."""
     fixtures = ['lessons/tests/fixtures/default_user.json']
 

@@ -18,13 +18,16 @@ from django.urls import path
 from lessons import views
 
 urlpatterns = [
+    path('', views.home, name='home'),
     path('admin/', admin.site.urls),
     path('student_page/', views.student_page, name='student_page'),
     path('request_list/', views.request_list, name='request_list'),
+    path('booking_list/', views.booking_list, name='booking_list'),
     path('request_view/', views.request_view, name='request_view'),
     path('new_request_view/', views.new_request_view, name='new_request_view'),
+    path('children_list/', views.children_list, name='children_list'),
+    path('child_page/', views.child_page, name='child_page'),
     path('log_in/', views.log_in, name='log_in'),
-    path('', views.home, name='home'),
     path('sign_up/', views.sign_up, name='sign_up'),
     path('test_view/', views.test_redirect_view, name='redirect'),
     path('transactions/admin', views.transaction_admin_view, name='transaction_admin_view'),
