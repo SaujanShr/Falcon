@@ -48,34 +48,8 @@
     <div class = "row">
         <div class="col-6">
             <h2>Recent transactions</h2>
-            <table class="table table-striped">
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Student</th>
-                    <th>Amount</th>
-                    <th>Invoice no.</th>
-                  </tr>
-                </thead>
-                {% if transactions %}
-                  {% for transaction in transactions %}
-                    <tr>
-                        <td>{{ transaction.date }}</td>
-                        <td>{{ transaction.student.user.email }}</td>
-                        <td>{{ transaction.amount }}</td>
-                        <td>{{ transaction.invoice.invoice_number }}</td>
-                    </tr>
-                  {% endfor %}
-                {% else %}
-                  <tr>
-                    <td>No transactions yet...</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                  </tr>
-                {% endif %}
-              </table>
-              <a class="btn btn-primary" href="{% url 'transaction_admin_view' %}" role="button">Submit student transaction</a>
+            {% include 'partials/transactions_table.html' with transactions=transactions %}
+            <a class="btn btn-primary" href="{% url 'transaction_admin_view' %}" role="button">Submit student transaction</a>
         </div>
         <div class="col-6">
         </div>

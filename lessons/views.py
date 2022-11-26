@@ -18,6 +18,8 @@ def student_page(request):
 @allowed_groups(['Admin', 'Director'])
 def admin_page(request):
     transactions = BankTransaction.objects.order_by('date')
+    #TODO add requests and bookings data to pass into template
+    #TODO if any of these datasets are too large, filter to only first 15
     return render(request, 'admin_page.html', {'transactions': transactions})
 
 
