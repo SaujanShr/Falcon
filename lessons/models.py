@@ -196,7 +196,6 @@ class SchoolTerm(models.Model):
     def clean(self):
         # Clean is not invoked when you use save? I think?
         # Only on create()?? and is_valid()
-        # What about when running tests where you run full_clean(), does this also get run with it?
 
         # Check valid dates
         if not(self.start_date and self.end_date):
