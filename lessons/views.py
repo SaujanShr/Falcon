@@ -245,15 +245,16 @@ def admin_bookings_requests_view(request):
                                                             'bookings': bookings})
 
 
-#@login_required()
+@login_required()
+@allowed_groups(["Student"]) # Do Admins also need access to this page?
 # A view for students to see all terms.
 def student_term_view(request):
     terms = SchoolTerm.objects.all()
     return render(request, 'student_term_view.html', {'terms': terms})
 
 
-# @login_required
-# @allowed_groups(["Admin"])
+@login_required
+@allowed_groups(["Admin"])
 # A view for admins to see and edit all terms as well access to button to create a new term.
 def admin_term_view(request):
     terms = SchoolTerm.objects.all()
