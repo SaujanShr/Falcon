@@ -218,6 +218,7 @@ def admin_requests_view(request):
     return render(request, 'admin_requests_view.html', {'fulfilled_requests': fulfilled_requests,
                                                         'unfulfilled_requests': unfulfilled_requests})
 
+
 #@login_required
 #@allowed_groups(["Admin","Director"])
 def fulfil_request_view(request):
@@ -237,10 +238,16 @@ def fulfil_request_view(request):
                 return redirect('admin_bookings_view')
             else:
                 print('Booking is already fulfilled')
+        elif 'delete' in request.POST:
+            delete_request(request)
+            return redirect('admin_requests_view')
+        elif 'return' in request.POST:
+            return redirect('admin_requests_view')
 
     date = str(get_request_object(request).date)
     form = get_fulfil_request_form(request)
     return render(request, 'fulfil_view.html', {'date': date, 'form': form})
+
 
 def edit_booking_view(request):
     if request.method == 'POST':

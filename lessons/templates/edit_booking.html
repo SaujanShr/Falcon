@@ -10,8 +10,8 @@
                 {% csrf_token %}
                 {{ form.as_p }}
                 <input type="submit" name="update" value="Update">
-                <input type="submit" name="delete" value="Delete">
-                <input type="submit" name="return" value="Return">
+                <input type="submit" formnovalidate="formnovalidate" name="delete" value="Delete">
+                <input type="submit" formnovalidate="formnovalidate" name="return" value="Return">
             </form>
         </div>
     </div>
