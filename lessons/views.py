@@ -87,17 +87,17 @@ def sign_up(request):
 
 
 @login_required
-def profile(request):
-    current_user = request.user
+def profile(request,user_id):
+    user = User.objects.get(id=user_id)
     if request.method == 'POST':
-        form = UserForm(instance=current_user, data=request.POST)
+        form = UserForm(instance=user, data=request.POST)
         if form.is_valid():
             messages.add_message(request, messages.SUCCESS, "Profile updated!")
             form.save()
             return redirect('student_page')
     else:
-        form = UserForm(instance=current_user)
-    return render(request, 'profile.html', {'form': form})
+        form = UserForm(instance=user)
+    return render(request, 'profile.html', {'form': form, 'user_id':user_id})
 
 
 @login_required
@@ -250,20 +250,16 @@ def admin_user_list_view(request):
     if request.method == 'POST':
         if 'edit' in request.POST: 
             id_user_to_edit = request.POST.get("edit","")
-            print(f"EDIT {id_user_to_edit}")
+            return redirect("profile",user_id=id_user_to_edit)
         elif 'delete' in request.POST:
             id_user_to_delete = request.POST.get("delete","")
             user_to_delete = User.objects.get(id=id_user_to_delete)
             user_to_delete.delete()
         elif 'promote_director' in request.POST:
-            print("promote")
             id_user_to_promote = request.POST.get("promote_director","")
             user_to_promote = User.objects.get(id=id_user_to_promote)
-            print(user_to_promote)
             if user_to_promote.groups.exists():
-                print("there is ")
                 user_to_promote.groups.clear()
-                print("Cleared")
             user_to_promote.is_superuser = True
             user_to_promote.is_staff = True
             user_to_promote.save()

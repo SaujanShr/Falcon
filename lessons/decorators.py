@@ -31,7 +31,7 @@ def allowed_groups(allowed_groups_names = []):
                 group = 'Student'
 
             if group in allowed_groups_names:
-                return view_function(request)
+                return view_function(request,*args,**kwargs)
             else:
                 if group == 'Admin':
                     return redirect(settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_ADMIN)

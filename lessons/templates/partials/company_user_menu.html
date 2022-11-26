@@ -10,7 +10,7 @@
                 <span class="bi-person-circle" style="color: rgb(255, 255, 255);"></span>
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
-                <li><a class="dropdown-item" href="{% url 'profile' %}">Change Profile</a></li>
+                <li><a class="dropdown-item" href="{% url 'profile' user.id %}">Change Profile</a></li>
                 <li><a class="dropdown-item" href="{% url 'change_password' %}">Change Password</a></li>
                 <li>
                     <hr class="dropdown-divider">
