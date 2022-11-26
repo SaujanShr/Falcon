@@ -68,7 +68,6 @@ class User(AbstractBaseUser,PermissionsMixin):
 
 class Student(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE,related_name='user_record', blank=False)
-    name = models.CharField(max_length=50, blank=False)
     balance = models.DecimalField(default=0,max_digits=6, decimal_places=2, blank=False)
 
     def save(self, *args, **kwargs):
