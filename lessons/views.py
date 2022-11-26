@@ -235,3 +235,14 @@ def fulfil_request_view(request):
     form = get_fulfil_request_form(request)
     return render(request, 'fulfil_view.html', {'date': date, 'form': form})
 
+def edit_booking_view(request):
+    if request.method == 'POST':
+        if 'update' in request.POST:
+            update_booking(request)
+        elif 'delete' in request.POST:
+            delete_booking(request)
+        return redirect('admin_request_view')
+    booking = Booking.objects.get(invoice_id=request.GET['inv_id'])
+    form = get_booking_form(request)
+    return render(request, 'edit_booking.html', {'form': form})
+

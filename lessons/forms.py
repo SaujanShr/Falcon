@@ -249,3 +249,39 @@ class TransactionSubmitForm(forms.ModelForm):
         # alter string so that it fits the form xxxx-yyy
         pass
 
+class EditBookingForm(forms.ModelForm):
+    class Meta:
+        model = Booking
+        fields = ['invoice_id','day_of_the_week','time_of_the_day','teacher','start_date',
+                  'duration_of_lessons','interval_between_lessons','number_of_lessons',
+                  'further_information']
+        widgets = {'invoice_id': forms.HiddenInput()}
+
+    day_of_the_week = forms.ModelChoiceField(
+        queryset=DayOfTheWeek.objects.all(),
+        label="Day of lessons:",
+        widget=forms.Select
+    )
+
+    time_of_the_day = forms.TimeField(
+        label='Lesson time:',
+        widget=forms.TimeInput(
+            attrs={'type': 'time'}
+        )
+    )
+    teacher = forms.CharField(
+        label='Teacher:',
+        widget=forms.TextInput
+    )
+    start_date = forms.DateField(
+        label='Start date:',
+        widget=forms.DateInput(
+            attrs={'type': 'date'}
+        )
+    )
+    hourly_cost = forms.CharField(
+        widget=forms.TextInput(
+            attrs={'type': 'number'}
+        )
+    )
+

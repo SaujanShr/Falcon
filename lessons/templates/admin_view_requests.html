@@ -1,3 +1,5 @@
+{% extends 'base_content.html' %}
+{% block content %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -20,6 +22,7 @@
         <th>Frequency</th>
         <th style="width: 25%">Further Information</th>
         <th style="width: 10%">Invoice ID</th>
+        <th>Edit</th>
     </tr>
     {% if bookings %}
         {% for booking in bookings %}
@@ -33,6 +36,7 @@
                 <td style="vertical-align: top">{{ booking.interval_between_lessons }}</td>
                 <td style="vertical-align: top">{{ booking.further_information }}</td>
                 <td style="vertical-align: top">{{ booking.invoice_id }}</td>
+                <td style="vertical-align: top"><a href="{% url 'edit_booking' %}?inv_id={{ booking.invoice_id }}">Edit</a></td>
             </tr>
         {% endfor %}
     {% else %}
@@ -79,7 +83,7 @@
                 {% if request.fulfilled %}
                     <td style="vertical-align: top">Yes</td>
                 {% else %}
-                    <td style="vertical-align: top"><a href="/fulfil_request/?date={{ request.raw_date }}">Fulfil</a></td> <!--TO DO: Replace this with actual ID once we have those.-->
+                    <td style="vertical-align: top"><a href="{%url 'fulfil_request' %}?date={{ request.raw_date }}">Fulfil</a></td>
                 {% endif %}
             </tr>
         {% endfor %}
@@ -99,3 +103,5 @@
 </table>
 </body>
 </html>
+
+{% endblock %}

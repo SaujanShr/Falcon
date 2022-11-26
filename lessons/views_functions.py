@@ -1,5 +1,7 @@
-from .models import Request, Invoice, Student, User
-from .forms import RequestViewForm, FulfilRequestForm
+import decimal
+
+from .models import Request, Invoice, Student, User, Booking, DayOfTheWeek
+from .forms import RequestViewForm, FulfilRequestForm, EditBookingForm
 from django.conf import settings
 from django.contrib.auth import authenticate
 
@@ -53,6 +55,75 @@ def update_request(request):
     else:
         print(form.errors)
 
+
+def update_booking(request):
+    data = request.POST.copy()
+    booking = Booking.objects.get(invoice_id=data['invoice_id'])
+    booking.day_of_the_week = DayOfTheWeek.objects.get(order=(int(data['day_of_the_week'])-1))
+    booking.time_of_the_day = data['time_of_the_day']
+    booking.teacher = data['teacher']
+    booking.start_date = data['start_date']
+    booking.duration_of_lessons = data['duration_of_lessons']
+    booking.interval_between_lessons = data['interval_between_lessons']
+    booking.number_of_lessons = data['number_of_lessons']
+    booking.further_information = data['further_information']
+    booking.full_clean()
+
+    #Update invoice
+    student = Student.objects.get(user=booking.student)
+    invoice = Invoice.objects.get(invoice_number=data['invoice_id'])
+    new_cost = booking.duration_of_lessons * int(data['hourly_cost']) * booking.number_of_lessons / 60
+    invoice.full_amount = new_cost
+
+    if invoice.paid_amount > invoice.full_amount:
+        student.balance = student.balance + decimal.Decimal((invoice.paid_amount-decimal.Decimal(invoice.full_amount)))
+        invoice.paid_amount = invoice.full_amount
+        invoice.fully_paid = True
+        student.save()
+    elif invoice.paid_amount == invoice.full_amount:
+        invoice.fully_paid = True
+    else:
+        invoice.fully_paid = False
+
+    invoice.save()
+    booking.save()
+
+
+
+def delete_booking(request):
+    #This delete function will return any money paid
+    data = request.POST.copy()
+    booking = Booking.objects.get(invoice_id=data['invoice_id'])
+    invoice = Invoice.objects.get(invoice_number=data['invoice_id'])
+    student = Student.objects.get(user=booking.student)
+    student.balance = student.balance + invoice.paid_amount
+    invoice.delete()
+    booking.delete()
+    student.save()
+
+
+
+
+
+def get_booking_form(request):
+    booking = Booking.objects.get(invoice_id=request.GET['inv_id'])
+    invoice = Invoice.objects.get(invoice_number=booking.invoice_id)
+    hourly_cost = int(invoice.full_amount/booking.duration_of_lessons/booking.number_of_lessons*60)
+    form = EditBookingForm(
+        initial={
+            'invoice_id': booking.invoice_id,
+            'day_of_the_week': booking.day_of_the_week,
+            'time_of_the_day': booking.time_of_the_day,
+            'teacher': booking.teacher,
+            'start_date': booking.start_date,
+            'duration_of_lessons': booking.duration_of_lessons,
+            'interval_between_lessons': booking.interval_between_lessons,
+            'number_of_lessons': booking.number_of_lessons,
+            'further_information': booking.further_information,
+            'hourly_cost':hourly_cost
+        }
+    )
+    return form
 
 def get_request_view_form(request):
 
