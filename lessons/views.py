@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from .forms import LogInForm, TransactionSubmitForm, NewRequestViewForm, SignUpForm, PasswordForm, UserForm
+from .forms import LogInForm, TransactionSubmitForm, NewRequestViewForm, SignUpForm, PasswordForm, UserForm,CreateUser
 from .models import Student, Booking, BankTransaction, User
 from django.contrib import messages
 from django.contrib.auth import login, logout
@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from .decorators import login_prohibited, allowed_groups
 from .views_functions import *
 from django.contrib.auth.hashers import check_password
-
+from django.contrib.auth.models import Group
 
 @login_required
 @allowed_groups(['Student'])
@@ -267,5 +267,56 @@ def admin_user_list_view(request):
             user_to_promote.is_superuser = True
             user_to_promote.is_staff = True
             user_to_promote.save()
+        elif 'create_director' in request.POST:
+            return redirect("create_director_user")
+        elif 'create_student' in request.POST:
+            return redirect("create_student_user")
+        elif 'create_administrator' in request.POST:
+            return redirect("create_admin_user")
+
     users = User.objects.all().order_by("groups")
     return render(request,'admin_user_list.html', {'users':users})
+
+@login_required
+@allowed_groups("Director")
+def create_director_user(request):
+    if request.method == 'POST':
+        print("Here 2")
+        form = CreateUser(request.POST)
+        if form.is_valid():
+            created_user = form.save()
+            created_user.is_superuser = True
+            created_user.is_staff = True
+            created_user.save()
+            return redirect('admin_user_view')
+    else:
+        form = SignUpForm()
+    return render(request, 'create_user.html', {'form': form,'user_type':"Director"})
+
+@login_required
+@allowed_groups("Director")
+def create_admin_user(request):
+    if request.method == 'POST':
+        form = CreateUser(request.POST)
+        if form.is_valid():
+            created_user = form.save()
+            admin_group = Group.objects.get(name='Admin')
+            admin_group.user_set.add(created_user)
+            return redirect('admin_user_view')
+    else:
+        form = SignUpForm()
+    return render(request, 'create_user.html', {'form': form,'user_type':"Administrator"})
+
+@login_required
+@allowed_groups("Director")
+def create_student_user(request):
+    if request.method == 'POST':
+        form = CreateUser(request.POST)
+        if form.is_valid():
+            created_user = form.save()
+            student_group = Group.objects.get(name='Student')
+            student_group.user_set.add(created_user)
+            return redirect('admin_user_view')
+    else:
+        form = SignUpForm()
+    return render(request, 'create_user.html', {'form': form,'user_type':"Student"})

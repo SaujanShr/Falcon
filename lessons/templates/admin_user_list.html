@@ -1,50 +1,55 @@
 {% extends 'base_content.html' %}
 {% block content %}
-<section style="background-color: #eee;">
-    <div class="container h-50">
+<div class="container h-50 card rounded-3">
+    <div class="card-body p-4">
+        <div class="row">
+            <form class="offset-md-7" action="" method="post">
+                {% csrf_token %}
+                <button type="create_administrator" name='create_administrator' class="btn btn-secondary">Create
+                    Administrator</button>
+                <button type="create_student" name='create_student' class="btn btn-secondary">Create
+                    Student</button>
+                <button type="create_director" name='create_director' class="btn btn-primary">Create
+                    Director</button>
+            </form>
+        </div>
         <div class="row d-flex justify-content-center align-items-center h-100">
-            <div class="col col-lg-12 col-xl-12">
-                <div class="card rounded-3">
-                    <div class="card-body p-4">
-
-                        <h4 class="text-center my-3 pb-3">Registered Users</h4>
-                        <table class="table mb-4">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Full Name</th>
-                                    <th scope="col">Status</th>
-                                    <th scope="col">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for user_to_display in users %}
-                                <tr>
-                                    <td>{{ user_to_display.get_full_name }}</td>
-                                    <td>{{ user_to_display.get_group }}</td>
-                                    <td>
-                                        <form action="" method="post">
-                                            {% csrf_token %}
-                                            <button type="submit" name='edit' value={{user_to_display.id}}
-                                                class="btn btn-warning ms-1">Edit</button>
-                                            {% if user_to_display.id != user.id %}
-                                            <button type="submit" name='delete' value={{user_to_display.id}}
-                                                class="btn btn-danger ms-1">Delete</button>
-                                            {% endif %}
-                                            {% if user_to_display.is_superuser != True %}
-                                            <button type="submit" name='promote_director' value={{user_to_display.id}}
-                                                class="btn btn-success">Promote to
-                                                Director</button>
-                                            {% endif %}
-                                        </form>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+            <h4 class="text-center my-3 pb-3">Registered Users</h4>
+            <table class="table mb-4">
+                <thead>
+                    <tr>
+                        <th scope="col">Full Name</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user_to_display in users %}
+                    <tr>
+                        <td>{{ user_to_display.get_full_name }}</td>
+                        <td>{{ user_to_display.get_group }}</td>
+                        <td>
+                            <form action="" method="post">
+                                {% csrf_token %}
+                                <button type="submit" name='edit' value={{user_to_display.id}}
+                                    class="btn btn-warning ms-1">Edit</button>
+                                {% if user_to_display.id != user.id %}
+                                <button type="submit" name='delete' value={{user_to_display.id}}
+                                    class="btn btn-danger ms-1">Delete</button>
+                                {% endif %}
+                                {% if user_to_display.is_superuser != True %}
+                                <button type="submit" name='promote_director' value={{user_to_display.id}}
+                                    class="btn btn-success">Promote to
+                                    Director</button>
+                                {% endif %}
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
-</section>
+</div>
+</div>
 {% endblock content%}
