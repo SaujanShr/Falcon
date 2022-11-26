@@ -73,6 +73,11 @@ class SignUpFormTestCase(TestCase):
         form = TermViewForm(data=self.form_input)
         self.assertFalse(form.is_valid())
 
+        self.form_input['start_date'] = datetime.date(2022, 1, 1)
+        self.form_input['end_date'] = datetime.date(2022, 1, 1)
+        form = TermViewForm(data=self.form_input)
+        self.assertFalse(form.is_valid())
+
     def test_form_must_save_correctly(self):
         form = TermViewForm(data=self.form_input)
 
