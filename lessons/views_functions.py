@@ -88,12 +88,8 @@ def get_fulfil_request_form(request):
 
 
 def create_invoice(booking, hourly_cost):
-    s = Student.objects.create(
-        user=booking.student,
-        balance=0
-    )
-    s.full_clean()
-    s.save()
+
+
     user = Student.objects.get(user__email=booking.student)
 
 
@@ -101,7 +97,7 @@ def create_invoice(booking, hourly_cost):
     invoice_n = ""
     user_id = user.id
     number_of_invoice = Invoice.objects.all().filter(student=user).count() + 1
-    for i in range(4-len(user_id)):
+    for i in range(4-len(str(user_id))):
         invoice_n += "0"
     invoice_n = invoice_n + str(user_id) + "-"
     for i in range(3-len(str(number_of_invoice))):
@@ -109,7 +105,7 @@ def create_invoice(booking, hourly_cost):
     invoice_n += str(number_of_invoice)
 
     #Calculate amount to pay
-    total_required = (hourly_cost * booking.number_of_lessons * booking.duration_of_lessons / 60)
+    total_required = (int(hourly_cost) * booking.number_of_lessons * booking.duration_of_lessons / 60)
     amount_paid = 0
     paid_in_full = (total_required == 0)
 
@@ -125,5 +121,25 @@ def create_invoice(booking, hourly_cost):
     invoice.save()
 
     return invoice_n
+
+
+def get_redirect_url(user, request):
+    if user.groups.exists():
+        if (user.groups.all()[0].name == 'Student'):
+            user_specific_redirect = settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_STUDENT
+        elif (user.groups.all()[0].name == 'Admin'):
+            user_specific_redirect = settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_ADMIN
+    else:
+        if user.is_staff:
+            user_specific_redirect = settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_DIRECTOR
+        else:
+            user_specific_redirect = ''
+    return request.POST.get('next') or user_specific_redirect
+
+
+def get_user(form):
+    email = form.cleaned_data.get('email')
+    password = form.cleaned_data.get('password')
+    return authenticate(email=email, password=password)
 
 

@@ -228,21 +228,10 @@ def fulfil_request_view(request):
                 booking_req[1].save()
                 booking_req[0].save()
                 return redirect('admin_request_view')
-                """
-                try:
-                    invoice_number = create_invoice(booking_req[0], booking_req[2])
-                    booking_req[0].invoice_id = invoice_number
-                    booking_req[0].full_clean()
-                    booking_req[1].fulfilled = True
-                    booking_req[1].save()
-                    booking_req[0].save()
-                    return redirect('admin_request_view')
-                except ValueError:
-                    print('Form incorrect')
-                """
             else:
                 print('Booking is already fulfilled')
 
     date = str(get_request_object(request).date)
     form = get_fulfil_request_form(request)
     return render(request, 'fulfil_view.html', {'date': date, 'form': form})
+
