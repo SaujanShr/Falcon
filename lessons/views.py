@@ -1,11 +1,12 @@
 from django.shortcuts import render, redirect
-from .forms import LogInForm, TransactionSubmitForm, NewRequestViewForm, SignUpForm
+from .forms import LogInForm, TransactionSubmitForm, NewRequestViewForm, SignUpForm, PasswordForm, UserForm
 from .models import Student, Booking, BankTransaction
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from .decorators import login_prohibited, allowed_groups
 from .views_functions import *
+from django.contrib.auth.hashers import check_password
 
 
 @login_required
@@ -87,6 +88,50 @@ def sign_up(request):
     return render(request, 'sign_up.html', {'form': form})
 
 
+@login_required
+def profile(request):
+    current_user = request.user
+    if request.method == 'POST':
+        form = UserForm(instance=current_user, data=request.POST)
+        if form.is_valid():
+            messages.add_message(request, messages.SUCCESS, "Profile updated!")
+            form.save()
+            return redirect('student_page')
+    else:
+        form = UserForm(instance=current_user)
+    return render(request, 'profile.html', {'form': form})
+
+
+@login_required
+def password(request):
+    current_user = request.user
+    if request.method == 'POST':
+        form = PasswordForm(data=request.POST)
+        if form.is_valid():
+            current_password_input = form.cleaned_data.get('password')
+            if check_password(current_password_input, current_user.password):
+                new_password = form.cleaned_data.get('new_password')
+                current_user.set_password(new_password)
+                current_user.save()
+                login(request, current_user)
+                messages.add_message(request, messages.SUCCESS, "Password updated!")
+                return redirect('student_page')
+            else:
+                messages.add_message(request, messages.ERROR, "Current Password is incorrect!")
+
+        # Show error on not matching new password and confirmation
+        new_password = form.cleaned_data.get('new_password')
+        password_confirmation = form.cleaned_data.get('password_confirmation')
+        if new_password != password_confirmation:
+            messages.add_message(request, messages.ERROR, "New password and confirmation do not match!")
+            return render(request, 'password_change.html', {'form': form})
+
+        messages.add_message(request, messages.ERROR, "New password must contain an uppercase character, a lowercase character and a number")
+
+    form = PasswordForm()
+    return render(request, 'password_change.html', {'form': form})
+
+
 @login_required()
 def log_out(request):
     logout(request)
@@ -100,8 +145,8 @@ def test_redirect_view(request):
     return render(request, 'test_redirect.html')
 
 
-# @login_required
-# @allowed_groups(["Admin", "Director"])
+@login_required
+@allowed_groups(["Admin", "Director"])
 def transaction_admin_view(request):
     if request.method == 'POST':
         form = TransactionSubmitForm(request.POST)
@@ -114,15 +159,15 @@ def transaction_admin_view(request):
     return render(request, 'transaction_admin_view.html', {'form': form})
 
 
-# @login_required
-# @allowed_groups(["Admin", "Director"])
+@login_required
+@allowed_groups(["Admin", "Director"])
 def transaction_list_admin(request):
     transactions = BankTransaction.objects.order_by('date')
     return render(request, 'transaction_list.html', {'transactions': transactions})
 
 
-# @login_required
-# @allowed_groups(["Student"])
+@login_required
+@allowed_groups(["Student"])
 def transaction_list_student(request):
     # currently errors if user is not logged in
     r_user = request.user
@@ -136,8 +181,8 @@ def transaction_list_student(request):
     return render(request, 'transaction_list.html', {'transactions': transactions})
 
 
-# @login_required
-# @allowed_groups(["Admin", "Director"])
+@login_required
+@allowed_groups(["Admin", "Director"])
 def balance_list_admin(request):
     students = Student.objects.all()
     return render(request, 'balance_list.html', {'students': students})

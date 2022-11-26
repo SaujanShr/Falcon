@@ -1,9 +1,5 @@
 {% extends 'base_content.html' %}
 {% block content %}
-
-
-<p><a href="{% url 'new_request_view' %}" class=" btn btn-sm btn-primary">New Request</a></p>
-
 <h1>Bookings</h1>
 <table class="table table-dark table-striped">
   <thead>
@@ -44,5 +40,6 @@
     </tr>
   {% endif %}
 </table>
+<p><a href="{% url 'new_request_view' %}" class=" btn btn-sm btn-primary">New Request</a></p>
 
 {% endblock %}

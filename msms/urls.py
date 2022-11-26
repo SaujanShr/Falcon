@@ -34,5 +34,7 @@ urlpatterns = [
     path('balance/admin', views.balance_list_admin, name='balance_list_admin'),
     path('admin_view_requests_and_bookings/', views.admin_bookings_requests_view, name='admin_request_view'),
     path('fulfil_request/', views.fulfil_request_view, name='fulfil_request'),
+    path('profile/', views.profile, name='profile'),
+    path('change_password/', views.password, name='change_password'),
     path('log_out/', views.log_out, name='log_out'),
 ]
