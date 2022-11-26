@@ -22,7 +22,7 @@ def login_prohibited(view_function):
 def allowed_groups(allowed_groups_names = []):
     def decorator(view_function):
         def wrapper(request, *args, **kwargs):
-            group = None
+            group = ''
             if request.user.is_superuser:
                 group = 'Director'
             elif request.user.is_admin():

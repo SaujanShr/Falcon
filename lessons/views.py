@@ -277,7 +277,6 @@ def admin_user_list_view(request):
 @allowed_groups("Director")
 def create_director_user(request):
     if request.method == 'POST':
-        print("Here 2")
         form = CreateUser(request.POST)
         if form.is_valid():
             created_user = form.save()
@@ -286,7 +285,7 @@ def create_director_user(request):
             created_user.save()
             return redirect('admin_user_view')
     else:
-        form = SignUpForm()
+        form = CreateUser()
     return render(request, 'create_user.html', {'form': form,'user_type':"Director"})
 
 @login_required
@@ -300,7 +299,7 @@ def create_admin_user(request):
             admin_group.user_set.add(created_user)
             return redirect('admin_user_view')
     else:
-        form = SignUpForm()
+        form = CreateUser()
     return render(request, 'create_user.html', {'form': form,'user_type':"Administrator"})
 
 @login_required
@@ -314,5 +313,5 @@ def create_student_user(request):
             student_group.user_set.add(created_user)
             return redirect('admin_user_view')
     else:
-        form = SignUpForm()
+        form = CreateUser()
     return render(request, 'create_user.html', {'form': form,'user_type':"Student"})
