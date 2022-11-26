@@ -1,5 +1,4 @@
 from datetime import datetime
-
 from django import forms
 from django.core.validators import RegexValidator
 from django.contrib.auth.models import Group
@@ -183,40 +182,3 @@ class TermViewForm(forms.ModelForm):
     class Meta:
         model = SchoolTerm
         fields = ['term_name', 'start_date', 'end_date']
-
-        # start_date=forms.DateField(
-        #     validators=[RegexValidator(
-        #         regex=r'^\d{4}-\d{2}-\d{2}$',
-        #         message='Date must be in the form YYYY-MM-DD'
-        #     )],
-        #     help_text="text"
-        # )
-
-    def is_valid(self):
-        super().is_valid()
-
-        # Duplicate code from schoolTerm model
-        is_valid = True
-
-        new_start_date = self.cleaned_data.get('start_date')
-        new_end_date = self.cleaned_data.get('end_date')
-
-        try:
-            start = datetime.strptime(str(new_start_date), '%Y-%m-%d').date()
-            end = datetime.strptime(str(new_end_date), '%Y-%m-%d').date()
-            if not (start < end):
-                raise ValueError
-        except ValueError:
-            return False
-
-        current_school_terms = SchoolTerm.objects.all()
-
-        for term in current_school_terms:
-            # Check if the new date is valid, compares to see if the new start date falls between one of the
-            # existing ranges, or if one of the existing start dates falls between the new range.
-            if (term.start_date <= new_start_date < term.end_date) or (
-                    new_start_date <= term.start_date < new_end_date):
-                return False
-
-        return is_valid
-

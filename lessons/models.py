@@ -1,8 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser
 from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
+from django.core.exceptions import ValidationError
 from django.utils import timezone
-from datetime import date
+from datetime import date, datetime
 from .user_manager import UserManager
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import Group
@@ -192,34 +193,24 @@ class SchoolTerm(models.Model):
     class Meta:
         ordering = ['start_date']
 
-    def save(self, *args, **kwargs):
-        # Only run if the object has not already been created.
-        if not SchoolTerm.objects.filter(term_name=self.term_name).exists():
-            # Need to check that there are no overlaps between the new school term and existing school terms.
-            new_start_date = self.start_date
-            new_end_date = self.end_date
+    def clean(self):
+        # Clean is not invoked when you use save? I think?
+        # Only on create()?? and is_valid()
+        # What about when running tests where you run full_clean(), does this also get run with it?
 
-            # Check new date is less than new end date
-            if new_end_date < new_start_date:
-                return
+        # Check valid dates
+        if not(self.start_date and self.end_date):
+            raise ValidationError("Date(s) are not in form YYYY-MM-DD")
 
-            current_school_terms = SchoolTerm.objects.all()
+        # Error if the start date is less than the end date
+        if not(self.start_date < self.end_date):
+            raise ValidationError("Start date must be before end date")
 
-            # Create the object if there is no School Terms have already been created
-            if SchoolTerm.objects.count() == 0:
-                super(SchoolTerm, self).save()
-                return
+        current_school_terms = SchoolTerm.objects.all()
 
-            # Check if the new term does not overlap any existing terms.
-            is_valid = True
-            for term in current_school_terms:
-                # Check if the new date is valid, compares to see if the new start date falls between one of the
-                # existing ranges, or if one of the existing start dates falls between the new range.
-                if (term.start_date <= new_start_date < term.end_date) or (new_start_date <= term.start_date < new_end_date):
-                    is_valid = False
-
-            if is_valid:
-                super(SchoolTerm, self).save()
-        else:
-            # Run save() as normal if the object already exists. But it still needs to be validated??? Fix this later!
-            super(SchoolTerm, self).save()
+        # Check if the new term does not overlap any existing terms.
+        for term in current_school_terms:
+            # Check if the new date is valid, compares to see if the new start date falls between one of the
+            # existing ranges, or if one of the existing start dates falls between the new range.
+            if (term.start_date <= self.start_date < term.end_date) or (self.start_date <= term.start_date < self.end_date):
+                raise ValidationError("There is a overlap with this new date range and ranges for existing terms")

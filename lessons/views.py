@@ -290,7 +290,7 @@ def term_view(request):
         data = request.POST.copy()
         term.delete()
         form = TermViewForm(data)
-        if form.is_valid() and form.cleaned_data.get('term_name') is not None:
+        if form.is_valid():
             form.save()
             messages.add_message(request, messages.SUCCESS, "Term updated!")
         else:
@@ -309,7 +309,7 @@ def term_view(request):
 def new_term_view(request):
     if request.method == 'POST':
         form = TermViewForm(request.POST)
-        if form.is_valid() and form.cleaned_data.get('term_name') is not None:
+        if form.is_valid():
             form.save()
             messages.add_message(request, messages.SUCCESS, "Term created!")
             return redirect('admin_term_view')
