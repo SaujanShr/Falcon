@@ -169,13 +169,24 @@ def admin_bookings_requests_view(request):
 #@login_required
 #@allowed_groups(["Admin","Director"])
 def fulfil_request_view(request):
+
     if request.method == 'POST':
         if 'fulfil' in request.POST:
             form = FulfilRequestForm(request.POST)
             booking_req = form.save()
 
             if not booking_req[1].fulfilled:
+                invoice_number = create_invoice(booking_req[0], booking_req[2])
+                booking_req[0].invoice_id = invoice_number
+                booking_req[0].full_clean()
+                booking_req[1].fulfilled = True
+                booking_req[1].save()
+                booking_req[0].save()
+                return redirect('admin_request_view')
+                """
                 try:
+                    invoice_number = create_invoice(booking_req[0], booking_req[2])
+                    booking_req[0].invoice_id = invoice_number
                     booking_req[0].full_clean()
                     booking_req[1].fulfilled = True
                     booking_req[1].save()
@@ -183,6 +194,7 @@ def fulfil_request_view(request):
                     return redirect('admin_request_view')
                 except ValueError:
                     print('Form incorrect')
+                """
             else:
                 print('Booking is already fulfilled')
 

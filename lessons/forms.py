@@ -111,22 +111,13 @@ class FulfilRequestForm(forms.ModelForm):
         )
     )
 
-    """
-    def clean(self):
-        super().clean()
-        req = Request.objects.get(date=self.cleaned_data.get('date'))
-        lesson_day = DayOfTheWeek.objects.get(order=(int(self.cleaned_data.get('availability'))-1))
-        if lesson_day not in req.availability.all():
-            self.add_error('availability', 'Student not available on that day.')
-    """
-
     def save(self):
         super().save(commit=False)
         req = Request.objects.get(date=self.cleaned_data.get('date'))
         if not req.fulfilled:
             booking = Booking.objects.create(
-                day_of_the_week=self.cleaned_data.get('availability'),
                 time_of_the_day=self.cleaned_data.get('time_of_lesson'),
+                day_of_the_week=self.cleaned_data.get('availability'),
                 student=req.user,
                 teacher=self.cleaned_data.get('teacher'),
                 start_date=self.cleaned_data.get('start_date'),
@@ -134,14 +125,10 @@ class FulfilRequestForm(forms.ModelForm):
                 interval_between_lessons=self.cleaned_data.get('interval_between_lessons'),
                 number_of_lessons=self.cleaned_data.get('number_of_lessons'),
                 further_information=self.cleaned_data.get('further_information'),
-                invoice_id="1234-123"
+                invoice_id="9999-999"
             )
-            #request.availability.add(available_day)
 
-
-
-            #booking.save()
-            return [booking, req]
+            return [booking, req, self.cleaned_data.get('hourly_cost')]
         else:
             print("Request already fulfilled")
 

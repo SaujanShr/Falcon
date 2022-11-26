@@ -119,7 +119,7 @@ class Booking(models.Model):
         )]
     )
 
-    day_of_the_week = models.OneToOneField(DayOfTheWeek, blank=False, on_delete=models.CASCADE)
+    day_of_the_week = models.ForeignKey(DayOfTheWeek, blank=True, on_delete=models.CASCADE)
     time_of_the_day = models.TimeField(auto_now=False, auto_now_add=False)
     student = models.ForeignKey(User, blank=True, on_delete=models.CASCADE)  # The same as user in Request model
     teacher = models.CharField(blank=False, max_length=100)
