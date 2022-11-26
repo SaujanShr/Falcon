@@ -190,26 +190,33 @@ def balance_list_admin(request):
 
 #@login_required
 #@allowed_groups(["Admin","Director"])
-def admin_bookings_requests_view(request):
-    requests = Request.objects.all()
+def admin_bookings_view(request):
     bookings = Booking.objects.all()
+
+    for booking in bookings:
+        booking.interval_between_lessons = \
+            booking.IntervalBetweenLessons.choices[booking.interval_between_lessons - 1][1]
+        for duration in booking.LessonDuration.choices:
+            if duration[0] == booking.duration_of_lessons:
+                booking.duration_of_lessons = duration[1]
+    return render(request, 'admin_bookings_view.html', {'bookings': bookings})
+
+def admin_requests_view(request):
+    requests = Request.objects.all()
+    fulfilled_requests = []
+    unfulfilled_requests = []
     for req in requests:
         req.interval_between_lessons = req.IntervalBetweenLessons.choices[req.interval_between_lessons - 1][1]
         for duration in req.LessonDuration.choices:
             if duration[0] == req.duration_of_lessons:
                 req.duration_of_lessons = duration[1]
         req.raw_date = str(req.date).split('+')[0] # To do: Ensure this works regardless of timezone, change
-        # implementation if necessary
-    for booking in bookings:
-        #booking.day_of_the_week = booking.DayOfWeek.choices[booking.day_of_the_week - 1][1]
-        booking.interval_between_lessons = \
-            booking.IntervalBetweenLessons.choices[booking.interval_between_lessons - 1][1]
-        for duration in booking.LessonDuration.choices:
-            if duration[0] == booking.duration_of_lessons:
-                booking.duration_of_lessons = duration[1]
-    return render(request, 'admin_view_requests.html', {'requests': requests,
-                                                        'bookings': bookings})
-
+        if req.fulfilled:
+            fulfilled_requests.append(req)
+        else:
+            unfulfilled_requests.append(req)
+    return render(request, 'admin_requests_view.html', {'fulfilled_requests': fulfilled_requests,
+                                                        'unfulfilled_requests': unfulfilled_requests})
 
 #@login_required
 #@allowed_groups(["Admin","Director"])
@@ -227,7 +234,7 @@ def fulfil_request_view(request):
                 booking_req[1].fulfilled = True
                 booking_req[1].save()
                 booking_req[0].save()
-                return redirect('admin_request_view')
+                return redirect('admin_bookings_view')
             else:
                 print('Booking is already fulfilled')
 
@@ -241,7 +248,7 @@ def edit_booking_view(request):
             update_booking(request)
         elif 'delete' in request.POST:
             delete_booking(request)
-        return redirect('admin_request_view')
+        return redirect('admin_bookings_view')
     booking = Booking.objects.get(invoice_id=request.GET['inv_id'])
     form = get_booking_form(request)
     return render(request, 'edit_booking.html', {'form': form})
