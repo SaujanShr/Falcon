@@ -110,17 +110,6 @@ class Booking(models.Model):
         FORTY_FIVE_MINUTES = 45, '45 Minutes'
         SIXTY_MINUTES = 60, '60 Minutes'
 
-    """
-    class DayOfWeek(models.IntegerChoices):
-        MONDAY = 1, 'Monday'
-        TUESDAY = 2, 'Tuesday'
-        WEDNESDAY = 3, 'Wednesday'
-        THURSDAY = 4, 'Thursday'
-        FRIDAY = 5, 'Friday'
-        SATURDAY = 6, 'Saturday'
-        SUNDAY = 7, 'Sunday'
-    """
-
     invoice_id = models.CharField(max_length=8,
         unique=False, #Change to true
         blank=False,
