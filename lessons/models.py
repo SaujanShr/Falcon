@@ -206,7 +206,7 @@ class SchoolTerm(models.Model):
         if not(self.start_date < self.end_date):
             raise ValidationError("Start date must be before end date")
 
-        current_school_terms = SchoolTerm.objects.all()
+        current_school_terms = SchoolTerm.objects.exclude(term_name=self.term_name)
 
         # Check if the new term does not overlap any existing terms.
         for term in current_school_terms:
@@ -214,3 +214,10 @@ class SchoolTerm(models.Model):
             # existing ranges, or if one of the existing start dates falls between the new range.
             if (term.start_date <= self.start_date < term.end_date) or (self.start_date <= term.start_date < self.end_date):
                 raise ValidationError("There is a overlap with this new date range and ranges for existing terms")
+
+    # If we want to override a school term even if a term with the same name already exists.
+    # def save(self, *args, **kwargs):
+    #     existing_term = SchoolTerm.objects.filter(term_name=self.term_name).exists()
+    #     if existing_term:
+    #         existing_term.delete()
+    #     super().save()

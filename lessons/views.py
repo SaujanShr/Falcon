@@ -268,25 +268,26 @@ def term_view(request):
     if request.method == 'GET' and request.GET.__contains__('term_name'):
         term = SchoolTerm.objects.get(term_name=request.GET['term_name'])
         form = TermViewForm(instance=term)
+        # Use old_term_name, so we can get the term object in case the user changes the term name.
         old_term_name = request.GET['term_name']
         return render(request, "term_view.html", {'form': form, 'old_term_name': old_term_name})
 
     if request.method == 'POST':
+        # Use old term name in case the user has changed the term name.
         term = SchoolTerm.objects.get(term_name=request.POST['old_term_name'])
         old_term_name = request.POST['old_term_name']
         new_term_name = request.POST['term_name']
-        # new_start_date = request.POST['start_date']
-        # new_end_date = request.POST['end_date']
         old_start_date = term.start_date
         old_end_date = term.end_date
 
         initial_form = TermViewForm(instance=term)
 
-        # Check if there already exists a term with the same name if there is a change in the name of the term.
+        # Check if there already exists a term with the same name, if there is a change in the name of the term.
         if term_name_already_exists(old_term_name, new_term_name):
             messages.add_message(request, messages.ERROR, "There already exists a term with this name!")
             return render(request, "term_view.html", {'form': initial_form, 'old_term_name': old_term_name})
 
+        # Create a copy of the request data, and delete term, Otherwise term name validation (Unique constraint)
         data = request.POST.copy()
         term.delete()
         form = TermViewForm(data)
@@ -294,10 +295,8 @@ def term_view(request):
             form.save()
             messages.add_message(request, messages.SUCCESS, "Term updated!")
         else:
-            # Recreate old term again, very bad!
+            # If any other fields are invalid then recreate old term again, very bad!
             SchoolTerm(term_name=old_term_name, start_date=old_start_date, end_date=old_end_date).save()
-            print(form.errors)
-            messages.add_message(request, messages.ERROR, "Check to see if your dates overlap and are valid!")
             return render(request, 'term_view.html', {'form': form, 'old_term_name': old_term_name})
 
     return redirect('admin_term_view')
