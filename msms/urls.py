@@ -20,6 +20,7 @@ from lessons import views
 urlpatterns = [
     path('', views.home, name='home'),
     path('admin/', admin.site.urls),
+    path('admin_user_list/',views.admin_user_list_view,name='admin_user_view'),
     path('student_page/', views.student_page, name='student_page'),
     path('request_list/', views.request_list, name='request_list'),
     path('booking_list/', views.booking_list, name='booking_list'),
@@ -36,7 +37,10 @@ urlpatterns = [
     path('transactions/student', views.transaction_list_student, name='transaction_list_student'),
     path('balance/admin', views.balance_list_admin, name='balance_list_admin'),
     path('admin_view_requests_and_bookings/', views.admin_bookings_requests_view, name='admin_request_view'),
-    path('profile/', views.profile, name='profile'),
+    path('profile/<int:user_id>', views.profile, name='profile'),
     path('change_password/', views.password, name='change_password'),
     path('log_out/', views.log_out, name='log_out'),
+    path('create_admin_user/', views.create_admin_user,name='create_admin_user'),
+    path('create_student_user/', views.create_student_user,name='create_student_user'),
+    path('create_director_user/', views.create_director_user,name='create_director_user')
 ]

@@ -62,6 +62,33 @@ class User(AbstractBaseUser,PermissionsMixin):
         default=timezone.now,
     )
 
+    def is_admin(self):
+        if self.groups.exists() and self.groups.all()[0].name == "Admin":
+            return True
+        else:
+            return False
+
+    
+    def is_student(self):
+        if self.groups.exists() and self.groups.all()[0].name == "Student":
+            return True
+        else:
+            return False
+
+    def get_group(self):
+        if self.is_superuser:
+            return 'Director'
+        elif self.is_student():
+            return 'Student'
+        elif self.is_admin():
+            return 'Admin'
+
+    def get_full_name(self):
+        if self.first_name != "" and self.last_name != "":
+            return f"{self.first_name}, {self.last_name}"
+        else:
+            return ""
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
     objects = UserManager()

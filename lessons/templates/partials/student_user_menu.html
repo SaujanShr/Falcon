@@ -1,0 +1,22 @@
+<div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <div class="navbar-nav me-auto mb-2 mb-lg-0">
+        <a class="nav-item nav-link text-white" href="{% url 'student_page' %}">Dashboard</a>
+        <a class="nav-item nav-link text-white" href="{% url 'request_list' %}">Requests</a>
+        <a class="nav-item nav-link text-white" href="{% url 'transaction_list_student' %}">My Transactions</a>
+    </div>
+    <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+        <li class="nav-item dropdown">
+            <a class="nav-link" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <span class="bi-person-circle" style="color: rgb(255, 255, 255);"></span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="{% url 'profile' user.id %}">Change Profile</a></li>
+                <li><a class="dropdown-item" href="{% url 'change_password' %}">Change Password</a></li>
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
+                <li><a class="dropdown-item" href="{% url 'log_out' %}">Log out</a></li>
+            </ul>
+        </li>
+    </ul>
+</div>
