@@ -11,11 +11,11 @@ class TransactionAdminListTestCase(TestCase):
     
     def setUp(self):
         create_user_groups()
-        self.user = User.objects.get(email='johndoe@email.com')
-        self.user2 = User.objects.get(email='janedoe@email.com')
+        self.john_doe_user = User.objects.get(email='johndoe@email.com')
+        self.jane_doe_user = User.objects.get(email='janedoe@email.com')
         self.url = reverse('balance_list_admin')
-        self.student = Student.objects.create(user = self.user)
-        self.student2 = Student.objects.create(user = self.user2)
+        self.student = Student.objects.create(user = self.john_doe_user)
+        self.student2 = Student.objects.create(user = self.jane_doe_user)
         self.superuser = User.objects.create_superuser(
             email='admin@email.com',
             password='password'
