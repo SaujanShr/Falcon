@@ -7,12 +7,12 @@ import datetime
 from lessons.tests.helpers import create_user_groups
 
 class TransactionFormTestCase(TestCase):
+
+    fixtures = ['lessons/tests/fixtures/default_user.json']
+
     def setUp(self):
         create_user_groups()
-        self.user = User.objects.create_user(
-                email='email1@email.com',
-                password='password'
-            )
+        self.user = User.objects.get(email="johndoe@email.com")
         self.student = Student.objects.create(user=self.user)
         self.invoice1 = Invoice.objects.create(
             invoice_number='1234-123',
@@ -29,7 +29,6 @@ class TransactionFormTestCase(TestCase):
     def test_valid_transaction_form(self):
         form = TransactionSubmitForm(data=self.form_input)
         self.assertTrue(form.is_valid())
-        
 
     def test_transaction_form_has_necessary_fields(self):
         form = TransactionSubmitForm()
@@ -62,16 +61,4 @@ class TransactionFormTestCase(TestCase):
         self.assertEqual(transaction.student, self.student)
         self.assertEqual(transaction.amount, amount_in_decimal)
         self.assertEqual(transaction.invoice, self.invoice1)
-
-    """
-    def test_user_balance_gets_updated(self):
-        form = TransactionSubmitForm(data=self.form_input)
-        before_count = BankTransaction.objects.count()
-        form.save()
-        after_count = BankTransaction.objects.count()
-        self.assertEqual(before_count+1, after_count)
-        student=Student.objects.get(user=self.user)
-        amount_in_decimal = Decimal(self.form_input['amount'].replace(',','.'))
-        self.assertEqual(student.balance, amount_in_decimal)
-        pass"""
 

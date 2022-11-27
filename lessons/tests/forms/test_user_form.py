@@ -7,9 +7,7 @@ from lessons.models import User
 class UserFormTestCase(TestCase):
     """Unit tests of the user form."""
 
-    fixtures = [
-        'lessons/tests/fixtures/default_user.json'
-    ]
+    fixtures = ['lessons/tests/fixtures/default_user.json']
 
     def setUp(self):
         self.form_input = {

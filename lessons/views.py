@@ -29,21 +29,16 @@ def request_list(request):
     date_user_request_pairs = get_date_user_request_pairs(request)
     return render(request, 'request_list.html', {'date_user_request_pairs': date_user_request_pairs})
 
-
-
-
 @login_required
 @allowed_groups(['Student'])
 def request_view(request):
     if request.method == 'POST':
-        if 'delete' in request.POST: 
-            if delete_request(request):
+        if 'delete' in request.POST and delete_request(request): 
                 return redirect('request_list')
-        elif 'update' in request.POST: 
-            if update_request(request):
+        elif 'update' in request.POST and update_request(request): 
                 return redirect('request_list')
     
-    user_request = get_request_object(request)
+    user_request = get_request_object_from_request(request)
     date = str(user_request.date)
     form = get_new_request_view_form(request)
     
@@ -57,9 +52,11 @@ def request_view(request):
 @allowed_groups(['Student'])
 def new_request_view(request):
     if request.method == 'POST':
-        if save_new_request(request):
-            return redirect('request_list')
-    
+        form = NewRequestViewForm(request.user, request.POST)
+        if form.is_valid():
+            request_created = form.save()
+            if request_created:
+                return redirect('request_list')
     form = NewRequestViewForm(request.user)
     return render(request, 'new_request_view.html', {'form': form})
 
@@ -67,7 +64,7 @@ def new_request_view(request):
 @login_required
 @allowed_groups(['Student'])
 def children_list(request):
-    children = get_children(request)
+    children = Child.objects.filter(parent=request.user)
     return render(request, 'children_list.html', {'children': children})
 
 @login_required
@@ -107,7 +104,7 @@ def log_in(request):
             user = get_user(form)
             if user is not None:
                 login(request, user)
-                redirect_url = get_redirect_url(user, request)
+                redirect_url = request.POST.get('next') or get_redirect_url_for_user(user)
                 return redirect(redirect_url)
         messages.add_message(request, messages.ERROR, "The credentials provided were invalid!")
     form = LogInForm()
@@ -135,17 +132,14 @@ def profile(request,user_id):
         if form.is_valid():
             messages.add_message(request, messages.SUCCESS, "Profile updated!")
             form.save()
-            if user.groups.all()[0].name == "Student":
-                return redirect('student_page')
-            elif user.groups.all()[0].name == "Admin":
-                return redirect('admin_page')
+            return redirect(get_redirect_url_for_user(user))
     else:
         form = UserForm(instance=user)
     return render(request, 'profile.html', {'form': form, 'user_id':user_id})
 
 
 @login_required
-def password(request):
+def change_user_password(request):
     current_user = request.user
     if request.method == 'POST':
         form = PasswordForm(data=request.POST)
@@ -157,10 +151,7 @@ def password(request):
                 current_user.save()
                 login(request, current_user)
                 messages.add_message(request, messages.SUCCESS, "Password updated!")
-                if current_user.groups.all()[0].name == "Student":
-                    return redirect('student_page')
-                elif current_user.groups.all()[0].name == "Admin":
-                    return redirect('admin_page')
+                return redirect(get_redirect_url_for_user(current_user))
             else:
                 messages.add_message(request, messages.ERROR, "Current Password is incorrect!")
 
@@ -290,7 +281,7 @@ def fulfil_request_view(request):
         elif 'return' in request.POST:
             return redirect('admin_requests_view')
 
-    date = str(get_request_object(request).date)
+    date = str(get_request_object_from_request(request).date)
     form = get_fulfil_request_form(request)
     return render(request, 'fulfil_view.html', {'date': date, 'form': form})
 
@@ -306,26 +297,29 @@ def edit_booking_view(request):
     form = get_booking_form(request)
     return render(request, 'edit_booking.html', {'form': form})
 
-
+"""
+A view that presents a list of all terms.
+"""
 @login_required
 @allowed_groups(["Student"]) # Do Admins also need access to this page?
-# A view for students to see all terms.
 def student_term_view(request):
     terms = SchoolTerm.objects.all()
     return render(request, 'student_term_view.html', {'terms': terms})
 
-
+"""
+A view to see and edit all terms as well as create a new term.
+"""
 @login_required
 @allowed_groups(["Admin"])
-# A view for admins to see and edit all terms as well access to button to create a new term.
 def admin_term_view(request):
     terms = SchoolTerm.objects.all()
     return render(request, 'admin_term_view.html', {'terms': terms})
 
-
+"""
+A view that handles a single term.
+"""
 @login_required
 @allowed_groups(["Admin"])
-# A view for a single term
 def term_view(request):
     # Check whether the get request contains term_name, otherwise redirect back to term view.
     if request.method == 'GET' and request.GET.__contains__('term_name'):
@@ -364,10 +358,11 @@ def term_view(request):
 
     return redirect('admin_term_view')
 
-
+"""
+This view enables the creation of a new term.
+"""
 @login_required
 @allowed_groups(["Admin"])
-# A view for creating a new term
 def new_term_view(request):
     if request.method == 'POST':
         form = TermViewForm(request.POST)
@@ -380,9 +375,11 @@ def new_term_view(request):
     return render(request, 'new_term_view.html', {'form': form})
 
 
+"""
+This view confirms the deletion of a term.
+"""
 @login_required
 @allowed_groups(["Admin"])
-# A view to confirm term deletion.
 def term_deletion_confirmation_view(request):
     if request.method == 'GET' and request.GET.__contains__('old_term_name'):
         old_term_name = request.GET['old_term_name']

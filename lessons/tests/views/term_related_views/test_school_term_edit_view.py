@@ -10,7 +10,7 @@ from lessons.tests.helpers import HandleGroups, reverse_with_next
 
 
 class SchoolTermStudentView(TestCase):
-    fixtures = ['lessons/tests/fixtures/default_user.json', 'lessons/tests/fixtures/other_users.json']
+    fixtures = ['lessons/tests/fixtures/default_user.json', 'lessons/tests/fixtures/other_users.json','lessons/tests/fixtures/default_terms.json']
 
     def setUp(self):
         HandleGroups.set_default_user_to_student()
@@ -19,17 +19,8 @@ class SchoolTermStudentView(TestCase):
         # Admin login
         self.client.login(email='janedoe@email.com', password='Password123')
 
-        self.term1 = SchoolTerm.objects.create(
-            term_name="TermOne",
-            start_date=datetime.date(2022, 1, 1),
-            end_date=datetime.date(2022, 12, 31)
-        )
-
-        self.term2 = SchoolTerm.objects.create(
-            term_name="TermTwo",
-            start_date=datetime.date(2023, 1, 1),
-            end_date=datetime.date(2023, 12, 31)
-        )
+        self.term1 = SchoolTerm.objects.get(id=1)
+        self.term2 = SchoolTerm.objects.get(id=2)
         self.url = reverse('term_view') + '?term_name=' + self.term1.term_name
 
         self.form_input = {

@@ -19,9 +19,8 @@ class NewRequestViewTestCase(TestCase):
 
         create_days_of_the_week()
         
-        #student_name = 'John Doe'
         student_name = 'Me'
-        availability = 1  # Check availability as value 1(In the form checkbox), Monday. It becomes lessons.DayOfTheWeek.None ?? Should be lessons.DayOfTheWeek.Monday
+        availability = 1
         number_of_lessons = 1
         interval_between_lessons = Request.IntervalBetweenLessons.ONE_WEEK
         duration_of_lessons = Request.LessonDuration.THIRTY_MINUTES

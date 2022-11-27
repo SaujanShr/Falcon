@@ -13,14 +13,14 @@ class LogOutViewTestCase(TestCase, LogInTester):
         HandleGroups.set_default_user_to_student()
         HandleGroups.set_other_user_to_admin()
         self.url = reverse('log_out')
-        self.Studentuser = User.objects.get(email='johndoe@email.com')
-        self.Adminuser = User.objects.get(email='janedoe@email.com')
+        self.student_user = User.objects.get(email='johndoe@email.com')
+        self.admin_user = User.objects.get(email='janedoe@email.com')
 
     def test_log_out_url(self):
         self.assertEqual(self.url, '/log_out/')
 
-    def test_Student_log_out(self):
-        self.client.login(email=self.Studentuser.email, password='Password123')
+    def test_student_log_out(self):
+        self.client.login(email=self.student_user.email, password='Password123')
         self.assertTrue(self._is_logged_in())
         response = self.client.get(self.url, follow=True)
         response_url = reverse('home')
@@ -28,8 +28,8 @@ class LogOutViewTestCase(TestCase, LogInTester):
         self.assertTemplateUsed(response, 'home.html')
         self.assertFalse(self._is_logged_in())
 
-    def test_Admin_log_out(self):
-        self.client.login(email=self.Adminuser.email, password='Password123')
+    def test_admin_log_out(self):
+        self.client.login(email=self.admin_user.email, password='Password123')
         self.assertTrue(self._is_logged_in())
         response = self.client.get(self.url, follow=True)
         response_url = reverse('home')
