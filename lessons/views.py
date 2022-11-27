@@ -35,8 +35,7 @@ def request_view(request):
     
     user_request = get_request_object(request)
     date = str(user_request.date)
-    form = get_request_view_form(request)
-    form.set_student_names(request.user)
+    form = get_new_request_view_form(request)
     
     request_fulfilled = user_request.fulfilled
     if request_fulfilled: form.set_read_only()
@@ -51,8 +50,7 @@ def new_request_view(request):
         if save_new_request(request):
             return redirect('request_list')
     
-    form = NewRequestViewForm()
-    form.set_student_names(request.user)
+    form = NewRequestViewForm(request.user)
     return render(request, 'new_request_view.html', {'form': form})
 
 
@@ -62,13 +60,24 @@ def children_list(request):
     children = get_children(request)
     return render(request, 'children_list.html', {'children': children})
 
-
 @login_required
 @allowed_groups(['Student'])
 def child_page(request):
     child = get_child(request)
     return render(request, 'child_page.html', {'child': child})
-    
+
+@login_required
+@allowed_groups(['Student'])
+def child_request_list(request):
+    child = get_child(request)
+
+@login_required
+@allowed_groups(['Student'])
+def child_booking_list(request):
+    pass
+
+@login_required
+@allowed_groups(['Student'])   
 
 @login_required
 @allowed_groups(['Student'])

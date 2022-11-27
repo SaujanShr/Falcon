@@ -8,16 +8,29 @@ class DateInput(forms.DateInput):
     input_type = 'date'
 
 class NewChildForm(forms.ModelForm):
-    class Meta:
-        model = Child
-        fields = ['first_name', 'last_name']
+    first_name = forms.CharField(max_length=50)
+    last_name = forms.CharField(max_length=50)
+    
+    def __init__(self, parent, *args, **kwargs):
+        super(NewChildForm, self).__init__(*args, **kwargs)
+        
+        if parent:
+            self.parent = parent
+    
+    def save(self):
+        super().save(commit=False)
+        fullname = self.cleaned_data.get('first_name') + ' ' + self.cleaned_data.get('last_name')
+        child = Child.objects.create(
+            parent=self.parent,
+            fullname=fullname
+        )
+        return child
         
 class NewRequestViewForm(forms.ModelForm):
     class Meta:
         model = Request
-        fields = ['date', 'user', 'student_name', 'availability', 'number_of_lessons',
+        fields = ['student_name', 'availability', 'number_of_lessons',
                   'interval_between_lessons', 'duration_of_lessons', 'further_information']
-        widgets = {'date': forms.HiddenInput(), 'user': forms.HiddenInput()}
 
     availability = forms.ModelMultipleChoiceField(
         queryset=DayOfTheWeek.objects.all(),
@@ -25,25 +38,43 @@ class NewRequestViewForm(forms.ModelForm):
         widget=forms.CheckboxSelectMultiple
     )
     
-    def set_student_names(self, user):
-        student_names = []
-        fullname = user.first_name + ' ' + user.last_name
-        student_names.append((fullname, fullname))
-        for child in Child.objects.filter(parent=user):
-            fullname = child.first_name + ' ' + child.last_name
-            student_names.append(fullname, fullname)
-        print('names:',student_names)
-        self.fields['student_name'] = forms.ChoiceField(
-            choices=student_names,
-            initial=student_names[0]
+    def __init__(self, user=None, *args, **kwargs): 
+        super(NewRequestViewForm, self).__init__(*args, **kwargs)
+        
+        if user:
+            self.user = user
+            student_names = []
+            student_names.append(('Me', 'Me'))
+            
+            for child in Child.objects.filter(parent=self.user):
+                student_names.append(child.fullname, child.fullname)
+                
+            self.fields['student_name'] = forms.ChoiceField(
+                choices=student_names,
+                initial=student_names[0]
+            )
+    
+    def save(self):
+        super().save(commit=False)
+        request = Request.objects.create(
+            date=timezone.datetime.now(tz=timezone.utc),
+            user=self.user,
+            student_name=self.cleaned_data.get('student_name'),
+            number_of_lessons=self.cleaned_data.get('number_of_lessons'),
+            interval_between_lessons=self.cleaned_data.get('interval_between_lessons'),
+            duration_of_lessons=self.cleaned_data.get('duration_of_lessons'),
+            further_information=self.cleaned_data.get('further_information')
         )
+        request.availability.set(self.cleaned_data.get('availability'))
+        return request
+        
+    
 
 class RequestViewForm(forms.ModelForm):
     class Meta:
         model = Request
-        fields = ['date', 'user', 'student_name', 'availability', 'number_of_lessons',
-                  'interval_between_lessons', 'duration_of_lessons', 'further_information', 'fulfilled']
-        widgets = {'user': forms.HiddenInput()}
+        fields = ['date', 'student_name', 'availability', 'number_of_lessons', 'interval_between_lessons',
+                  'duration_of_lessons', 'further_information', 'fulfilled']
 
     availability = forms.ModelMultipleChoiceField(
         queryset=DayOfTheWeek.objects.all(),
@@ -51,10 +82,23 @@ class RequestViewForm(forms.ModelForm):
         widget=forms.CheckboxSelectMultiple
     )
     
-    def __init__(self, *args, **kwargs):
+    def __init__(self, user=None, *args, **kwargs):
         super(RequestViewForm, self).__init__(*args, **kwargs)
         self.fields['date'].disabled = True
         self.fields['fulfilled'].disabled = True
+        
+        if user:
+            self.user = user
+            student_names = []
+            student_names.append(('Me', 'Me'))
+            
+            for child in Child.objects.filter(parent=self.user):
+                student_names.append(child.fullname, child.fullname)
+                
+            self.fields['student_name'] = forms.ChoiceField(
+                choices=student_names,
+                initial=student_names[0]
+            )
     
     def set_read_only(self):
         self.fields['availability'].disabled = True
@@ -64,18 +108,11 @@ class RequestViewForm(forms.ModelForm):
         self.fields['duration_of_lessons'].disabled = True
         self.fields['further_information'].disabled = True
     
-    def set_student_names(self, user):
-        student_names = []
-        fullname = user.first_name + ' ' + user.last_name
-        student_names.append((fullname, fullname))
-        for child in Child.objects.filter(parent=user):
-            fullname = child.first_name + ' ' + child.last_name
-            student_names.append(fullname, fullname)
-        print('names:',student_names)
-        self.fields['student_name'] = forms.ChoiceField(
-            choices=student_names,
-            initial=student_names[0]
-        )
+    def save(self):
+        self.fields['date'].disabled = False
+        self.fields['fulfilled'].disabled = False
+        
+        return super().save(commit=True)
 
 
 class LogInForm(forms.Form):

@@ -16,6 +16,7 @@ class RequestModelTestCase(TestCase):
 
         self.request1 = Request.objects.create(
             user = User.objects.get(email='johndoe@email.com'),
+            student_name = 'John Doe',
             date = timezone.datetime(2000, 1, 1, 1, 1, 1, tzinfo=timezone.utc),
             number_of_lessons = 1,
             interval_between_lessons = Request.IntervalBetweenLessons.ONE_WEEK,
@@ -28,6 +29,7 @@ class RequestModelTestCase(TestCase):
 
         self.request2 = Request.objects.create(
             user = User.objects.get(email='janedoe@email.com'),
+            student_name = 'Jane Doe',
             date = timezone.datetime(2001, 2, 2, 2, 2, 2, tzinfo=timezone.utc),
             number_of_lessons = 2,
             interval_between_lessons = Request.IntervalBetweenLessons.TWO_WEEKS,

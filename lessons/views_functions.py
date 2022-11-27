@@ -31,8 +31,7 @@ def get_date_user_request_pairs(request, name=None):
 
 
 def delete_request(request):
-    get_request_object(request).delete()
-    return True
+    return get_request_object(request).delete()
 
 
 def update_request(request):
@@ -42,38 +41,21 @@ def update_request(request):
     if user_request.fulfilled:
         return None
     
-    data = request.POST.copy()
-    data['date'] = user_request.date
-    data['user'] = user_request.user
-    data['fulfilled'] = user_request.fulfilled
-    user_request.delete()
+    post_data = request.POST.copy()
+    post_data['date'] = user_request.date
+    post_data['fulfilled'] = user_request.fulfilled
     
-    form = RequestViewForm(data)
-    form.fields['date'].disabled = False
-    form.fields['fulfilled'].disabled = False
+    request_instance = Request.objects.get(date=post_data['date'])
     
-    if form.is_valid():
-        return form.save()
-    
-    print(form.errors)
-    return None
+    form = RequestViewForm(request.user, post_data, instance=request_instance)
+    return form.save()
 
 def save_new_request(request):
-    data = request.POST.copy()
-    data['date'] = timezone.datetime.now(tz=timezone.utc)
-    data['user'] = request.user
-    
-    form = NewRequestViewForm(data)
-    print("date:",form.fields['date'])
-    
-    if form.is_valid():
-        return form.save()
-    
-    print(form.errors)
-    return None
+    form = NewRequestViewForm(request.user, request.POST)
+    return form.save()
 
 
-def get_request_view_form(request):
+def get_new_request_view_form(request):
     this_request = get_request_object(request)
     form = RequestViewForm(
         initial={
@@ -85,7 +67,8 @@ def get_request_view_form(request):
             'duration_of_lessons':this_request.duration_of_lessons,
             'further_information':this_request.further_information,
             'fulfilled':this_request.fulfilled
-            }
+            },
+        user=this_request.user
         )
     return form
 
@@ -93,9 +76,8 @@ def get_student(request):
     return Student.objects.get(user=request.user)
 
 def get_child(request):
-    first_name = request.first_name
-    last_name = request.last_name
-    return Child.objects.filter(parent=request.user,first_name=first_name,last_name=last_name)[0]
+    full_name = request.full_name
+    return Child.objects.filter(parent=request.user,full_name=full_name)[0]
 
 def get_children(request):
     return Child.objects.filter(parent=request.user)

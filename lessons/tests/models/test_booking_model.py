@@ -5,13 +5,15 @@ from django.utils import timezone
 from lessons.tests.helpers import create_user_groups
 
 class BookingModelTestCase(TestCase):
+    
+    fixtures = ['lessons/tests/fixtures/other_users.json', 'lessons/tests/fixtures/default_user.json']
+    
     def setUp(self):
         create_user_groups()
+        
         self.booking1 = Booking.objects.create(
-            student=User.objects.create_user(
-                email='johndoe@gmail.com',
-                password="password"
-            ),
+            user = User.objects.get(email="johndoe@email.com"),
+            student_name="John Doe",
             invoice_id="0001-001",
             time_of_the_day="12:00",
             teacher="Mr Smith",
@@ -24,10 +26,8 @@ class BookingModelTestCase(TestCase):
         )
 
         self.booking2 = Booking.objects.create(
-            student=User.objects.create_user(
-                email='janedoe@gmail.com',
-                password="password"
-            ),
+            user = User.objects.get(email="janedoe@email.com"),
+            student_name="Jane Doe",
             invoice_id="0002-001",
             time_of_the_day="9:00",
             teacher="Mr Singh",
@@ -69,12 +69,12 @@ class BookingModelTestCase(TestCase):
         self.booking1.date = timezone.datetime(9999, 1, 1, 1, 1, 1, tzinfo=timezone.utc)
         self._assert_request_is_valid()
 
-    def test_student_must_exist(self):
-        self.booking1.student.delete()
+    def test_user_must_exist(self):
+        self.booking1.user.delete()
         self._assert_request_is_invalid()
 
-    def test_student_may_be_the_same(self):
-        self.booking1.student = self.booking2.student
+    def test_user_may_be_the_same(self):
+        self.booking1.user = self.booking2.user
         self._assert_request_is_valid()
 
     def test_time_and_day_may_be_the_same(self):
