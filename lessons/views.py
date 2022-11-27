@@ -318,8 +318,8 @@ def new_term_view(request):
     return render(request, 'new_term_view.html', {'form': form})
 
 
-# @login_required
-# @allowed_groups(["Admin"])
+@login_required
+@allowed_groups(["Admin"])
 # A view to confirm term deletion.
 def term_deletion_confirmation_view(request):
     if request.method == 'GET' and request.GET.__contains__('old_term_name'):

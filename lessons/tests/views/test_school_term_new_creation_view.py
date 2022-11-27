@@ -9,7 +9,7 @@ from lessons.models import SchoolTerm
 from lessons.tests.helpers import HandleGroups, reverse_with_next
 
 
-class SchoolTermStudentView(TestCase):
+class NewSchoolTermView(TestCase):
     """Unit tests of the School Term creation view."""
     fixtures = ['lessons/tests/fixtures/default_user.json', 'lessons/tests/fixtures/other_users.json']
 
