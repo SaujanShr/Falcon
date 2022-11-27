@@ -1,12 +1,12 @@
 import decimal
 from .models import Request, Invoice, Student, Child, User, Booking, DayOfTheWeek, SchoolTerm
-from .forms import RequestViewForm, NewRequestViewForm, FulfilRequestForm
+from .forms import RequestViewForm, NewRequestViewForm, FulfilRequestForm,EditBookingForm
 from django.conf import settings
 from django.contrib.auth import authenticate
 from django.utils import timezone
 
 
-def get_request_object(request) -> Request:
+def get_request_object_from_request(request) -> Request:
     if request.method == 'GET':
         return Request.objects.get(date=request.GET['date'])
     elif request.method == 'POST':
@@ -49,12 +49,7 @@ def update_request(request):
     request_instance = Request.objects.get(date=post_data['date'])
 
     form = RequestViewForm(request.user, post_data, instance=request_instance)
-    return form.save()
-
-def save_new_request(request):
-    form = NewRequestViewForm(request.user, request.POST)
-    if form.is_valid():
-        return form.save()
+    return form.save()    
 
 
 def update_booking(request):
@@ -104,10 +99,6 @@ def delete_booking(request):
     invoice.save()
     booking.delete()
     student.save()
-
-
-
-
 
 def get_booking_form(request):
     booking = Booking.objects.get(invoice_id=request.GET['inv_id'])
@@ -169,59 +160,40 @@ def get_child(request):
     full_name = request.full_name
     return Child.objects.filter(parent=request.user,full_name=full_name)[0]
 
-def get_children(request):
-    return Child.objects.filter(parent=request.user)
-
 
 def create_invoice(booking, hourly_cost):
 
-
     user = Student.objects.get(user__email=booking.user)
 
-
-    #Generate invoice number
-    invoice_n = ""
-    user_id = user.id
-    number_of_invoice = Invoice.objects.all().filter(student=user).count() + 1
-    for i in range(4-len(str(user_id))):
-        invoice_n += "0"
-    invoice_n = invoice_n + str(user_id) + "-"
-    for i in range(3-len(str(number_of_invoice))):
-        invoice_n += "0"
-    invoice_n += str(number_of_invoice)
+    invoice_number = generate_invoice_number()
 
     #Calculate amount to pay
     total_required = (int(hourly_cost) * booking.number_of_lessons * booking.duration_of_lessons / 60)
-    amount_paid = 0
-    paid_in_full = (total_required == 0)
 
     #Create invoice
     invoice = Invoice.objects.create(
-        invoice_number=invoice_n,
+        invoice_number=invoice_number,
         student=user,
         full_amount=total_required,
-        paid_amount=amount_paid,
-        fully_paid=paid_in_full
+        paid_amount=0,
+        fully_paid=False
     )
     invoice.full_clean()
     invoice.save()
 
-    return invoice_n
+    return invoice_number
 
-
-def get_redirect_url(user, request):
-    if user.groups.exists():
-        if (user.groups.all()[0].name == 'Student'):
-            user_specific_redirect = settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_STUDENT
-        elif (user.groups.all()[0].name == 'Admin'):
-            user_specific_redirect = settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_ADMIN
-    else:
-        if user.is_staff:
-            user_specific_redirect = settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_DIRECTOR
-        else:
-            user_specific_redirect = ''
-    return request.POST.get('next') or user_specific_redirect
-
+def generate_invoice_number(user):
+    invoice_number = ""
+    user_id = user.id
+    number_of_invoices_for_user = Invoice.objects.all().filter(student=user).count() + 1
+    for i in range(4-len(str(user_id))):
+        invoice_number += "0"
+    invoice_number = invoice_number + str(user_id) + "-"
+    for i in range(3-len(str(number_of_invoices_for_user))):
+        invoice_number += "0"
+    invoice_number += str(number_of_invoices_for_user)
+    return invoice_number
 
 def get_user(form):
     email = form.cleaned_data.get('email')
