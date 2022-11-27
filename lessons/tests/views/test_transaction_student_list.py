@@ -6,20 +6,14 @@ from lessons.tests.helpers import create_user_groups
 import datetime
 
 class TransactionAdminListTestCase(TestCase):
+
+    fixtures = ['lessons/tests/fixtures/other_users.json', 'lessons/tests/fixtures/default_user.json']
+    
     def setUp(self):
         create_user_groups()
+        self.user1 = User.objects.get(email='johndoe@email.com')
+        self.user2 = User.objects.get(email='janedoe@email.com')
         self.url = reverse('transaction_list_student')
-
-        self.user1 = User.objects.create_user(
-                email='email1@email.com',
-                password='password'
-            )
-
-        self.user2 = User.objects.create_user(
-                email='email2@email.com',
-                password='password'
-            )
-
         self.student1 = Student.objects.create(user = self.user1)
         self.student2 = Student.objects.create(user = self.user2)
 
@@ -52,7 +46,7 @@ class TransactionAdminListTestCase(TestCase):
         self.assertEqual(self.url, '/transactions/student')
 
     def test_get_transaction_student_view(self):
-        self.client.login(email='email1@email.com', password='password')
+        self.client.login(email=self.user1.email, password='Password123')
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'transaction_list.html')
@@ -62,7 +56,7 @@ class TransactionAdminListTestCase(TestCase):
     #TODO more tests for the transaction list view
 
     def test_transaction_student_displays_only_students_transactions(self):
-        self.client.login(email='email1@email.com', password='password')
+        self.client.login(email=self.user1.email, password='Password123')
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'transaction_list.html')

@@ -6,17 +6,14 @@ from django.contrib.auth.models import Group
 from lessons.tests.helpers import create_user_groups
 
 class TransactionAdminListTestCase(TestCase):
+
+    fixtures = ['lessons/tests/fixtures/other_users.json', 'lessons/tests/fixtures/default_user.json']
+    
     def setUp(self):
         create_user_groups()
+        self.user = User.objects.get(email='johndoe@email.com')
+        self.user2 = User.objects.get(email='janedoe@email.com')
         self.url = reverse('balance_list_admin')
-        self.user = User.objects.create_user(
-                email='email1@email.com',
-                password='password'
-            )
-        self.user2 = User.objects.create_user(
-                email='email2@email.com',
-                password='password'
-            )
         self.student = Student.objects.create(user = self.user)
         self.student2 = Student.objects.create(user = self.user2)
         self.superuser = User.objects.create_superuser(

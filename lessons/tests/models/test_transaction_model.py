@@ -6,16 +6,13 @@ import datetime
 from lessons.tests.helpers import create_user_groups
 
 class TransactionModelTestCase(TestCase):
+
+    fixtures = ['lessons/tests/fixtures/other_users.json', 'lessons/tests/fixtures/default_user.json']
+    
     def setUp(self):
         create_user_groups()
-        self.user1 = User.objects.create_user(
-            email = 'user1@test.com',
-            password = 'pass1'
-        )
-        self.user2 = User.objects.create_user(
-            email = 'user2@test.com',
-            password = 'pass2'
-        )
+        self.user1 = User.objects.get(email='johndoe@email.com')
+        self.user2 = User.objects.get(email='janedoe@email.com')
 
         self.student1 = Student.objects.create(user=self.user1)
         self.student2 = Student.objects.create(user=self.user2)

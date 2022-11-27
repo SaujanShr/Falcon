@@ -8,13 +8,13 @@ import datetime
 from lessons.tests.helpers import create_user_groups
 
 class TransactionAdminViewTestCase(TestCase):
+
+    fixtures = ['lessons/tests/fixtures/default_user.json']
+    
     def setUp(self):
         create_user_groups()
+        self.user = User.objects.get(email='johndoe@email.com')
         self.url = reverse('transaction_admin_view')
-        self.user = User.objects.create_user(
-                email='email1@email.com',
-                password='password'
-            )
         self.student = Student.objects.create(user = self.user)
         self.invoice1 = Invoice.objects.create(
             invoice_number='1234-123',

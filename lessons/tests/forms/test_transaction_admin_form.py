@@ -7,12 +7,12 @@ import datetime
 from lessons.tests.helpers import create_user_groups
 
 class TransactionFormTestCase(TestCase):
+
+    fixtures = ['lessons/tests/fixtures/default_user.json']
+
     def setUp(self):
         create_user_groups()
-        self.user = User.objects.create_user(
-                email='email1@email.com',
-                password='password'
-            )
+        self.user = User.objects.get(email="johndoe@email.com")
         self.student = Student.objects.create(user=self.user)
         self.invoice1 = Invoice.objects.create(
             invoice_number='1234-123',
