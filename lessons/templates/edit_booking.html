@@ -1,0 +1,20 @@
+{% extends 'base_content.html' %}
+{% block content %}
+
+<div class="container">
+    <div class="row">
+        <div class="col-sm-12 col-md-6 offset-md-3">
+            <h1>Edit Booking</h1>
+
+            <form action="{% url 'edit_booking' %}" method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <input type="submit" name="update" value="Update">
+                <input type="submit" formnovalidate="formnovalidate" name="delete" value="Delete">
+                <input type="submit" formnovalidate="formnovalidate" name="return" value="Return">
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

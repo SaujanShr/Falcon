@@ -71,7 +71,7 @@ class User(AbstractBaseUser,PermissionsMixin):
         else:
             return False
 
-    
+
     def is_student(self):
         if self.groups.exists() and self.groups.all()[0].name == "Student":
             return True
@@ -157,27 +157,19 @@ class Booking(models.Model):
         FORTY_FIVE_MINUTES = 45, '45 Minutes'
         SIXTY_MINUTES = 60, '60 Minutes'
 
-    class DayOfWeek(models.IntegerChoices):
-        MONDAY = 1, 'Monday'
-        TUESDAY = 2, 'Tuesday'
-        WEDNESDAY = 3, 'Wednesday'
-        THURSDAY = 4, 'Thursday'
-        FRIDAY = 5, 'Friday'
-        SATURDAY = 6, 'Saturday'
-        SUNDAY = 7, 'Sunday'
-
     invoice_id = models.CharField(max_length=8,
-        unique=True,
+        unique=True, #TO DO: Change to true
         blank=False,
         validators=[RegexValidator(
             regex=r'^\d{4}-\d{3}$',
             message='Invoice number must follow the format xxxx-yyy where x is the student number and y is the invoice number.'
         )]
     )
+
+    day_of_the_week = models.ForeignKey(DayOfTheWeek, blank=True, on_delete=models.CASCADE)
     time_of_the_day = models.TimeField(auto_now=False, auto_now_add=False)
     user = models.ForeignKey(User, blank=True, on_delete=models.CASCADE)
     student_name = models.CharField(max_length=100, blank=False)
-    day_of_the_week = models.PositiveIntegerField(blank=False, choices=DayOfWeek.choices)
     teacher = models.CharField(blank=False, max_length=100)
     start_date = models.DateField(blank=False)
     duration_of_lessons = models.PositiveIntegerField(blank=False, choices=LessonDuration.choices)

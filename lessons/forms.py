@@ -1,7 +1,7 @@
 from django import forms
 from django.core.validators import RegexValidator
 from django.contrib.auth.models import Group
-from .models import User, Child, DayOfTheWeek, Request, BankTransaction, Student, Invoice, SchoolTerm
+from .models import User, Child, DayOfTheWeek, Request, BankTransaction, Student, Invoice, SchoolTerm, Booking
 from django.utils import timezone
 
 class DateInput(forms.DateInput):
@@ -10,13 +10,13 @@ class DateInput(forms.DateInput):
 class NewChildForm(forms.ModelForm):
     first_name = forms.CharField(max_length=50)
     last_name = forms.CharField(max_length=50)
-    
+
     def __init__(self, parent, *args, **kwargs):
         super(NewChildForm, self).__init__(*args, **kwargs)
-        
+
         if parent:
             self.parent = parent
-    
+
     def save(self):
         super().save(commit=False)
         fullname = self.cleaned_data.get('first_name') + ' ' + self.cleaned_data.get('last_name')
@@ -38,22 +38,22 @@ class NewRequestViewForm(forms.ModelForm):
         widget=forms.CheckboxSelectMultiple
     )
     
-    def __init__(self, user=None, *args, **kwargs): 
+    def __init__(self, user=None, *args, **kwargs):
         super(NewRequestViewForm, self).__init__(*args, **kwargs)
-        
+
         if user:
             self.user = user
             student_names = []
             student_names.append(('Me', 'Me'))
-            
+
             for child in Child.objects.filter(parent=self.user):
                 student_names.append(child.fullname, child.fullname)
-                
+
             self.fields['student_name'] = forms.ChoiceField(
                 choices=student_names,
                 initial=student_names[0]
             )
-    
+
     def save(self):
         super().save(commit=False)
         request = Request.objects.create(
@@ -67,8 +67,8 @@ class NewRequestViewForm(forms.ModelForm):
         )
         request.availability.set(self.cleaned_data.get('availability'))
         return request
-        
-    
+
+
 
 class RequestViewForm(forms.ModelForm):
     class Meta:
@@ -86,20 +86,20 @@ class RequestViewForm(forms.ModelForm):
         super(RequestViewForm, self).__init__(*args, **kwargs)
         self.fields['date'].disabled = True
         self.fields['fulfilled'].disabled = True
-        
+
         if user:
             self.user = user
             student_names = []
             student_names.append(('Me', 'Me'))
-            
+
             for child in Child.objects.filter(parent=self.user):
                 student_names.append(child.fullname, child.fullname)
-                
+
             self.fields['student_name'] = forms.ChoiceField(
                 choices=student_names,
                 initial=student_names[0]
             )
-    
+
     def set_read_only(self):
         self.fields['availability'].disabled = True
         self.fields['student_name'].disabled = True
@@ -111,8 +111,80 @@ class RequestViewForm(forms.ModelForm):
     def save(self):
         self.fields['date'].disabled = False
         self.fields['fulfilled'].disabled = False
-        
+
         return super().save(commit=True)
+
+
+class FulfilRequestForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        if 'reqe' in kwargs:
+            reqe = kwargs.pop('reqe')
+        super(FulfilRequestForm, self).__init__(*args, **kwargs)
+        if 'reqe' in locals() and isinstance(reqe, Request):
+            self.fields['availability'] = forms.ModelChoiceField(
+                queryset=reqe.availability.all(),
+                label="Day of lessons:",
+                widget=forms.Select
+            )
+    class Meta:
+        model = Booking
+        fields = ['availability', 'number_of_lessons', 'interval_between_lessons',
+                  'duration_of_lessons', 'further_information']
+
+    date = forms.CharField(
+        widget=forms.HiddenInput
+    )
+
+    availability = forms.ModelChoiceField(
+        queryset=DayOfTheWeek.objects.all(),
+        label="Day of lessons:",
+        widget=forms.Select
+    )
+
+    time_of_lesson = forms.TimeField(
+        label='Lesson time:',
+        widget=forms.TimeInput(
+            attrs={'type':'time'}
+        )
+    )
+    teacher = forms.CharField(
+        label='Teacher:',
+        widget=forms.TextInput
+    )
+    start_date = forms.DateField(
+        label='Start date:',
+        widget=forms.DateInput(
+            attrs={'type':'date'}
+        )
+    )
+    hourly_cost = forms.CharField(
+        widget=forms.TextInput(
+            attrs={'type':'number'}
+        )
+    )
+
+    def save(self):
+        super().save(commit=False)
+        req = Request.objects.get(date=self.cleaned_data.get('date'))
+        if not req.fulfilled:
+            booking = Booking.objects.create(
+                time_of_the_day=self.cleaned_data.get('time_of_lesson'),
+                day_of_the_week=self.cleaned_data.get('availability'),
+                user=req.user,
+                student_name=req.student_name,
+                teacher=self.cleaned_data.get('teacher'),
+                start_date=self.cleaned_data.get('start_date'),
+                duration_of_lessons=self.cleaned_data.get('duration_of_lessons'),
+                interval_between_lessons=self.cleaned_data.get('interval_between_lessons'),
+                number_of_lessons=self.cleaned_data.get('number_of_lessons'),
+                further_information=self.cleaned_data.get('further_information'),
+                invoice_id="9999-999"
+            )
+
+            return [booking, req, self.cleaned_data.get('hourly_cost')]
+        else:
+            return [None, req]
+
 
 
 class LogInForm(forms.Form):
@@ -260,6 +332,42 @@ class TransactionSubmitForm(forms.ModelForm):
         # get student id (primary key) from object
         # alter string so that it fits the form xxxx-yyy
         pass
+
+class EditBookingForm(forms.ModelForm):
+    class Meta:
+        model = Booking
+        fields = ['invoice_id','day_of_the_week','time_of_the_day','teacher','start_date',
+                  'duration_of_lessons','interval_between_lessons','number_of_lessons',
+                  'further_information']
+        widgets = {'invoice_id': forms.HiddenInput()}
+
+    day_of_the_week = forms.ModelChoiceField(
+        queryset=DayOfTheWeek.objects.all(),
+        label="Day of lessons:",
+        widget=forms.Select
+    )
+
+    time_of_the_day = forms.TimeField(
+        label='Lesson time:',
+        widget=forms.TimeInput(
+            attrs={'type': 'time'}
+        )
+    )
+    teacher = forms.CharField(
+        label='Teacher:',
+        widget=forms.TextInput
+    )
+    start_date = forms.DateField(
+        label='Start date:',
+        widget=forms.DateInput(
+            attrs={'type': 'date'}
+        )
+    )
+    hourly_cost = forms.CharField(
+        widget=forms.TextInput(
+            attrs={'type': 'number'}
+        )
+    )
 
 
 class TermViewForm(forms.ModelForm):

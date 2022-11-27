@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.core.exceptions import ValidationError
 from lessons.models import User, DayOfTheWeek, Booking
 from django.utils import timezone
-from lessons.tests.helpers import create_user_groups
+from lessons.tests.helpers import create_user_groups, create_days_of_the_week
 
 class BookingModelTestCase(TestCase):
     
@@ -10,9 +10,10 @@ class BookingModelTestCase(TestCase):
     
     def setUp(self):
         create_user_groups()
+        create_days_of_the_week()
         
         self.booking1 = Booking.objects.create(
-            user = User.objects.get(email="johndoe@email.com"),
+            user=User.objects.get(email="johndoe@email.com"),
             student_name="John Doe",
             invoice_id="0001-001",
             time_of_the_day="12:00",
@@ -21,7 +22,7 @@ class BookingModelTestCase(TestCase):
             start_date="2022-11-21",
             duration_of_lessons=Booking.LessonDuration.FORTY_FIVE_MINUTES,
             interval_between_lessons=Booking.IntervalBetweenLessons.TWO_WEEKS,
-            day_of_the_week=Booking.DayOfWeek.MONDAY,
+            day_of_the_week=DayOfTheWeek.objects.get(order=1),
             further_information="Extra Information"
         )
 
@@ -35,7 +36,7 @@ class BookingModelTestCase(TestCase):
             start_date="2022-11-22",
             duration_of_lessons=Booking.LessonDuration.THIRTY_MINUTES,
             interval_between_lessons=Booking.IntervalBetweenLessons.ONE_WEEK,
-            day_of_the_week=Booking.DayOfWeek.TUESDAY,
+            day_of_the_week=DayOfTheWeek.objects.get(order=2),
             further_information="Extra Information 2"
         )
 
