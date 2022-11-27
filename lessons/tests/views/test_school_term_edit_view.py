@@ -61,11 +61,11 @@ class SchoolTermStudentView(TestCase):
 
     def test_student_cannot_access_school_terms_admin_edit_view(self):
         self.client.login(email='johndoe@email.com', password='Password123')
-        response = self.client.get(self.url)
+        response = self.client.get(self.url, follow=True)
 
         response_url = reverse('student_page')
         self.assertRedirects(response, response_url, status_code=302, target_status_code=200)
-        # self.assertTemplateUsed(response, 'student_page.html') #This doesn't work properly
+        self.assertTemplateUsed(response, 'student_page.html')
 
     def test_get_school_term_edit_redirects_when_not_logged_in(self):
         self.client.logout()
@@ -95,7 +95,7 @@ class SchoolTermStudentView(TestCase):
         self.assertTemplateUsed(response, 'term_view.html')
         form = response.context['form']
         self.assertTrue(isinstance(form, TermViewForm))
-        # self.assertTrue(form.is_bound) # Doesn't work as the new form old_term_name is hidden?
+        #self.assertTrue(form.is_bound)
 
     def test_unsuccessful_term_edit_due_to_empty_name(self):
         self.form_input['term_name'] = ''
@@ -161,17 +161,16 @@ class SchoolTermStudentView(TestCase):
 
     def test_successful_term_edit(self):
         before_count = SchoolTerm.objects.count()
-        response = self.client.post(self.url, self.form_input)
+        response = self.client.post(self.url, self.form_input, follow=True)
         after_count = SchoolTerm.objects.count()
         self.assertEqual(after_count, before_count)
         response_url = reverse('admin_term_view')
         self.assertRedirects(response, response_url, status_code=302, target_status_code=200)
-        # self.assertTemplateUsed(response, 'admin_term_view.html') #Doesn't work
+        self.assertTemplateUsed(response, 'admin_term_view.html')
 
-        # Doesn't work:
-        # messages_list = list(response.context['messages'])
-        # self.assertEqual(len(messages_list), 1)
-        # self.assertEqual(messages_list[0].level, messages.SUCCESS)
+        messages_list = list(response.context['messages'])
+        self.assertEqual(len(messages_list), 1)
+        self.assertEqual(messages_list[0].level, messages.SUCCESS)
 
         term = SchoolTerm.objects.get(term_name="TermThree")
         self.assertEqual(term.term_name, 'TermThree')
