@@ -52,7 +52,8 @@ def update_request(request):
 
 def save_new_request(request):
     form = NewRequestViewForm(request.user, request.POST)
-    return form.save()
+    if form.is_valid():
+        return form.save()
 
 
 def get_new_request_view_form(request):
