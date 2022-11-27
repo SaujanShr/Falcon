@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.urls import reverse
 from lessons.models import SchoolTerm
 from django.db.models.query import QuerySet
-from lessons.tests.helpers import HandleGroups
+from lessons.tests.helpers import HandleGroups, reverse_with_next
 
 
 class SchoolTermStudentView(TestCase):
@@ -31,6 +31,12 @@ class SchoolTermStudentView(TestCase):
 
     def test_school_term_student_view_url(self):
         self.assertEqual(self.url, '/student_page/terms')
+
+    def test_get_school_term_student_view_redirects_when_not_logged_in(self):
+        self.client.logout()
+        redirect_url = reverse_with_next('log_in', self.url)
+        response = self.client.get(self.url)
+        self.assertRedirects(response, redirect_url, status_code=302, target_status_code=200)
 
     def test_get_school_term_student_list(self):
         response = self.client.get(self.url)
