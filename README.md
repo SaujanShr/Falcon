@@ -40,13 +40,21 @@ $ python3 manage.py migrate
 ```
 
 Create authentication groups:
+
 ```
 $ python3 manage.py create_groups
 ```
 
 Create terms:
+
 ```
 $ python3 manage.py create_terms
+```
+
+Create days of the week:
+
+```
+$ python3 manage.py create_days_of_the_week
 ```
 
 Seed the development database with:

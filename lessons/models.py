@@ -8,6 +8,7 @@ from .user_manager import UserManager
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import Group
 from decimal import Decimal
+from django.core.exceptions import ValidationError
 
 
 class DayOfTheWeek(models.Model):
@@ -64,6 +65,33 @@ class User(AbstractBaseUser,PermissionsMixin):
         default=timezone.now,
     )
 
+    def is_admin(self):
+        if self.groups.exists() and self.groups.all()[0].name == "Admin":
+            return True
+        else:
+            return False
+
+    
+    def is_student(self):
+        if self.groups.exists() and self.groups.all()[0].name == "Student":
+            return True
+        else:
+            return False
+
+    def get_group(self):
+        if self.is_superuser:
+            return 'Director'
+        elif self.is_student():
+            return 'Student'
+        elif self.is_admin():
+            return 'Admin'
+
+    def get_full_name(self):
+        if self.first_name != "" and self.last_name != "":
+            return f"{self.first_name}, {self.last_name}"
+        else:
+            return ""
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
     objects = UserManager()
@@ -80,6 +108,17 @@ class Student(models.Model):
             student_group.user_set.add(self.user)
 
 
+class Child(models.Model):
+    parent = models.ForeignKey(User, blank=False, on_delete=models.CASCADE)
+    full_name = models.CharField(max_length=100, blank=False)
+    
+    # Two children can't exist with the same parent, first name and last name.
+    def clean(self):
+        if Child.objects.filter(parent=self.parent, 
+                                full_name=self.full_name).exists():
+            raise ValidationError("Child with that name already exists!")
+
+
 class Request(models.Model):
     class IntervalBetweenLessons(models.IntegerChoices):
         ONE_WEEK = 1, '1 Week'
@@ -93,11 +132,13 @@ class Request(models.Model):
     date = models.DateTimeField(
         blank=False,
         unique=True,
-        validators=[MaxValueValidator(
+        validators=[
+            MaxValueValidator(
             limit_value=timezone.now,
             message='')]
         )
     user = models.ForeignKey(User, blank=False, on_delete=models.CASCADE)
+    student_name = models.CharField(max_length=100, blank=False)
     availability = models.ManyToManyField(DayOfTheWeek, blank=False)
     number_of_lessons = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(9223372036854775807)])
     interval_between_lessons = models.PositiveIntegerField(choices=IntervalBetweenLessons.choices)
@@ -133,9 +174,10 @@ class Booking(models.Model):
             message='Invoice number must follow the format xxxx-yyy where x is the student number and y is the invoice number.'
         )]
     )
-    day_of_the_week = models.PositiveIntegerField(blank=False, choices=DayOfWeek.choices)
     time_of_the_day = models.TimeField(auto_now=False, auto_now_add=False)
-    student = models.ForeignKey(User, blank=True, on_delete=models.CASCADE)  # The same as user in Request model
+    user = models.ForeignKey(User, blank=True, on_delete=models.CASCADE)
+    student_name = models.CharField(max_length=100, blank=False)
+    day_of_the_week = models.PositiveIntegerField(blank=False, choices=DayOfWeek.choices)
     teacher = models.CharField(blank=False, max_length=100)
     start_date = models.DateField(blank=False)
     duration_of_lessons = models.PositiveIntegerField(blank=False, choices=LessonDuration.choices)

@@ -18,13 +18,15 @@ class NewRequestViewTestCase(TestCase):
         self.url = reverse('new_request_view')
 
         create_days_of_the_week()
-
+        
+        student_name = 'John Doe'
         availability = 1  # Check availability as value 1(In the form checkbox), Monday. It becomes lessons.DayOfTheWeek.None ?? Should be lessons.DayOfTheWeek.Monday
         number_of_lessons = 1
         interval_between_lessons = Request.IntervalBetweenLessons.ONE_WEEK
         duration_of_lessons = Request.LessonDuration.THIRTY_MINUTES
         further_information = 'Some information'
         self.form_input = {
+            'student_name': student_name,
             'availability': availability,
             'number_of_lessons': number_of_lessons,
             'interval_between_lessons': interval_between_lessons,

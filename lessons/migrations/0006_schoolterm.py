@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('lessons', '0002_alter_request_number_of_lessons'),
+        ('lessons', '0005_remove_child_first_name_remove_child_last_name_and_more'),
     ]
 
     operations = [
