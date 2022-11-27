@@ -261,8 +261,8 @@ def admin_term_view(request):
     return render(request, 'admin_term_view.html', {'terms': terms})
 
 
-# @login_required
-# @allowed_groups(["Admin"])
+@login_required
+@allowed_groups(["Admin"])
 # A view for a single term
 def term_view(request):
     # Check whether the get request contains term_name, otherwise redirect back to term view.

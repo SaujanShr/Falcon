@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.urls import reverse
 from lessons.models import SchoolTerm
 from django.db.models.query import QuerySet
-from lessons.tests.helpers import HandleGroups
+from lessons.tests.helpers import HandleGroups, reverse_with_next
 
 
 class SchoolTermStudentView(TestCase):
@@ -30,7 +30,7 @@ class SchoolTermStudentView(TestCase):
             end_date=datetime.date(2023, 12, 31)
         )
 
-    def test_school_term_student_view_url(self):
+    def test_school_term_admin_view_url(self):
         self.assertEqual(self.url, '/admin_term_view')
 
     def test_get_school_term_admin_list(self):
@@ -54,4 +54,10 @@ class SchoolTermStudentView(TestCase):
         response_url = reverse('student_page')
         self.assertRedirects(response, response_url, status_code=302, target_status_code=200)
         #self.assertTemplateUsed(response, 'student_page.html') #This doesn't work properly
+
+    def test_get_school_term_edit_redirects_when_not_logged_in(self):
+        self.client.logout()
+        redirect_url = reverse_with_next('log_in', self.url)
+        response = self.client.get(self.url)
+        self.assertRedirects(response, redirect_url, status_code=302, target_status_code=200)
 
