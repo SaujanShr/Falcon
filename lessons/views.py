@@ -133,9 +133,9 @@ def profile(request,user_id):
         if form.is_valid():
             messages.add_message(request, messages.SUCCESS, "Profile updated!")
             form.save()
-            if current_user.groups.all()[0].name == "Student":
+            if user.groups.all()[0].name == "Student":
                 return redirect('student_page')
-            elif current_user.groups.all()[0].name == "Admin":
+            elif user.groups.all()[0].name == "Admin":
                 return redirect('admin_page')
     else:
         form = UserForm(instance=user)
