@@ -135,10 +135,7 @@ def profile(request,user_id):
         if form.is_valid():
             messages.add_message(request, messages.SUCCESS, "Profile updated!")
             form.save()
-            if user.groups.all()[0].name == "Student":
-                return redirect('student_page')
-            elif user.groups.all()[0].name == "Admin":
-                return redirect('admin_page')
+            return redirect(get_redirect_url_for_user(user))
     else:
         form = UserForm(instance=user)
     return render(request, 'profile.html', {'form': form, 'user_id':user_id})
@@ -157,10 +154,7 @@ def password(request):
                 current_user.save()
                 login(request, current_user)
                 messages.add_message(request, messages.SUCCESS, "Password updated!")
-                if current_user.groups.all()[0].name == "Student":
-                    return redirect('student_page')
-                elif current_user.groups.all()[0].name == "Admin":
-                    return redirect('admin_page')
+                return redirect(get_redirect_url_for_user(current_user))
             else:
                 messages.add_message(request, messages.ERROR, "Current Password is incorrect!")
 

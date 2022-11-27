@@ -241,5 +241,12 @@ def term_name_already_exists(old_term_name, new_term_name):
 
     return False
 
-
-
+def get_redirect_url_for_user(user):
+    if user.get_group() == "Student":
+        return settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_STUDENT
+    elif user.get_group() == "Admin":
+        return settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_ADMIN
+    elif user.get_group() == 'Director':
+        return settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_DIRECTOR
+    else:
+        return ''
