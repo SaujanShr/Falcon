@@ -9,9 +9,6 @@ class Command(BaseCommand):
         self.faker = Faker('en_GB')
         
     def handle(self, *args, **options):
-        print('Clearing database data...')
-        User.objects.all().delete()
-
         print('Seeding data...')
         student_group = Group.objects.get(name='Student')
         student = User.objects.create_user(email='john.doe@example.org', password='Password123', first_name='John', last_name='Doe')

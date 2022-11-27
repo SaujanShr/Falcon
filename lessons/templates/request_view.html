@@ -6,7 +6,7 @@
         <div class="col-sm-12 col-md-6 offset-md-3">
             <h1>Request</h1>
 
-            <form action="/request_list/" method="post">
+            <form action="{% url 'request_view' %}" method="post">
                 {% csrf_token %}
                 {{ form.as_p }}
                 <input type="hidden" name="date" value="{{ date }}">

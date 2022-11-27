@@ -1,13 +1,13 @@
 from django.shortcuts import render, redirect
-from .forms import LogInForm, TransactionSubmitForm, NewRequestViewForm, SignUpForm, PasswordForm, UserForm
-from .models import Student, Booking, BankTransaction
+from .forms import LogInForm, TransactionSubmitForm, NewRequestViewForm, SignUpForm, PasswordForm, UserForm,CreateUser
+from .models import Student, Booking, BankTransaction, User
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from .decorators import login_prohibited, allowed_groups
-from .views_functions import *
 from django.contrib.auth.hashers import check_password
-
+from django.contrib.auth.models import Group
+from .views_functions import *
 
 @login_required
 @allowed_groups(['Student'])
@@ -26,12 +26,6 @@ def admin_page(request):
 @login_required
 @allowed_groups(['Student'])
 def request_list(request):
-    if request.method == 'POST':
-        if 'delete' in request.POST:
-            delete_request(request)
-        elif 'update' in request.POST:
-            update_request(request)
-
     date_user_request_pairs = get_date_user_request_pairs(request)
     return render(request, 'request_list.html', {'date_user_request_pairs': date_user_request_pairs})
 
@@ -39,12 +33,21 @@ def request_list(request):
 @login_required
 @allowed_groups(['Student'])
 def request_view(request):
+    if request.method == 'POST':
+        if 'delete' in request.POST: 
+            if delete_request(request):
+                return redirect('request_list')
+        elif 'update' in request.POST: 
+            if update_request(request):
+                return redirect('request_list')
+    
     user_request = get_request_object(request)
     date = str(user_request.date)
-    form = get_request_view_form(request)
+    form = get_new_request_view_form(request)
+    
     request_fulfilled = user_request.fulfilled
-    if request_fulfilled:
-        form.setReadOnly()
+    if request_fulfilled: form.set_read_only()
+    
     return render(request, 'request_view.html', {'date': date, 'form': form, 'readonly': request_fulfilled})
 
 
@@ -52,14 +55,42 @@ def request_view(request):
 @allowed_groups(['Student'])
 def new_request_view(request):
     if request.method == 'POST':
-        form = NewRequestViewForm(request.POST)
-        if form.is_valid():
-            form.save(request.user)
-            return redirect('student_page')
-    else:
-        form = NewRequestViewForm()
+        if save_new_request(request):
+            return redirect('request_list')
+    
+    form = NewRequestViewForm(request.user)
     return render(request, 'new_request_view.html', {'form': form})
 
+
+@login_required
+@allowed_groups(['Student'])
+def children_list(request):
+    children = get_children(request)
+    return render(request, 'children_list.html', {'children': children})
+
+@login_required
+@allowed_groups(['Student'])
+def child_page(request):
+    child = get_child(request)
+    return render(request, 'child_page.html', {'child': child})
+
+@login_required
+@allowed_groups(['Student'])
+def child_request_list(request):
+    child = get_child(request)
+
+@login_required
+@allowed_groups(['Student'])
+def child_booking_list(request):
+    pass
+
+@login_required
+@allowed_groups(['Student'])   
+
+@login_required
+@allowed_groups(['Student'])
+def booking_list(request):
+    return render(request, 'booking_list.html')
 
 @login_prohibited
 def home(request):
@@ -95,10 +126,10 @@ def sign_up(request):
 
 
 @login_required
-def profile(request):
-    current_user = request.user
+def profile(request,user_id):
+    user = User.objects.get(id=user_id)
     if request.method == 'POST':
-        form = UserForm(instance=current_user, data=request.POST)
+        form = UserForm(instance=user, data=request.POST)
         if form.is_valid():
             messages.add_message(request, messages.SUCCESS, "Profile updated!")
             form.save()
@@ -107,8 +138,8 @@ def profile(request):
             elif current_user.groups.all()[0].name == "Admin":
                 return redirect('admin_page')
     else:
-        form = UserForm(instance=current_user)
-    return render(request, 'profile.html', {'form': form})
+        form = UserForm(instance=user)
+    return render(request, 'profile.html', {'form': form, 'user_id':user_id})
 
 
 @login_required
@@ -257,3 +288,75 @@ def admin_bookings_requests_view(request):
                     booking.duration_of_lessons = duration[1]
         return render(request, 'admin_view_requests.html', {'requests': requests,
                                                             'bookings': bookings})
+
+@login_required
+@allowed_groups(["Director"])
+def admin_user_list_view(request):
+    if request.method == 'POST':
+        if 'edit' in request.POST: 
+            id_user_to_edit = request.POST.get("edit","")
+            return redirect("profile",user_id=id_user_to_edit)
+        elif 'delete' in request.POST:
+            id_user_to_delete = request.POST.get("delete","")
+            user_to_delete = User.objects.get(id=id_user_to_delete)
+            user_to_delete.delete()
+        elif 'promote_director' in request.POST:
+            id_user_to_promote = request.POST.get("promote_director","")
+            user_to_promote = User.objects.get(id=id_user_to_promote)
+            if user_to_promote.groups.exists():
+                user_to_promote.groups.clear()
+            user_to_promote.is_superuser = True
+            user_to_promote.is_staff = True
+            user_to_promote.save()
+        elif 'create_director' in request.POST:
+            return redirect("create_director_user")
+        elif 'create_student' in request.POST:
+            return redirect("create_student_user")
+        elif 'create_administrator' in request.POST:
+            return redirect("create_admin_user")
+
+    users = User.objects.all().order_by("groups")
+    return render(request,'admin_user_list.html', {'users':users})
+
+@login_required
+@allowed_groups("Director")
+def create_director_user(request):
+    if request.method == 'POST':
+        form = CreateUser(request.POST)
+        if form.is_valid():
+            created_user = form.save()
+            created_user.is_superuser = True
+            created_user.is_staff = True
+            created_user.save()
+            return redirect('admin_user_view')
+    else:
+        form = CreateUser()
+    return render(request, 'create_user.html', {'form': form,'user_type':"Director"})
+
+@login_required
+@allowed_groups("Director")
+def create_admin_user(request):
+    if request.method == 'POST':
+        form = CreateUser(request.POST)
+        if form.is_valid():
+            created_user = form.save()
+            admin_group = Group.objects.get(name='Admin')
+            admin_group.user_set.add(created_user)
+            return redirect('admin_user_view')
+    else:
+        form = CreateUser()
+    return render(request, 'create_user.html', {'form': form,'user_type':"Administrator"})
+
+@login_required
+@allowed_groups("Director")
+def create_student_user(request):
+    if request.method == 'POST':
+        form = CreateUser(request.POST)
+        if form.is_valid():
+            created_user = form.save()
+            student_group = Group.objects.get(name='Student')
+            student_group.user_set.add(created_user)
+            return redirect('admin_user_view')
+    else:
+        form = CreateUser()
+    return render(request, 'create_user.html', {'form': form,'user_type':"Student"})

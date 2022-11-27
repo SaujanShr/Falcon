@@ -2,7 +2,7 @@
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 from lessons.models import User
-from lessons.tests.helpers import create_user_groups
+from lessons.tests.helpers import create_user_groups, HandleGroups
 
 class UserModelTestCase(TestCase):
     """Unit tests for the User model."""
@@ -13,9 +13,26 @@ class UserModelTestCase(TestCase):
     def setUp(self):
         create_user_groups()
         self.user = User.objects.get(email='janedoe@email.com')
+        self.other_user = User.objects.get(email= 'johndoe@email.com')
 
     def test_valid_user(self):
         self._assert_user_is_valid()
+    
+    def test_is_student_returns_true_for_student(self):
+        HandleGroups.set_default_user_to_student()
+        self.assertTrue(self.other_user.is_student())
+    
+    def test_is_student_returns_false_for_non_student(self):
+        HandleGroups.set_default_user_to_admin()
+        self.assertFalse(self.other_user.is_student())
+
+    def test_is_admin_returns_true_for_admin(self):
+        HandleGroups.set_default_user_to_admin()
+        self.assertTrue(self.other_user.is_admin())
+    
+    def test_is_admin_returns_false_for_non_admin(self):
+        HandleGroups.set_default_user_to_student()
+        self.assertFalse(self.other_user.is_admin())
 
     def test_first_name_must_not_be_blank(self):
         self.user.first_name = ''
@@ -80,6 +97,26 @@ class UserModelTestCase(TestCase):
         self.user.email = 'johndoe@@example.org'
         self._assert_user_is_invalid()
 
+    def test_get_group_returns_director_for_a_director(self):
+        self.user.is_superuser = True
+        self.assertEqual(self.user.get_group(), 'Director')
+    
+    def test_get_group_returns_admin_for_an_admin(self):
+        HandleGroups.set_default_user_to_admin()
+        self.assertEqual(self.other_user.get_group(), 'Admin')
+    
+    def test_get_group_returns_student_for_a_student(self):
+        HandleGroups.set_default_user_to_student()
+        self.assertEqual(self.other_user.get_group(), 'Student')
+
+    def test_get_full_name_returns_first_name_coma_last_name(self):
+        self.assertEqual(self.user.get_full_name(), 'Jane, Doe')
+    
+    def test_get_group_returns_empty_string_if_name_not_defined(self):
+        self.user.first_name = ''
+        self.user.last_name = ''
+        self.assertEqual(self.user.get_full_name(), '')
+    
     def _assert_user_is_valid(self):
         try:
             self.user.full_clean()

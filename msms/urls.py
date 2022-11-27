@@ -18,14 +18,18 @@ from django.urls import path
 from lessons import views
 
 urlpatterns = [
-    path('admin/', admin.site.urls, name='admin_panel'),
+    path('', views.home, name='home'),
+    path('admin/', admin.site.urls),
+    path('admin_user_list/',views.admin_user_list_view,name='admin_user_view'),
     path('student_page/', views.student_page, name='student_page'),
     path('admin_page', views.admin_page, name='admin_page'),
     path('request_list/', views.request_list, name='request_list'),
+    path('booking_list/', views.booking_list, name='booking_list'),
     path('request_view/', views.request_view, name='request_view'),
     path('new_request_view/', views.new_request_view, name='new_request_view'),
+    path('children_list/', views.children_list, name='children_list'),
+    path('child_page/', views.child_page, name='child_page'),
     path('log_in/', views.log_in, name='log_in'),
-    path('', views.home, name='home'),
     path('sign_up/', views.sign_up, name='sign_up'),
     path('test_view/', views.test_redirect_view, name='redirect'),
     path('transactions/admin', views.transaction_admin_view, name='transaction_admin_view'),
@@ -34,7 +38,10 @@ urlpatterns = [
     path('transactions/student', views.transaction_list_student, name='transaction_list_student'),
     path('balance/admin', views.balance_list_admin, name='balance_list_admin'),
     path('admin_view_requests_and_bookings/', views.admin_bookings_requests_view, name='admin_request_view'),
-    path('profile/', views.profile, name='profile'),
+    path('profile/<int:user_id>', views.profile, name='profile'),
     path('change_password/', views.password, name='change_password'),
     path('log_out/', views.log_out, name='log_out'),
+    path('create_admin_user/', views.create_admin_user,name='create_admin_user'),
+    path('create_student_user/', views.create_student_user,name='create_student_user'),
+    path('create_director_user/', views.create_director_user,name='create_director_user')
 ]

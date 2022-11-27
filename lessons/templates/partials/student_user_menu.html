@@ -1,13 +1,8 @@
 <div class="collapse navbar-collapse" id="navbarSupportedContent">
     <div class="navbar-nav me-auto mb-2 mb-lg-0">
-        <a class="nav-item nav-link text-white" href="{% url 'admin_page' %}">Dashboard</a>
-        <a class="nav-item nav-link text-white" href="{% url 'admin_request_view' %}">Requests</a>
-        <a class="nav-item nav-link text-white" href="{% url 'transaction_admin_view' %}">Submit Transaction</a>
-        <a class="nav-item nav-link text-white" href="{% url 'transaction_list_admin' %}">View Transactions</a>
-        <a class="nav-item nav-link text-white" href="{% url 'balance_list_admin' %}">View Balances</a>
-        {% if user.is_superuser %}
-            <a class="nav-item nav-link text-white" href="{% url 'admin_user_view' %}">Manage Users</a>
-        {% endif %}
+        <a class="nav-item nav-link text-white" href="{% url 'student_page' %}">Dashboard</a>
+        <a class="nav-item nav-link text-white" href="{% url 'request_list' %}">Requests</a>
+        <a class="nav-item nav-link text-white" href="{% url 'transaction_list_student' %}">My Transactions</a>
     </div>
     <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
         <li class="nav-item dropdown">

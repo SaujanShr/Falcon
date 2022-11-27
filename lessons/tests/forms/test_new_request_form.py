@@ -3,19 +3,21 @@ from django.utils import timezone
 from django.test import TestCase
 from lessons.forms import NewRequestViewForm
 from lessons.models import DayOfTheWeek, Request, User
-from lessons.tests.helpers import create_days_of_the_week
+from lessons.tests.helpers import create_user_groups, create_days_of_the_week
 
 
-class LogInFormTestCase(TestCase):
+class NewRequestFormTestCase(TestCase):
     """Unit tests of the new requests form."""
     fixtures = ['lessons/tests/fixtures/default_user.json']
 
     def setUp(self):
+        create_user_groups()
         create_days_of_the_week()
 
         self.user = User.objects.get(email="johndoe@email.com")
 
         # Create form inputs
+        student_name = 'John Doe'
         availability = DayOfTheWeek.objects.get(day=DayOfTheWeek.Day.TUESDAY), DayOfTheWeek.objects.get(
             day=DayOfTheWeek.Day.WEDNESDAY)
         number_of_lessons = 1
@@ -25,6 +27,7 @@ class LogInFormTestCase(TestCase):
 
         # Initialise form input
         self.form_input = {
+            'student_name': student_name,
             'availability': availability,
             'number_of_lessons': number_of_lessons,
             'interval_between_lessons': interval_between_lessons,
@@ -35,6 +38,7 @@ class LogInFormTestCase(TestCase):
     def test_valid_sign_up_form(self):
         form = NewRequestViewForm(data=self.form_input)
         # print(form) #TESTING
+        print(form.errors)
         self.assertTrue(form.is_valid())
 
     def test_form_has_necessary_fields(self):
