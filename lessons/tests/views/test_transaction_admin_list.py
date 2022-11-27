@@ -16,10 +16,6 @@ class TransactionAdminListTestCase(TestCase):
             password='password'
         )
 
-        #TODO make superuser creation automatically add the created user to the admin group.
-        admin_group = Group.objects.get(name='Admin')
-        admin_group.user_set.add(self.superuser)
-
         self.user1 = User.objects.create_user(
                 email='email1@email.com',
                 password='password'

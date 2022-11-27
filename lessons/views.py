@@ -14,6 +14,14 @@ from .views_functions import *
 def student_page(request):
     return render(request, 'student_page.html')
 
+@login_required
+@allowed_groups(['Admin', 'Director'])
+def admin_page(request):
+    transactions = BankTransaction.objects.order_by('date')
+    #TODO add requests and bookings data to pass into template
+    #TODO if any of these datasets are too large, filter to only first 15
+    return render(request, 'admin_page.html', {'transactions': transactions})
+
 
 @login_required
 @allowed_groups(['Student'])
@@ -125,7 +133,10 @@ def profile(request,user_id):
         if form.is_valid():
             messages.add_message(request, messages.SUCCESS, "Profile updated!")
             form.save()
-            return redirect('student_page')
+            if user.groups.all()[0].name == "Student":
+                return redirect('student_page')
+            elif user.groups.all()[0].name == "Admin":
+                return redirect('admin_page')
     else:
         form = UserForm(instance=user)
     return render(request, 'profile.html', {'form': form, 'user_id':user_id})
@@ -144,7 +155,10 @@ def password(request):
                 current_user.save()
                 login(request, current_user)
                 messages.add_message(request, messages.SUCCESS, "Password updated!")
-                return redirect('student_page')
+                if current_user.groups.all()[0].name == "Student":
+                    return redirect('student_page')
+                elif current_user.groups.all()[0].name == "Admin":
+                    return redirect('admin_page')
             else:
                 messages.add_message(request, messages.ERROR, "Current Password is incorrect!")
 

@@ -1,18 +1,20 @@
-<nav class="navbar navbar-expand-lg navbar-light bg-dark">
+{% load auth_helpers %}
+<nav class="navbar navbar-expand-lg navbar-light bg-dark mb-3">
     <div class="container">
         <a class="navbar-brand text-white" href="{% url 'home' %}">
-            <p><i class="bi bi-music-note"></i>FalconMusic</p>
+            <i class="bi bi-music-note-list"></i> FalconMusic
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
             aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
-        {% if user.is_authenticated and user.is_admin %}
-        {% include 'partials/company_user_menu.html' %}
-        {% elif user.is_authenticated and user.is_superuser%}
-        {% include 'partials/company_user_menu.html' %}
-        {% elif user.is_authenticated and user.is_student %}
-        {% include 'partials/student_user_menu.html' %}
+
+        {% if user.is_authenticated %}
+            {% if user|has_group:'Student' %}
+                {% include 'partials/student_user_menu.html' %}
+            {% else %}
+                {% include 'partials/admin_menu.html' %}
+            {% endif %}
         {% endif %}
     </div>
 </nav>

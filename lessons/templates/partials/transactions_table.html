@@ -1,0 +1,27 @@
+<table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Student</th>
+        <th>Amount</th>
+        <th>Invoice no.</th>
+      </tr>
+    </thead>
+    {% if transactions %}
+      {% for transaction in transactions %}
+        <tr>
+            <td>{{ transaction.date }}</td>
+            <td>{{ transaction.student.user.email }}</td>
+            <td>{{ transaction.amount }}</td>
+            <td>{{ transaction.invoice.invoice_number }}</td>
+        </tr>
+      {% endfor %}
+    {% else %}
+      <tr>
+        <td>No transactions yet...</td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+    {% endif %}
+  </table>

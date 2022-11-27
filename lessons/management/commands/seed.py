@@ -22,7 +22,7 @@ class Command(BaseCommand):
         admin = User.objects.create_user(email='petra.pickles@example.org', password='Password123', first_name='Petra', last_name='Pickles')
         admin_group.user_set.add(admin)
 
-        User.objects.create_superuser(email='marty.major@example.org', password='Password123', first_name='Marty', last_name='Major')
+        director = User.objects.create_superuser(email='marty.major@example.org', password='Password123', first_name='Marty', last_name='Major')
         print('Done.')
 
         # Seed School Terms

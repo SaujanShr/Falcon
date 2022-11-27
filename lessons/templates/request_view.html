@@ -11,10 +11,10 @@
                 {{ form.as_p }}
                 <input type="hidden" name="date" value="{{ date }}">
                 {% if not readonly %}
-                    <input type="submit" name="update" value="Update">
-                    <input type="submit" name="delete" value="Delete">
+                    <input type="submit" class="btn btn-primary" name="update" value="Update">
+                    <input type="submit" class="btn btn-primary" name="delete" value="Delete">
                 {% endif %}
-                <input type="submit" name="return" value="Return">
+                <input type="submit" class="btn btn-primary" name="return" value="Return">
             </form>
         </div>
     </div>
