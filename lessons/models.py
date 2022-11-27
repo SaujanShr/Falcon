@@ -138,7 +138,6 @@ class Booking(models.Model):
     time_of_the_day = models.TimeField(auto_now=False, auto_now_add=False)
     user = models.ForeignKey(User, blank=True, on_delete=models.CASCADE)
     student_name = models.CharField(max_length=100, blank=False)
-    day_of_the_week = models.PositiveIntegerField(blank=False, choices=DayOfWeek.choices)
     teacher = models.CharField(blank=False, max_length=100)
     start_date = models.DateField(blank=False)
     duration_of_lessons = models.PositiveIntegerField(blank=False, choices=LessonDuration.choices)

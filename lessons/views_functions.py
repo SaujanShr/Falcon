@@ -89,7 +89,7 @@ def update_booking(request):
     booking.full_clean()
 
     #Update invoice
-    student = Student.objects.get(user=booking.student)
+    student = Student.objects.get(user=booking.user)
     invoice = Invoice.objects.get(invoice_number=data['invoice_id'])
     new_cost = booking.duration_of_lessons * int(data['hourly_cost']) * booking.number_of_lessons / 60
     invoice.full_amount = new_cost
@@ -114,7 +114,7 @@ def delete_booking(request):
     data = request.POST.copy()
     booking = Booking.objects.get(invoice_id=data['invoice_id'])
     invoice = Invoice.objects.get(invoice_number=data['invoice_id'])
-    student = Student.objects.get(user=booking.student)
+    student = Student.objects.get(user=booking.user)
     student.balance = student.balance + invoice.paid_amount
     invoice.paid_amount = 0
     invoice.full_amount = 0
@@ -194,7 +194,7 @@ def get_children(request):
 def create_invoice(booking, hourly_cost):
 
 
-    user = Student.objects.get(user__email=booking.student)
+    user = Student.objects.get(user__email=booking.user)
 
 
     #Generate invoice number

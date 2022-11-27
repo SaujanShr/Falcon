@@ -15,7 +15,7 @@
     <thead>
     <tr>
         <th>Date</th>
-        <th>User</th>
+        <th>Student</th>
         <th>Availability</th>
         <th># of Lessons</th>
         <th>Frequency</th>
@@ -27,7 +27,7 @@
         {% for request in unfulfilled_requests %}
             <tr>
                 <td style="vertical-align: top">{{ request.date }}</td>
-                <td style="vertical-align: top">{{ request.user.email}}</td>
+                <td style="vertical-align: top">{{ request.user.first_name }} {{ request.user.last_name }} ({{ request.user.email}})</td>
                 <td style="vertical-align: top">
                     {% for day in request.availability.all %}
                         {{ day }}
@@ -71,7 +71,7 @@
         {% for request in fulfilled_requests %}
             <tr>
                 <td style="vertical-align: top">{{ request.date }}</td>
-                <td style="vertical-align: top">{{ request.user.email}}</td>
+                <td style="vertical-align: top">{{ request.user.first_name }} {{ request.user.last_name }} ({{ request.user.email}})</td>
                 <td style="vertical-align: top">
                     {% for day in request.availability.all %}
                         {{ day }}
