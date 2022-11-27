@@ -36,11 +36,11 @@ class SchoolTermViewDeletionConfirmation(TestCase):
 
     def test_student_cannot_access_school_terms_deletion_confirmation_view(self):
         self.client.login(email='johndoe@email.com', password='Password123')
-        response = self.client.get(self.url)
+        response = self.client.get(self.url, follow=True)
 
         response_url = reverse('student_page')
         self.assertRedirects(response, response_url, status_code=302, target_status_code=200)
-        # self.assertTemplateUsed(response, 'student_page.html') #This doesn't work properly
+        self.assertTemplateUsed(response, 'student_page.html')
 
     def test_get_school_term_deletion_confirmation_redirects_when_not_logged_in(self):
         self.client.logout()
@@ -51,10 +51,10 @@ class SchoolTermViewDeletionConfirmation(TestCase):
     def test_successful_deletion(self):
         self.form_input = {'old_term_name': 'TermOne'}
         before_count = SchoolTerm.objects.count()
-        response = self.client.post(self.url, self.form_input)
+        response = self.client.post(self.url, self.form_input,follow=True)
         after_count = SchoolTerm.objects.count()
         self.assertEqual(after_count, before_count-1)
         response_url = reverse('admin_term_view')
         self.assertRedirects(response, response_url, status_code=302, target_status_code=200)
-        # self.assertTemplateUsed(response, 'admin_term_view.html') #Doesn't work
+        self.assertTemplateUsed(response, 'admin_term_view.html')
 
