@@ -158,7 +158,7 @@ class Booking(models.Model):
         SIXTY_MINUTES = 60, '60 Minutes'
 
     invoice_id = models.CharField(max_length=8,
-        unique=False, #TO DO: Change to true
+        unique=True, #TO DO: Change to true
         blank=False,
         validators=[RegexValidator(
             regex=r'^\d{4}-\d{3}$',
