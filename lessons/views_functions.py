@@ -1,9 +1,9 @@
 import decimal
-
-from .models import Request, Invoice, Student, User, Booking, DayOfTheWeek
-from .forms import RequestViewForm, FulfilRequestForm, EditBookingForm
+from .models import Request, Invoice, Student, User, Booking, DayOfTheWeek, Child
+from .forms import RequestViewForm, FulfilRequestForm, EditBookingForm, NewRequestViewForm
 from django.conf import settings
 from django.contrib.auth import authenticate
+from django.utils import timezone
 
 
 def get_request_object(request) -> Request:
@@ -15,14 +15,16 @@ def get_request_object(request) -> Request:
     return None
 
 
-def get_user_requests(request):
+def get_user_requests(request, name=None):
     user = request.user
+
+    if name: return Request.objects.filter(user=user, student_name=name).order_by('-date')
     return Request.objects.filter(user=user).order_by('-date')
 
 
+def get_date_user_request_pairs(request, name=None):
+    user_requests = get_user_requests(request, name)
 
-def get_date_user_request_pairs(request):
-    user_requests = get_user_requests(request)
     date_user_request_pairs = []
     for user_request in user_requests:
         date_user_request_pairs.append({'date': str(user_request.date),
@@ -32,6 +34,7 @@ def get_date_user_request_pairs(request):
 
 def delete_request(request):
     get_request_object(request).delete()
+    return True
 
 
 def update_request(request):
@@ -39,8 +42,8 @@ def update_request(request):
 
     # Can't update a fulfilled request.
     if user_request.fulfilled:
-        return
-
+        return None
+    
     data = request.POST.copy()
     data['date'] = user_request.date
     data['user'] = user_request.user
@@ -50,10 +53,26 @@ def update_request(request):
     form = RequestViewForm(data)
     form.fields['date'].disabled = False
     form.fields['fulfilled'].disabled = False
+
     if form.is_valid():
-        form.save()
-    else:
-        print(form.errors)
+        return form.save()
+
+    print(form.errors)
+    return None
+
+def save_new_request(request):
+    data = request.POST.copy()
+    data['date'] = timezone.datetime.now(tz=timezone.utc)
+    data['user'] = request.user
+
+    form = NewRequestViewForm(data)
+    print("date:",form.fields['date'])
+
+    if form.is_valid():
+        return form.save()
+
+    print(form.errors)
+    return None
 
 
 def update_booking(request):
@@ -133,16 +152,16 @@ def get_request_view_form(request):
     this_request = get_request_object(request)
     form = RequestViewForm(
         initial={
-            'date': this_request.date,
-            'availability': this_request.availability.all().first(),
-            'number_of_lessons': this_request.number_of_lessons,
-            'interval_between_lessons': this_request.interval_between_lessons,
-            'duration_of_lessons': this_request.duration_of_lessons,
-            'further_information': this_request.further_information,
-            'fulfilled': this_request.fulfilled
-        }
-
-    )
+            'date':this_request.date,
+            'student_name':this_request.student_name,
+            'availability':this_request.availability.all().first(),
+            'number_of_lessons':this_request.number_of_lessons,
+            'interval_between_lessons':this_request.interval_between_lessons,
+            'duration_of_lessons':this_request.duration_of_lessons,
+            'further_information':this_request.further_information,
+            'fulfilled':this_request.fulfilled
+            }
+        )
     return form
 
 
@@ -159,6 +178,17 @@ def get_fulfil_request_form(request):
         reqe=this_request
     )
     return form
+
+def get_student(request):
+    return Student.objects.get(user=request.user)
+
+def get_child(request):
+    first_name = request.first_name
+    last_name = request.last_name
+    return Child.objects.filter(parent=request.user,first_name=first_name,last_name=last_name)[0]
+
+def get_children(request):
+    return Child.objects.filter(parent=request.user)
 
 
 def create_invoice(booking, hourly_cost):

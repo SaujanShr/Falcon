@@ -1,47 +1,48 @@
-import datetime
-
 from django import forms
 from django.core.validators import RegexValidator
 from django.contrib.auth.models import Group
-from .models import User, DayOfTheWeek, Request, BankTransaction, Student, Booking, Invoice
+from .models import User, DayOfTheWeek, Request, BankTransaction, Student, Invoice, Booking, Child
 from django.utils import timezone
 
 class DateInput(forms.DateInput):
     input_type = 'date'
 
+class NewChildForm(forms.ModelForm):
+    class Meta:
+        model = Child
+        fields = ['first_name', 'last_name']
 
 class NewRequestViewForm(forms.ModelForm):
     class Meta:
         model = Request
-        fields = ['availability', 'number_of_lessons', 'interval_between_lessons',
-                  'duration_of_lessons', 'further_information']
+        fields = ['date', 'user', 'student_name', 'availability', 'number_of_lessons',
+                  'interval_between_lessons', 'duration_of_lessons', 'further_information']
+        widgets = {'date': forms.HiddenInput(), 'user': forms.HiddenInput()}
 
     availability = forms.ModelMultipleChoiceField(
         queryset=DayOfTheWeek.objects.all(),
         label="Available Days",
         widget=forms.CheckboxSelectMultiple
     )
-    def save(self,user): #Pass in user? This is kind of bad. Unsure of a work around for this.
-        super().save(commit=False)
-        request = Request.objects.create(
-            date=timezone.datetime.now(tz=timezone.utc),
-            user=user,
-            number_of_lessons=self.cleaned_data.get('number_of_lessons'),
-            interval_between_lessons=self.cleaned_data.get('interval_between_lessons'),
-            duration_of_lessons=self.cleaned_data.get('duration_of_lessons'),
-            further_information=self.cleaned_data.get('further_information')
-        )
-        for available_day in self.cleaned_data.get('availability'):
-            request.availability.add(available_day)
-            
-        return request
 
+    def set_student_names(self, user):
+        student_names = []
+        fullname = user.first_name + ' ' + user.last_name
+        student_names.append((fullname, fullname))
+        for child in Child.objects.filter(parent=user):
+            fullname = child.first_name + ' ' + child.last_name
+            student_names.append(fullname, fullname)
+        print('names:',student_names)
+        self.fields['student_name'] = forms.ChoiceField(
+            choices=student_names,
+            initial=student_names[0]
+        )
 
 class RequestViewForm(forms.ModelForm):
     class Meta:
         model = Request
-        fields = ['date', 'user', 'availability', 'number_of_lessons', 'interval_between_lessons',
-                  'duration_of_lessons', 'further_information', 'fulfilled']
+        fields = ['date', 'user', 'student_name', 'availability', 'number_of_lessons',
+                  'interval_between_lessons', 'duration_of_lessons', 'further_information', 'fulfilled']
         widgets = {'user': forms.HiddenInput()}
 
     availability = forms.ModelMultipleChoiceField(
@@ -54,13 +55,27 @@ class RequestViewForm(forms.ModelForm):
         super(RequestViewForm, self).__init__(*args, **kwargs)
         self.fields['date'].disabled = True
         self.fields['fulfilled'].disabled = True
-
-    def setReadOnly(self):
+    
+    def set_read_only(self):
         self.fields['availability'].disabled = True
+        self.fields['student_name'].disabled = True
         self.fields['number_of_lessons'].disabled = True
         self.fields['interval_between_lessons'].disabled = True
         self.fields['duration_of_lessons'].disabled = True
         self.fields['further_information'].disabled = True
+
+    def set_student_names(self, user):
+        student_names = []
+        fullname = user.first_name + ' ' + user.last_name
+        student_names.append((fullname, fullname))
+        for child in Child.objects.filter(parent=user):
+            fullname = child.first_name + ' ' + child.last_name
+            student_names.append(fullname, fullname)
+        print('names:',student_names)
+        self.fields['student_name'] = forms.ChoiceField(
+            choices=student_names,
+            initial=student_names[0]
+        )
 
 
 class FulfilRequestForm(forms.ModelForm):
