@@ -130,7 +130,7 @@ class FulfilRequestForm(forms.ModelForm):
 
             return [booking, req, self.cleaned_data.get('hourly_cost')]
         else:
-            print("Request already fulfilled")
+            return [None, req]
 
 
 

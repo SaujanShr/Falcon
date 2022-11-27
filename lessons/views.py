@@ -238,6 +238,7 @@ def fulfil_request_view(request):
                 return redirect('admin_bookings_view')
             else:
                 print('Booking is already fulfilled')
+                return redirect('admin_bookings_view')
         elif 'delete' in request.POST:
             delete_request(request)
             return redirect('admin_requests_view')
