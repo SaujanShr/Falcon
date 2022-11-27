@@ -68,7 +68,6 @@ class User(AbstractBaseUser,PermissionsMixin):
 
 class Student(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE,related_name='user_record', blank=False)
-    name = models.CharField(max_length=50, blank=False)
     balance = models.DecimalField(default=0,max_digits=6, decimal_places=2, blank=False)
 
     def save(self, *args, **kwargs):
@@ -79,14 +78,12 @@ class Student(models.Model):
 
 class Child(models.Model):
     parent = models.ForeignKey(User, blank=False, on_delete=models.CASCADE)
-    first_name = models.CharField(max_length=50, blank=False)
-    last_name = models.CharField(max_length=50, blank=False)
+    full_name = models.CharField(max_length=100, blank=False)
     
     # Two children can't exist with the same parent, first name and last name.
     def clean(self):
         if Child.objects.filter(parent=self.parent, 
-                                first_name=self.first_name, 
-                                last_name=self.last_name).exists():
+                                full_name=self.full_name).exists():
             raise ValidationError("Child with that name already exists!")
 
 class Request(models.Model):
