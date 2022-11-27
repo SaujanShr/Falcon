@@ -182,3 +182,7 @@ class TermViewForm(forms.ModelForm):
     class Meta:
         model = SchoolTerm
         fields = ['term_name', 'start_date', 'end_date']
+        widgets = {
+            'start_date': DateInput(),
+            'end_date': DateInput()
+        }
