@@ -1,6 +1,6 @@
 import decimal
-from .models import Request, Invoice, Student, User, Booking, DayOfTheWeek, Child
-from .forms import RequestViewForm, FulfilRequestForm, EditBookingForm, NewRequestViewForm
+from .models import Request, Invoice, Student, Child, User, Booking, DayOfTheWeek, SchoolTerm
+from .forms import RequestViewForm, NewRequestViewForm
 from django.conf import settings
 from django.contrib.auth import authenticate
 from django.utils import timezone
@@ -11,20 +11,19 @@ def get_request_object(request) -> Request:
         return Request.objects.get(date=request.GET['date'])
     elif request.method == 'POST':
         return Request.objects.get(date=request.POST['date'])
-
     return None
 
 
 def get_user_requests(request, name=None):
     user = request.user
-
+    
     if name: return Request.objects.filter(user=user, student_name=name).order_by('-date')
     return Request.objects.filter(user=user).order_by('-date')
 
 
 def get_date_user_request_pairs(request, name=None):
     user_requests = get_user_requests(request, name)
-
+    
     date_user_request_pairs = []
     for user_request in user_requests:
         date_user_request_pairs.append({'date': str(user_request.date),
@@ -33,8 +32,7 @@ def get_date_user_request_pairs(request, name=None):
 
 
 def delete_request(request):
-    get_request_object(request).delete()
-    return True
+    return get_request_object(request).delete()
 
 
 def update_request(request):
@@ -44,35 +42,19 @@ def update_request(request):
     if user_request.fulfilled:
         return None
     
-    data = request.POST.copy()
-    data['date'] = user_request.date
-    data['user'] = user_request.user
-    data['fulfilled'] = user_request.fulfilled
-    user_request.delete()
+    post_data = request.POST.copy()
+    post_data['date'] = user_request.date
+    post_data['fulfilled'] = user_request.fulfilled
 
-    form = RequestViewForm(data)
-    form.fields['date'].disabled = False
-    form.fields['fulfilled'].disabled = False
+    request_instance = Request.objects.get(date=post_data['date'])
 
-    if form.is_valid():
-        return form.save()
-
-    print(form.errors)
-    return None
+    form = RequestViewForm(request.user, post_data, instance=request_instance)
+    return form.save()
 
 def save_new_request(request):
-    data = request.POST.copy()
-    data['date'] = timezone.datetime.now(tz=timezone.utc)
-    data['user'] = request.user
-
-    form = NewRequestViewForm(data)
-    print("date:",form.fields['date'])
-
+    form = NewRequestViewForm(request.user, request.POST)
     if form.is_valid():
         return form.save()
-
-    print(form.errors)
-    return None
 
 
 def update_booking(request):
@@ -147,7 +129,7 @@ def get_booking_form(request):
     )
     return form
 
-def get_request_view_form(request):
+def get_new_request_view_form(request):
 
     this_request = get_request_object(request)
     form = RequestViewForm(
@@ -160,7 +142,8 @@ def get_request_view_form(request):
             'duration_of_lessons':this_request.duration_of_lessons,
             'further_information':this_request.further_information,
             'fulfilled':this_request.fulfilled
-            }
+            },
+        user=this_request.user
         )
     return form
 
@@ -183,9 +166,8 @@ def get_student(request):
     return Student.objects.get(user=request.user)
 
 def get_child(request):
-    first_name = request.first_name
-    last_name = request.last_name
-    return Child.objects.filter(parent=request.user,first_name=first_name,last_name=last_name)[0]
+    full_name = request.full_name
+    return Child.objects.filter(parent=request.user,full_name=full_name)[0]
 
 def get_children(request):
     return Child.objects.filter(parent=request.user)
@@ -245,5 +227,19 @@ def get_user(form):
     email = form.cleaned_data.get('email')
     password = form.cleaned_data.get('password')
     return authenticate(email=email, password=password)
+
+
+def term_name_already_exists(old_term_name, new_term_name):
+    # Run if there has been a change to the term name
+    if old_term_name != new_term_name:
+        current_school_terms = SchoolTerm.objects.all()
+
+        for term in current_school_terms:
+            # If the new name is the same as any existing names:
+            if term.term_name == new_term_name:
+                return True
+
+    return False
+
 
 

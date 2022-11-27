@@ -1,61 +1,105 @@
 from django import forms
 from django.core.validators import RegexValidator
 from django.contrib.auth.models import Group
-from .models import User, DayOfTheWeek, Request, BankTransaction, Student, Invoice, Booking, Child
+from .models import User, Child, DayOfTheWeek, Request, BankTransaction, Student, Invoice, SchoolTerm, Booking
 from django.utils import timezone
 
 class DateInput(forms.DateInput):
     input_type = 'date'
 
 class NewChildForm(forms.ModelForm):
-    class Meta:
-        model = Child
-        fields = ['first_name', 'last_name']
+    first_name = forms.CharField(max_length=50)
+    last_name = forms.CharField(max_length=50)
 
+    def __init__(self, parent, *args, **kwargs):
+        super(NewChildForm, self).__init__(*args, **kwargs)
+
+        if parent:
+            self.parent = parent
+
+    def save(self):
+        super().save(commit=False)
+        fullname = self.cleaned_data.get('first_name') + ' ' + self.cleaned_data.get('last_name')
+        child = Child.objects.create(
+            parent=self.parent,
+            fullname=fullname
+        )
+        return child
+        
 class NewRequestViewForm(forms.ModelForm):
     class Meta:
         model = Request
-        fields = ['date', 'user', 'student_name', 'availability', 'number_of_lessons',
+        fields = ['student_name', 'availability', 'number_of_lessons',
                   'interval_between_lessons', 'duration_of_lessons', 'further_information']
-        widgets = {'date': forms.HiddenInput(), 'user': forms.HiddenInput()}
 
     availability = forms.ModelMultipleChoiceField(
         queryset=DayOfTheWeek.objects.all(),
         label="Available Days",
         widget=forms.CheckboxSelectMultiple
     )
+    
+    def __init__(self, user=None, *args, **kwargs):
+        super(NewRequestViewForm, self).__init__(*args, **kwargs)
 
-    def set_student_names(self, user):
-        student_names = []
-        fullname = user.first_name + ' ' + user.last_name
-        student_names.append((fullname, fullname))
-        for child in Child.objects.filter(parent=user):
-            fullname = child.first_name + ' ' + child.last_name
-            student_names.append(fullname, fullname)
-        print('names:',student_names)
-        self.fields['student_name'] = forms.ChoiceField(
-            choices=student_names,
-            initial=student_names[0]
+        if user:
+            self.user = user
+            student_names = []
+            student_names.append(('Me', 'Me'))
+
+            for child in Child.objects.filter(parent=self.user):
+                student_names.append(child.fullname, child.fullname)
+
+            self.fields['student_name'] = forms.ChoiceField(
+                choices=student_names,
+                initial=student_names[0]
+            )
+
+    def save(self):
+        super().save(commit=False)
+        request = Request.objects.create(
+            date=timezone.datetime.now(tz=timezone.utc),
+            user=self.user,
+            student_name=self.cleaned_data.get('student_name'),
+            number_of_lessons=self.cleaned_data.get('number_of_lessons'),
+            interval_between_lessons=self.cleaned_data.get('interval_between_lessons'),
+            duration_of_lessons=self.cleaned_data.get('duration_of_lessons'),
+            further_information=self.cleaned_data.get('further_information')
         )
+        request.availability.set(self.cleaned_data.get('availability'))
+        return request
+
+
 
 class RequestViewForm(forms.ModelForm):
     class Meta:
         model = Request
-        fields = ['date', 'user', 'student_name', 'availability', 'number_of_lessons',
-                  'interval_between_lessons', 'duration_of_lessons', 'further_information', 'fulfilled']
-        widgets = {'user': forms.HiddenInput()}
+        fields = ['date', 'student_name', 'availability', 'number_of_lessons', 'interval_between_lessons',
+                  'duration_of_lessons', 'further_information', 'fulfilled']
 
     availability = forms.ModelMultipleChoiceField(
         queryset=DayOfTheWeek.objects.all(),
         label="Available Days",
         widget=forms.CheckboxSelectMultiple
     )
-
-    def __init__(self, *args, **kwargs):
+    
+    def __init__(self, user=None, *args, **kwargs):
         super(RequestViewForm, self).__init__(*args, **kwargs)
         self.fields['date'].disabled = True
         self.fields['fulfilled'].disabled = True
-    
+
+        if user:
+            self.user = user
+            student_names = []
+            student_names.append(('Me', 'Me'))
+
+            for child in Child.objects.filter(parent=self.user):
+                student_names.append(child.fullname, child.fullname)
+
+            self.fields['student_name'] = forms.ChoiceField(
+                choices=student_names,
+                initial=student_names[0]
+            )
+
     def set_read_only(self):
         self.fields['availability'].disabled = True
         self.fields['student_name'].disabled = True
@@ -63,19 +107,12 @@ class RequestViewForm(forms.ModelForm):
         self.fields['interval_between_lessons'].disabled = True
         self.fields['duration_of_lessons'].disabled = True
         self.fields['further_information'].disabled = True
+    
+    def save(self):
+        self.fields['date'].disabled = False
+        self.fields['fulfilled'].disabled = False
 
-    def set_student_names(self, user):
-        student_names = []
-        fullname = user.first_name + ' ' + user.last_name
-        student_names.append((fullname, fullname))
-        for child in Child.objects.filter(parent=user):
-            fullname = child.first_name + ' ' + child.last_name
-            student_names.append(fullname, fullname)
-        print('names:',student_names)
-        self.fields['student_name'] = forms.ChoiceField(
-            choices=student_names,
-            initial=student_names[0]
-        )
+        return super().save(commit=True)
 
 
 class FulfilRequestForm(forms.ModelForm):
@@ -192,6 +229,37 @@ class SignUpForm(forms.ModelForm):
     #email = forms.EmailField(label='Email')
     #password = forms.CharField(label='Password', widget=forms.PasswordInput())
 
+class CreateUser(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email']
+
+    new_password = forms.CharField(
+        label='Password',
+        widget=forms.PasswordInput(),
+        validators=[RegexValidator(
+            regex=r'^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).*$',
+            message='Password must contain an uppercase character, a lower case character and a number'
+        )]
+    )
+    password_confirmation = forms.CharField(label='Password Confirmation', widget=forms.PasswordInput())
+
+    def clean(self):
+        super().clean()
+        new_password = self.cleaned_data.get('new_password')
+        password_confirmation = self.cleaned_data.get('password_confirmation')
+        if new_password != password_confirmation:
+            self.add_error('password_confirmation', 'Confirmation does not match password.')
+
+    def save(self):
+        super().save(commit=False)  # Do everything the save function would normally do except for storing the record in the database.
+        user = User.objects.create_user(
+            first_name=self.cleaned_data.get('first_name'),
+            last_name=self.cleaned_data.get('last_name'),
+            email=self.cleaned_data.get('email'),
+            password=self.cleaned_data.get('new_password'),
+        )
+        return user
 
 class UserForm(forms.ModelForm):
     class Meta:
@@ -301,3 +369,12 @@ class EditBookingForm(forms.ModelForm):
         )
     )
 
+
+class TermViewForm(forms.ModelForm):
+    class Meta:
+        model = SchoolTerm
+        fields = ['term_name', 'start_date', 'end_date']
+        widgets = {
+            'start_date': DateInput(),
+            'end_date': DateInput()
+        }

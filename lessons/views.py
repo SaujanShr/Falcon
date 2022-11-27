@@ -1,18 +1,26 @@
 from django.shortcuts import render, redirect
-from .forms import LogInForm, TransactionSubmitForm, NewRequestViewForm, SignUpForm, PasswordForm, UserForm
-from .models import Student, Booking, BankTransaction
+from .forms import LogInForm, TransactionSubmitForm, NewRequestViewForm, SignUpForm, PasswordForm, UserForm,CreateUser, TermViewForm
+from .models import Student, Booking, BankTransaction, User
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from .decorators import login_prohibited, allowed_groups
 from django.contrib.auth.hashers import check_password
+from django.contrib.auth.models import Group
 from .views_functions import *
-
 
 @login_required
 @allowed_groups(['Student'])
 def student_page(request):
     return render(request, 'student_page.html')
+
+@login_required
+@allowed_groups(['Admin', 'Director'])
+def admin_page(request):
+    transactions = BankTransaction.objects.order_by('date')
+    #TODO add requests and bookings data to pass into template
+    #TODO if any of these datasets are too large, filter to only first 15
+    return render(request, 'admin_page.html', {'transactions': transactions})
 
 
 @login_required
@@ -37,8 +45,7 @@ def request_view(request):
     
     user_request = get_request_object(request)
     date = str(user_request.date)
-    form = get_request_view_form(request)
-    form.set_student_names(request.user)
+    form = get_new_request_view_form(request)
     
     request_fulfilled = user_request.fulfilled
     if request_fulfilled: form.set_read_only()
@@ -53,8 +60,7 @@ def new_request_view(request):
         if save_new_request(request):
             return redirect('request_list')
     
-    form = NewRequestViewForm()
-    form.set_student_names(request.user)
+    form = NewRequestViewForm(request.user)
     return render(request, 'new_request_view.html', {'form': form})
 
 
@@ -64,13 +70,24 @@ def children_list(request):
     children = get_children(request)
     return render(request, 'children_list.html', {'children': children})
 
-
 @login_required
 @allowed_groups(['Student'])
 def child_page(request):
     child = get_child(request)
     return render(request, 'child_page.html', {'child': child})
-    
+
+@login_required
+@allowed_groups(['Student'])
+def child_request_list(request):
+    child = get_child(request)
+
+@login_required
+@allowed_groups(['Student'])
+def child_booking_list(request):
+    pass
+
+@login_required
+@allowed_groups(['Student'])
 
 @login_required
 @allowed_groups(['Student'])
@@ -111,17 +128,20 @@ def sign_up(request):
 
 
 @login_required
-def profile(request):
-    current_user = request.user
+def profile(request,user_id):
+    user = User.objects.get(id=user_id)
     if request.method == 'POST':
-        form = UserForm(instance=current_user, data=request.POST)
+        form = UserForm(instance=user, data=request.POST)
         if form.is_valid():
             messages.add_message(request, messages.SUCCESS, "Profile updated!")
             form.save()
-            return redirect('student_page')
+            if user.groups.all()[0].name == "Student":
+                return redirect('student_page')
+            elif user.groups.all()[0].name == "Admin":
+                return redirect('admin_page')
     else:
-        form = UserForm(instance=current_user)
-    return render(request, 'profile.html', {'form': form})
+        form = UserForm(instance=user)
+    return render(request, 'profile.html', {'form': form, 'user_id':user_id})
 
 
 @login_required
@@ -137,7 +157,10 @@ def password(request):
                 current_user.save()
                 login(request, current_user)
                 messages.add_message(request, messages.SUCCESS, "Password updated!")
-                return redirect('student_page')
+                if current_user.groups.all()[0].name == "Student":
+                    return redirect('student_page')
+                elif current_user.groups.all()[0].name == "Admin":
+                    return redirect('admin_page')
             else:
                 messages.add_message(request, messages.ERROR, "Current Password is incorrect!")
 
@@ -282,4 +305,163 @@ def edit_booking_view(request):
     booking = Booking.objects.get(invoice_id=request.GET['inv_id'])
     form = get_booking_form(request)
     return render(request, 'edit_booking.html', {'form': form})
+
+
+@login_required
+@allowed_groups(["Student"]) # Do Admins also need access to this page?
+# A view for students to see all terms.
+def student_term_view(request):
+    terms = SchoolTerm.objects.all()
+    return render(request, 'student_term_view.html', {'terms': terms})
+
+
+@login_required
+@allowed_groups(["Admin"])
+# A view for admins to see and edit all terms as well access to button to create a new term.
+def admin_term_view(request):
+    terms = SchoolTerm.objects.all()
+    return render(request, 'admin_term_view.html', {'terms': terms})
+
+
+@login_required
+@allowed_groups(["Admin"])
+# A view for a single term
+def term_view(request):
+    # Check whether the get request contains term_name, otherwise redirect back to term view.
+    if request.method == 'GET' and request.GET.__contains__('term_name'):
+        term = SchoolTerm.objects.get(term_name=request.GET['term_name'])
+        form = TermViewForm(instance=term)
+        # Use old_term_name, so we can get the term object in case the user changes the term name.
+        old_term_name = request.GET['term_name']
+        return render(request, "term_view.html", {'form': form, 'old_term_name': old_term_name})
+
+    if request.method == 'POST':
+        # Use old term name in case the user has changed the term name.
+        term = SchoolTerm.objects.get(term_name=request.POST['old_term_name'])
+        old_term_name = request.POST['old_term_name']
+        new_term_name = request.POST['term_name']
+        old_start_date = term.start_date
+        old_end_date = term.end_date
+
+        initial_form = TermViewForm(instance=term)
+
+        # Check if there already exists a term with the same name, if there is a change in the name of the term.
+        if term_name_already_exists(old_term_name, new_term_name):
+            messages.add_message(request, messages.ERROR, "There already exists a term with this name!")
+            return render(request, "term_view.html", {'form': initial_form, 'old_term_name': old_term_name})
+
+        # Create a copy of the request data, and delete term, Otherwise term name validation (Unique constraint)
+        data = request.POST.copy()
+        term.delete()
+        form = TermViewForm(data)
+        if form.is_valid():
+            form.save()
+            messages.add_message(request, messages.SUCCESS, "Term updated!")
+        else:
+            # If any other fields are invalid then recreate old term again, very bad!
+            SchoolTerm(term_name=old_term_name, start_date=old_start_date, end_date=old_end_date).save()
+            return render(request, 'term_view.html', {'form': form, 'old_term_name': old_term_name})
+
+    return redirect('admin_term_view')
+
+
+@login_required
+@allowed_groups(["Admin"])
+# A view for creating a new term
+def new_term_view(request):
+    if request.method == 'POST':
+        form = TermViewForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.add_message(request, messages.SUCCESS, "Term created!")
+            return redirect('admin_term_view')
+    else:
+        form = TermViewForm()
+    return render(request, 'new_term_view.html', {'form': form})
+
+
+@login_required
+@allowed_groups(["Admin"])
+# A view to confirm term deletion.
+def term_deletion_confirmation_view(request):
+    if request.method == 'GET' and request.GET.__contains__('old_term_name'):
+        old_term_name = request.GET['old_term_name']
+        return render(request, 'term_deletion_confirmation.html', {'old_term_name': old_term_name})
+    if request.method == 'POST':
+        term = SchoolTerm.objects.get(term_name=request.POST['old_term_name'])
+        term.delete()
+
+    return redirect(admin_term_view)
+
+@login_required
+@allowed_groups(["Director"])
+def admin_user_list_view(request):
+    if request.method == 'POST':
+        if 'edit' in request.POST:
+            id_user_to_edit = request.POST.get("edit","")
+            return redirect("profile",user_id=id_user_to_edit)
+        elif 'delete' in request.POST:
+            id_user_to_delete = request.POST.get("delete","")
+            user_to_delete = User.objects.get(id=id_user_to_delete)
+            user_to_delete.delete()
+        elif 'promote_director' in request.POST:
+            id_user_to_promote = request.POST.get("promote_director","")
+            user_to_promote = User.objects.get(id=id_user_to_promote)
+            if user_to_promote.groups.exists():
+                user_to_promote.groups.clear()
+            user_to_promote.is_superuser = True
+            user_to_promote.is_staff = True
+            user_to_promote.save()
+        elif 'create_director' in request.POST:
+            return redirect("create_director_user")
+        elif 'create_student' in request.POST:
+            return redirect("create_student_user")
+        elif 'create_administrator' in request.POST:
+            return redirect("create_admin_user")
+
+    users = User.objects.all().order_by("groups")
+    return render(request,'admin_user_list.html', {'users':users})
+
+@login_required
+@allowed_groups("Director")
+def create_director_user(request):
+    if request.method == 'POST':
+        form = CreateUser(request.POST)
+        if form.is_valid():
+            created_user = form.save()
+            created_user.is_superuser = True
+            created_user.is_staff = True
+            created_user.save()
+            return redirect('admin_user_view')
+    else:
+        form = CreateUser()
+    return render(request, 'create_user.html', {'form': form,'user_type':"Director"})
+
+@login_required
+@allowed_groups("Director")
+def create_admin_user(request):
+    if request.method == 'POST':
+        form = CreateUser(request.POST)
+        if form.is_valid():
+            created_user = form.save()
+            admin_group = Group.objects.get(name='Admin')
+            admin_group.user_set.add(created_user)
+            return redirect('admin_user_view')
+    else:
+        form = CreateUser()
+    return render(request, 'create_user.html', {'form': form,'user_type':"Administrator"})
+
+@login_required
+@allowed_groups("Director")
+def create_student_user(request):
+    if request.method == 'POST':
+        form = CreateUser(request.POST)
+        if form.is_valid():
+            created_user = form.save()
+            student_group = Group.objects.get(name='Student')
+            student_group.user_set.add(created_user)
+            return redirect('admin_user_view')
+    else:
+        form = CreateUser()
+    return render(request, 'create_user.html', {'form': form,'user_type':"Student"})
 

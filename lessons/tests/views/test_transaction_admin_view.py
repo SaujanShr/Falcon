@@ -33,10 +33,6 @@ class TransactionAdminViewTestCase(TestCase):
             password='password'
         )
 
-        #TODO make superuser creation automatically add the created user to the admin group.
-        admin_group = Group.objects.get(name='Admin')
-        admin_group.user_set.add(self.superuser)
-
     def test_transaction_admin_url(self):
         self.assertEqual(self.url, '/transactions/admin/submit')
 

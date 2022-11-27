@@ -22,13 +22,16 @@ def login_prohibited(view_function):
 def allowed_groups(allowed_groups_names = []):
     def decorator(view_function):
         def wrapper(request, *args, **kwargs):
-            group = None
-            if request.user.groups.exists():
-                group = request.user.groups.all()[0].name
-            elif request.user.is_staff:
+            group = ''
+            if request.user.is_superuser:
                 group = 'Director'
+            elif request.user.is_admin():
+                group = 'Admin'
+            elif request.user.is_student():
+                group = 'Student'
+
             if group in allowed_groups_names:
-                return view_function(request)
+                return view_function(request,*args,**kwargs)
             else:
                 if group == 'Admin':
                     return redirect(settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_ADMIN)
