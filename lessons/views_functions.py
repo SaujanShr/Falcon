@@ -97,7 +97,10 @@ def delete_booking(request):
     invoice = Invoice.objects.get(invoice_number=data['invoice_id'])
     student = Student.objects.get(user=booking.student)
     student.balance = student.balance + invoice.paid_amount
-    invoice.delete()
+    invoice.paid_amount = 0
+    invoice.full_amount = 0
+    invoice.fully_paid = True
+    invoice.save()
     booking.delete()
     student.save()
 
