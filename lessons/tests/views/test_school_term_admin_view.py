@@ -10,7 +10,7 @@ from lessons.tests.helpers import HandleGroups, reverse_with_next
 class SchoolTermStudentView(TestCase):
     """Unit tests of the school term admin view"""
 
-    fixtures = ['lessons/tests/fixtures/default_user.json', 'lessons/tests/fixtures/other_users.json']
+    fixtures = ['lessons/tests/fixtures/default_user.json', 'lessons/tests/fixtures/other_users.json','lessons/tests/fixtures/default_terms.json']
 
     def setUp(self):
         HandleGroups.set_default_user_to_student()
@@ -18,17 +18,9 @@ class SchoolTermStudentView(TestCase):
         self.url = reverse('admin_term_view')
 
         self.client.login(email='janedoe@email.com', password='Password123')
-        self.term1 = SchoolTerm.objects.create(
-            term_name="Term one",
-            start_date=datetime.date(2022, 1, 1),
-            end_date=datetime.date(2022, 12, 31)
-        )
 
-        self.term2 = SchoolTerm.objects.create(
-            term_name="Term two",
-            start_date=datetime.date(2023, 1, 1),
-            end_date=datetime.date(2023, 12, 31)
-        )
+        self.term1 = SchoolTerm.objects.get(id=1)
+        self.term2 = SchoolTerm.objects.get(id=2)
 
     def test_school_term_admin_view_url(self):
         self.assertEqual(self.url, '/admin_term_view')
