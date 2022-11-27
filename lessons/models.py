@@ -1,13 +1,15 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser
 from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
+from django.core.exceptions import ValidationError
 from django.utils import timezone
-from datetime import date
+from datetime import date, datetime
 from .user_manager import UserManager
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import Group
 from decimal import Decimal
 from django.core.exceptions import ValidationError
+
 
 class DayOfTheWeek(models.Model):
     class Day(models.TextChoices):
@@ -27,6 +29,7 @@ class DayOfTheWeek(models.Model):
 
     def __str__(self):
         return self.day
+
 
 class User(AbstractBaseUser,PermissionsMixin):
     first_name = models.CharField(max_length = 50, blank=False, unique = False)
@@ -93,6 +96,7 @@ class User(AbstractBaseUser,PermissionsMixin):
     REQUIRED_FIELDS = []
     objects = UserManager()
 
+
 class Student(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE,related_name='user_record', blank=False)
     balance = models.DecimalField(default=0,max_digits=6, decimal_places=2, blank=False)
@@ -103,6 +107,7 @@ class Student(models.Model):
             student_group = Group.objects.get(name='Student')
             student_group.user_set.add(self.user)
 
+
 class Child(models.Model):
     parent = models.ForeignKey(User, blank=False, on_delete=models.CASCADE)
     full_name = models.CharField(max_length=100, blank=False)
@@ -112,6 +117,7 @@ class Child(models.Model):
         if Child.objects.filter(parent=self.parent, 
                                 full_name=self.full_name).exists():
             raise ValidationError("Child with that name already exists!")
+
 
 class Request(models.Model):
     class IntervalBetweenLessons(models.IntegerChoices):
@@ -139,6 +145,7 @@ class Request(models.Model):
     duration_of_lessons = models.PositiveIntegerField(choices=LessonDuration.choices)
     further_information = models.CharField(blank=False, max_length=500)
     fulfilled = models.BooleanField(blank=False, default=False)
+
 
 class Booking(models.Model):
     class IntervalBetweenLessons(models.IntegerChoices):
@@ -178,6 +185,7 @@ class Booking(models.Model):
     number_of_lessons = models.PositiveIntegerField(blank=False, validators=[MinValueValidator(1)])
     further_information = models.CharField(blank=False, max_length=500)
 
+
 class Invoice(models.Model):
     invoice_number = models.CharField(
         primary_key=True,
@@ -193,6 +201,7 @@ class Invoice(models.Model):
     full_amount = models.DecimalField(max_digits=8, decimal_places=2, blank=False)
     paid_amount = models.DecimalField(max_digits=8, decimal_places=2, blank=False, default='0.00')
     fully_paid = models.BooleanField(default=False, blank=False)
+
 
 class BankTransaction(models.Model):
     date = models.DateField(
@@ -216,3 +225,40 @@ class BankTransaction(models.Model):
             self.student.balance = Decimal(self.student.balance) + overpay
             self.invoice.save()
             self.student.save()
+
+
+class SchoolTerm(models.Model):
+    term_name = models.CharField(unique=True, blank=False, max_length=18)
+    start_date = models.DateField(blank=False)
+    end_date = models.DateField(blank=False)
+
+    class Meta:
+        ordering = ['start_date']
+
+    def clean(self):
+        # Clean is not invoked when you use save? I think?
+        # Only on create()?? and is_valid()
+
+        # Check valid dates
+        if not(self.start_date and self.end_date):
+            raise ValidationError("Date(s) are not in form YYYY-MM-DD")
+
+        # Error if the start date is less than the end date
+        if not(self.start_date < self.end_date):
+            raise ValidationError("Start date must be before end date")
+
+        current_school_terms = SchoolTerm.objects.exclude(term_name=self.term_name)
+
+        # Check if the new term does not overlap any existing terms.
+        for term in current_school_terms:
+            # Check if the new date is valid, compares to see if the new start date falls between one of the
+            # existing ranges, or if one of the existing start dates falls between the new range.
+            if (term.start_date <= self.start_date < term.end_date) or (self.start_date <= term.start_date < self.end_date):
+                raise ValidationError("There is a overlap with this new date range and ranges for existing terms")
+
+    # If we want to override a school term even if a term with the same name already exists.
+    # def save(self, *args, **kwargs):
+    #     existing_term = SchoolTerm.objects.filter(term_name=self.term_name).exists()
+    #     if existing_term:
+    #         existing_term.delete()
+    #     super().save()

@@ -1,7 +1,7 @@
 from django import forms
 from django.core.validators import RegexValidator
 from django.contrib.auth.models import Group
-from .models import User, Child, DayOfTheWeek, Request, BankTransaction, Student, Invoice
+from .models import User, Child, DayOfTheWeek, Request, BankTransaction, Student, Invoice, SchoolTerm
 from django.utils import timezone
 
 class DateInput(forms.DateInput):
@@ -261,3 +261,12 @@ class TransactionSubmitForm(forms.ModelForm):
         # alter string so that it fits the form xxxx-yyy
         pass
 
+
+class TermViewForm(forms.ModelForm):
+    class Meta:
+        model = SchoolTerm
+        fields = ['term_name', 'start_date', 'end_date']
+        widgets = {
+            'start_date': DateInput(),
+            'end_date': DateInput()
+        }
