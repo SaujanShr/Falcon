@@ -7,6 +7,7 @@ from .user_manager import UserManager
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import Group
 from decimal import Decimal
+from django.core.exceptions import ValidationError
 
 class DayOfTheWeek(models.Model):
     class Day(models.TextChoices):
@@ -102,6 +103,16 @@ class Student(models.Model):
             student_group = Group.objects.get(name='Student')
             student_group.user_set.add(self.user)
 
+class Child(models.Model):
+    parent = models.ForeignKey(User, blank=False, on_delete=models.CASCADE)
+    full_name = models.CharField(max_length=100, blank=False)
+    
+    # Two children can't exist with the same parent, first name and last name.
+    def clean(self):
+        if Child.objects.filter(parent=self.parent, 
+                                full_name=self.full_name).exists():
+            raise ValidationError("Child with that name already exists!")
+
 class Request(models.Model):
     class IntervalBetweenLessons(models.IntegerChoices):
         ONE_WEEK = 1, '1 Week'
@@ -115,11 +126,13 @@ class Request(models.Model):
     date = models.DateTimeField(
         blank=False,
         unique=True,
-        validators=[MaxValueValidator(
+        validators=[
+            MaxValueValidator(
             limit_value=timezone.now,
             message='')]
         )
     user = models.ForeignKey(User, blank=False, on_delete=models.CASCADE)
+    student_name = models.CharField(max_length=100, blank=False)
     availability = models.ManyToManyField(DayOfTheWeek, blank=False)
     number_of_lessons = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(9223372036854775807)])
     interval_between_lessons = models.PositiveIntegerField(choices=IntervalBetweenLessons.choices)
@@ -154,9 +167,10 @@ class Booking(models.Model):
             message='Invoice number must follow the format xxxx-yyy where x is the student number and y is the invoice number.'
         )]
     )
-    day_of_the_week = models.PositiveIntegerField(blank=False, choices=DayOfWeek.choices)
     time_of_the_day = models.TimeField(auto_now=False, auto_now_add=False)
-    student = models.ForeignKey(User, blank=True, on_delete=models.CASCADE)  # The same as user in Request model
+    user = models.ForeignKey(User, blank=True, on_delete=models.CASCADE)
+    student_name = models.CharField(max_length=100, blank=False)
+    day_of_the_week = models.PositiveIntegerField(blank=False, choices=DayOfWeek.choices)
     teacher = models.CharField(blank=False, max_length=100)
     start_date = models.DateField(blank=False)
     duration_of_lessons = models.PositiveIntegerField(blank=False, choices=LessonDuration.choices)

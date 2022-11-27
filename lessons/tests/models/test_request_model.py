@@ -5,43 +5,18 @@ from lessons.models import User, Request, DayOfTheWeek
 from django.utils import timezone
 from lessons.tests.helpers import create_days_of_the_week
 from lessons.tests.helpers import create_user_groups
-
-'''
-from lessons.models import User, Request, DayOfTheWeek
-from django.utils import timezone
-DayOfTheWeek.objects.create(order = 0, day = DayOfTheWeek.Day.MONDAY)
-DayOfTheWeek.objects.create(order = 1, day = DayOfTheWeek.Day.TUESDAY)
-DayOfTheWeek.objects.create(order = 2, day = DayOfTheWeek.Day.WEDNESDAY)
-DayOfTheWeek.objects.create(order = 3, day = DayOfTheWeek.Day.THURSDAY)
-DayOfTheWeek.objects.create(order = 4, day = DayOfTheWeek.Day.FRIDAY)
-DayOfTheWeek.objects.create(order = 5, day = DayOfTheWeek.Day.SATURDAY)
-DayOfTheWeek.objects.create(order = 6, day = DayOfTheWeek.Day.SUNDAY)
-request1 = Request.objects.create(
-user = User.objects.create_user(
-username='username',
-password='password'
-),
-date = timezone.datetime(2000, 1, 1, 1, 1, 1, tzinfo=timezone.utc),
-number_of_lessons = 1,
-interval_between_lessons = Request.IntervalBetweenLessons.ONE_WEEK,
-duration_of_lessons = Request.LessonDuration.THIRTY_MINUTES,
-further_information = 'Some information...'
-)
-request1.availability.set([DayOfTheWeek.objects.get(day = DayOfTheWeek.Day.MONDAY), DayOfTheWeek.objects.get(day = DayOfTheWeek.Day.WEDNESDAY), DayOfTheWeek.objects.get(day = DayOfTheWeek.Day.SUNDAY)])
-'''
-
-
 class RequestModelTestCase(TestCase):
     """Unit tests of the request model"""
+    
+    fixtures = ['lessons/tests/fixtures/other_users.json', 'lessons/tests/fixtures/default_user.json']
+    
     def setUp(self):
         create_user_groups()
         create_days_of_the_week()
 
         self.request1 = Request.objects.create(
-            user = User.objects.create_user(
-                email='email@email.com',
-                password='password'
-            ),
+            user = User.objects.get(email='johndoe@email.com'),
+            student_name = 'John Doe',
             date = timezone.datetime(2000, 1, 1, 1, 1, 1, tzinfo=timezone.utc),
             number_of_lessons = 1,
             interval_between_lessons = Request.IntervalBetweenLessons.ONE_WEEK,
@@ -53,10 +28,8 @@ class RequestModelTestCase(TestCase):
                                         DayOfTheWeek.objects.get(day = DayOfTheWeek.Day.SUNDAY)])
 
         self.request2 = Request.objects.create(
-            user = User.objects.create_user(
-                email='email2@email.com',
-                password='password'
-            ),
+            user = User.objects.get(email='janedoe@email.com'),
+            student_name = 'Jane Doe',
             date = timezone.datetime(2001, 2, 2, 2, 2, 2, tzinfo=timezone.utc),
             number_of_lessons = 2,
             interval_between_lessons = Request.IntervalBetweenLessons.TWO_WEEKS,
@@ -103,21 +76,6 @@ class RequestModelTestCase(TestCase):
     def test_user_may_already_be_used(self):
         self.request1.user = self.request2.user
         self._assert_request_is_valid()
-
-    def test_availability_cannot_be_empty(self):
-        self.request3 = Request.objects.create(
-            user=User.objects.create_user(
-                email='email3@email.com',
-                password='password'
-            ),
-            date=timezone.datetime(2002, 1, 1, 1, 1, 1, tzinfo=timezone.utc),
-            number_of_lessons=1,
-            interval_between_lessons=Request.IntervalBetweenLessons.ONE_WEEK,
-            duration_of_lessons=Request.LessonDuration.THIRTY_MINUTES,
-            further_information='Some information...'
-        )
-        self.assertRaises(ValidationError)
-        self.request3.full_clean()
 
     def test_availability_can_have_one_available_day(self):
         self.request1.availability.clear()
