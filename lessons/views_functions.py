@@ -1,4 +1,4 @@
-from .models import Request, Student, Child
+from .models import Request, Student, Child, SchoolTerm
 from .forms import RequestViewForm, NewRequestViewForm
 from django.conf import settings
 from django.contrib.auth import authenticate
@@ -52,7 +52,8 @@ def update_request(request):
 
 def save_new_request(request):
     form = NewRequestViewForm(request.user, request.POST)
-    return form.save()
+    if form.is_valid():
+        return form.save()
 
 
 def get_new_request_view_form(request):
@@ -101,4 +102,19 @@ def get_user(form):
     email = form.cleaned_data.get('email')
     password = form.cleaned_data.get('password')
     return authenticate(email=email, password=password)
+
+
+def term_name_already_exists(old_term_name, new_term_name):
+    # Run if there has been a change to the term name
+    if old_term_name != new_term_name:
+        current_school_terms = SchoolTerm.objects.all()
+
+        for term in current_school_terms:
+            # If the new name is the same as any existing names:
+            if term.term_name == new_term_name:
+                return True
+
+    return False
+
+
 
