@@ -3,7 +3,7 @@ from django.utils import timezone
 from django.test import TestCase
 from lessons.forms import NewRequestViewForm
 from lessons.models import DayOfTheWeek, Request, User
-from lessons.tests.helpers import create_user_groups, create_days_of_the_week
+from lessons.tests.helpers import create_user_groups, create_days_of_the_week, HandleGroups
 
 
 class NewRequestFormTestCase(TestCase):
@@ -13,11 +13,12 @@ class NewRequestFormTestCase(TestCase):
     def setUp(self):
         create_user_groups()
         create_days_of_the_week()
+        HandleGroups.set_default_user_to_student()
 
         self.user = User.objects.get(email="johndoe@email.com")
 
         # Create form inputs
-        student_name = 'John Doe'
+        student_name = 'Me'
         availability = DayOfTheWeek.objects.get(day=DayOfTheWeek.Day.TUESDAY), DayOfTheWeek.objects.get(
             day=DayOfTheWeek.Day.WEDNESDAY)
         number_of_lessons = 1
@@ -35,10 +36,8 @@ class NewRequestFormTestCase(TestCase):
             'further_information': further_information,
         }
 
-    def test_valid_sign_up_form(self):
+    def test_valid_request_view_form(self):
         form = NewRequestViewForm(data=self.form_input)
-        # print(form) #TESTING
-        print(form.errors)
         self.assertTrue(form.is_valid())
 
     def test_form_has_necessary_fields(self):
@@ -147,34 +146,24 @@ class NewRequestFormTestCase(TestCase):
         form = NewRequestViewForm(data=self.form_input)
         self.assertFalse(form.is_valid())
 
-    # Not sure how to do this.
-    # django.db.utils.IntegrityError: NOT NULL constraint failed: lessons_request.user_id
+    def test_form_must_save_correctly(self):
+        form = NewRequestViewForm(self.user, data=self.form_input)
+        self.assertTrue(form.is_valid())
+        form_availability = form.cleaned_data.get('availability')
+        form_number_of_lessons = form.cleaned_data.get('number_of_lessons')
+        form_interval_between_lessons = form.cleaned_data.get('interval_between_lessons')
+        form_duration_of_lessons = form.cleaned_data.get('duration_of_lessons')
+        form_further_information = form.cleaned_data.get('further_information')
+        Request.objects.create(
+            user=self.user,
+            date=timezone.datetime.now(tz=timezone.utc),
+            number_of_lessons=form_number_of_lessons,
+            interval_between_lessons=form_interval_between_lessons,
+            duration_of_lessons=form_duration_of_lessons,
+            further_information=form_further_information
+        ).availability.set(form_availability)
 
-    # def test_form_must_save_correctly(self):
-    #     form = NewRequestViewForm(data=self.form_input)
-    #     form.is_valid()
-    #     form_availability = form.cleaned_data.get('availability')
-    #     form_number_of_lessons = form.cleaned_data.get('number_of_lessons')
-    #     form_interval_between_lessons = form.cleaned_data.get('interval_between_lessons')
-    #     form_duration_of_lessons = form.cleaned_data.get('duration_of_lessons')
-    #     form_further_information = form.cleaned_data.get('further_information')
-    #     Request.objects.create(
-    #         #replace with fixture
-    #         # user=User.objects.create_user(
-    #         #     first_name="john",
-    #         #     last_name="doe",
-    #         #     email='email@email.com',
-    #         #     password='Password123'
-    #         # ),
-    #         date=timezone.datetime.now(tz=timezone.utc),
-    #         #availability=form_availability,
-    #         number_of_lessons=form_number_of_lessons,
-    #         interval_between_lessons=form_interval_between_lessons,
-    #         duration_of_lessons=form_duration_of_lessons,
-    #         further_information=form_further_information
-    #     ).availability.set(form_availability)
-    #
-    #     before_count = Request.objects.count()
-    #     form.save(self.user)
-    #     after_count = Request.objects.count()
-    #     self.assertEqual(after_count, before_count + 1)  # Check that the Request count has increased by 1
+        before_count = Request.objects.count()
+        form.save()
+        after_count = Request.objects.count()
+        self.assertEqual(after_count, before_count + 1)  # Check that the Request count has increased by 1
