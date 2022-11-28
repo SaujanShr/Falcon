@@ -61,10 +61,6 @@ class InvoiceModelTestCase(TestCase):
         self.invoice1.paid_amount = 1001
         self._assert_invoice_is_invalid()
 
-    def test_invoice_number_must_be_unique(self):
-        self.invoice1.invoice_number = self.invoice2.invoice_number
-        self._assert_invoice_is_invalid()
-
     def test_amount_paid_can_be_equal_to_full_amount(self):
         self.invoice1.paid_amount = 1000
         self.invoice1.fully_paid = True
