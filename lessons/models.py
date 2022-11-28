@@ -158,7 +158,7 @@ class Booking(models.Model):
         SIXTY_MINUTES = 60, '60 Minutes'
 
     invoice_id = models.CharField(max_length=8,
-        unique=True, #TO DO: Change to true
+        unique=True,
         blank=False,
         validators=[RegexValidator(
             regex=r'^\d{4}-\d{3}$',
@@ -179,10 +179,29 @@ class Booking(models.Model):
 
 
 class Invoice(models.Model):
+
+    def clean(self, *args, **kwargs):
+
+        if self.paid_amount < 0:
+            raise ValidationError('Paid amount cannot be lower than 0')
+
+        if self.full_amount < 0:
+            raise ValidationError('Paid amount cannot be lower than 0')
+
+        if self.paid_amount > self.full_amount:
+            raise ValidationError('Paid amount is greater than full amount')
+
+        if self.paid_amount == self.full_amount and not self.fully_paid:
+            raise ValidationError('Fully paid not marked as true despite invoice being fully paid')
+
+        if self.paid_amount != self.full_amount and self.fully_paid:
+            raise ValidationError('Fully paid marked as true but paid amount != full amount')
+
+
     invoice_number = models.CharField(
+        unique=True,
         primary_key=True,
         max_length=8,
-        unique=True,
         blank=False,
         validators=[RegexValidator(
             regex=r'^\d{4}-\d{3}$',
