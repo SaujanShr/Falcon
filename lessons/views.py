@@ -216,7 +216,6 @@ def transaction_list_admin(request):
 @login_required
 @allowed_groups(["Student"])
 def transaction_list_student(request):
-    # currently errors if user is not logged in
     r_user = request.user
     r_student = Student.objects.get(user=r_user)
 
@@ -226,6 +225,25 @@ def transaction_list_student(request):
         transactions = BankTransaction.objects.order_by('date').filter(student=r_student)
 
     return render(request, 'transaction_list.html', {'transactions': transactions})
+
+@login_required
+@allowed_groups(["Admin", "Director"])
+def invoice_list_admin(request):
+    invoices = Invoice.objects.all().reverse()
+    return render(request, 'invoice_list.html', {'invoices': invoices})
+
+@login_required
+@allowed_groups(["Student"])
+def invoice_list_student(request):
+    r_user = request.user
+    r_student = Student.objects.get(user=r_user)
+
+    if (not r_student):
+        invoices = Invoice.objects.none()
+    else:
+        invoices = Invoice.objects.all().filter(student=r_student).reverse()
+    
+    return render(request, 'invoice_list.html', {'invoices': invoices})
 
 
 @login_required
