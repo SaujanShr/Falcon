@@ -1,62 +1,52 @@
 {% extends 'base_content.html' %}
 {% block content %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Current Bookings & Requests</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
-</head>
-<body>
-<p></p>
-<h1>Current Bookings</h1>
-<table class="table table-dark table-striped" style="text-align: center; vertical-align: top">
-    <thead>
-    <tr>
-        <th>Teacher</th>
-        <th>Student</th>
-        <th>Day</th>
-        <th>Time</th>
-        <th>Duration</th>
-        <th>Starting</th>
-        <th>Frequency</th>
-        <th style="width: 25%">Further Information</th>
-        <th style="width: 10%">Invoice ID</th>
-        <th>Edit</th>
-    </tr>
-    {% if bookings %}
-        {% for booking in bookings %}
-            <tr>
-                <td style="vertical-align: top">{{ booking.teacher }}</td>
-                <td style="vertical-align: top">{{ booking.student_name}} ({{ booking.user.email }})</td>
-                <td style="vertical-align: top">{{ booking.day_of_the_week }}</td>
-                <td style="vertical-align: top">{{ booking.time_of_the_day}}</td>
-                <td style="vertical-align: top">{{ booking.duration_of_lessons }}</td>
-                <td style="vertical-align: top">{{ booking.start_date }}</td>
-                <td style="vertical-align: top">{{ booking.interval_between_lessons }}</td>
-                <td style="vertical-align: top">{{ booking.further_information }}</td>
-                <td style="vertical-align: top">{{ booking.invoice_id }}</td>
-                <td style="vertical-align: top"><a href="{% url 'edit_booking' %}?inv_id={{ booking.invoice_id }}">Edit</a></td>
-            </tr>
-        {% endfor %}
-    {% else %}
+<div class = "container">
+    <h1>Current Bookings</h1>
+    <table class="table table-striped" style="text-align: center; vertical-align: top">
+        <thead>
         <tr>
-            <td style="text-align: left">No bookings yet...</td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
+            <th>Teacher</th>
+            <th>Student</th>
+            <th>Day</th>
+            <th>Time</th>
+            <th>Duration</th>
+            <th>Starting</th>
+            <th>Frequency</th>
+            <th style="width: 25%">Further Information</th>
+            <th style="width: 10%">Invoice ID</th>
+            <th>Edit</th>
         </tr>
-    {% endif %}
-    </thead>
-</table>
-</body>
-</html>
+        {% if bookings %}
+            {% for booking in bookings %}
+                <tr>
+                    <td style="vertical-align: top">{{ booking.teacher }}</td>
+                    <td style="vertical-align: top">{{ booking.student_name}} ({{ booking.user.email }})</td>
+                    <td style="vertical-align: top">{{ booking.day_of_the_week }}</td>
+                    <td style="vertical-align: top">{{ booking.time_of_the_day}}</td>
+                    <td style="vertical-align: top">{{ booking.duration_of_lessons }}</td>
+                    <td style="vertical-align: top">{{ booking.start_date }}</td>
+                    <td style="vertical-align: top">{{ booking.interval_between_lessons }}</td>
+                    <td style="vertical-align: top">{{ booking.further_information }}</td>
+                    <td style="vertical-align: top">{{ booking.invoice_id }}</td>
+                    <td style="vertical-align: top"><a href="{% url 'edit_booking' %}?inv_id={{ booking.invoice_id }}">Edit</a></td>
+                </tr>
+            {% endfor %}
+        {% else %}
+            <tr>
+                <td style="text-align: left">No bookings yet...</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        {% endif %}
+        </thead>
+    </table>
+</div>
 
 {% endblock %}
