@@ -135,7 +135,6 @@ def profile(request, user_id):
 
     # Redirect if the current user is attempting to change the profile of another user.
     if request.user.id != user_id:
-        print("NOT")
         form = UserForm(instance=request.user)
         return redirect('/profile/'+str(request.user.id))
 
