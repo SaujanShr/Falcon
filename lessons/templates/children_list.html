@@ -1,24 +1,28 @@
 {% extends 'base_content.html' %}
 {% block content %}
 
-<h1>Children</h1>
-
-<table class="table table-dark table-striped">
+<div class="container">
+  <h1>My Children</h1>
+  <p><a href="{% url 'new_child_view' %}" class=" btn btn-sm btn-primary">Register New Child</a></p>
+  <table class="table table-dark table-striped">
     <thead>
       <tr>
         <th>Full Name</th>
         <th>View Page</th>
+        <th>Delete Child</th>
       </tr>
     </thead>
     {% if children %}
       {% for child in children %}
         <tr><form action="{% url 'child_page' %}" method="get">
-            <td>{{ user_bookings.start_date }}</td>
-            <td>{{ user_bookings.day_of_the_week }}</td>
+            <input type="hidden" name="relation_id" value={{ child.relation_id }}>
+            <td>{{ child.full_name }}</td>
             <td><input type="submit" value="View here"></td>
           </form>
           <form action="{% url 'children_list' %}" method="post">
-            <td><input type="submit" value="Delete"></td>
+            {% csrf_token %}
+            <input type="hidden" name="relation_id" value={{ child.relation_id }}>
+            <td><input type="submit" name="delete" value="Delete"></td>
           </form>
         </tr>
       {% endfor %}
@@ -26,8 +30,9 @@
       <tr>
         <td>No children...</td>
         <td></td>
+        <td></td>
       </tr>
     {% endif %}
   </table>
-
+</div>
 {% endblock %}

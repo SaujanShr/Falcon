@@ -19,7 +19,7 @@ class ProfileViewTest(TestCase):
         create_user_groups()
         HandleGroups.set_default_user_to_student()
         self.user = User.objects.get(email="johndoe@email.com")
-        self.url = reverse('profile')
+        self.url = reverse('profile',kwargs={'user_id':self.user.id})
         self.form_input = {
             'email': 'johndoe2@example.org',
             'first_name': 'John2',
@@ -27,7 +27,7 @@ class ProfileViewTest(TestCase):
         }
 
     def test_profile_url(self):
-        self.assertEqual(self.url, '/profile/')
+        self.assertEqual(self.url, f'/profile/{self.user.id}')
 
     def test_get_profile(self):
         self.client.login(email="johndoe@email.com", password='Password123')

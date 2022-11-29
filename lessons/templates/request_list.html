@@ -1,33 +1,35 @@
 {% extends 'base_content.html' %}
 {% block content %}
-
-<p><a href="{% url 'new_request_view' %}" class=" btn btn-sm btn-primary">New Request</a></p>
-<table class="table table-dark table-striped">
-  <thead>
-    <tr>
-      <th style="width: 10%">Date</th>
-      <th>Further Information</th>
-      <th style="width: 5%">Fulfilled</th>
-      <th stype="width: 5%">View Request</th>
-    </tr>
-  </thead>
-  {% if date_user_request_pairs %}
-    {% for date_user_request_pair in date_user_request_pairs %}
-      <tr><form action="{% url 'request_view' %}" method="get">
-          <input type="hidden" name="date" value="{{ date_user_request_pair.date }}"/>
-          <td>{{ date_user_request_pair.request.date }}</td>
-          <td>{{ date_user_request_pair.request.further_information }}</td>
-          <td>{{ date_user_request_pair.request.fulfilled }}</td>
-          <td><input type="submit" value="View here"></td>
-        </form></tr>
-    {% endfor %}
-  {% else %}
-    <tr>
-      <td>No requests yet...</td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-  {% endif %}
-</table>
+<div class ="container">
+  <h1>My Requests</h1>
+  <p><a href="{% url 'new_request_view' %}" class=" btn btn-sm btn-primary">New Request</a></p>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th style="width: 10%">Date</th>
+        <th>Further Information</th>
+        <th style="width: 5%">Fulfilled</th>
+        <th stype="width: 5%">View Request</th>
+      </tr>
+    </thead>
+    {% if user_requests %}
+      {% for user_request in user_requests %}
+        <tr><form action="{% url 'request_view' %}" method="get">
+            <input type="hidden" name="request_id" value="{{ user_request.request_id }}"/>
+            <td>{{ user_request.request.date }}</td>
+            <td>{{ user_request.request.further_information }}</td>
+            <td>{{ user_request.request.fulfilled }}</td>
+            <td><input type="submit" class="btn btn-primary" value="View here"></td>
+          </form></tr>
+      {% endfor %}
+    {% else %}
+      <tr>
+        <td>No requests yet...</td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+    {% endif %}
+  </table>
+</div>
 {% endblock %}

@@ -37,8 +37,6 @@ class NewRequestFormTestCase(TestCase):
 
     def test_valid_sign_up_form(self):
         form = NewRequestViewForm(data=self.form_input)
-        # print(form) #TESTING
-        print(form.errors)
         self.assertTrue(form.is_valid())
 
     def test_form_has_necessary_fields(self):

@@ -1,0 +1,57 @@
+{% extends 'base_content.html' %}
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-6">
+            <h2>Current requests</h2>
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>User</th>
+                    <th>Availability</th>
+                    <th># of Lessons</th>
+                    <th>Duration</th>
+                </tr>
+                </thead>
+                <tr>
+                    <td>Placeholder table</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+            </table>
+            <a class="btn btn-primary" href="{% url 'admin_requests_view' %}" role="button">Fulfill requests</a>
+        </div>
+        <div class="col-6">
+            <h2>Upcoming bookings</h2>
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>Teacher</th>
+                    <th>Student</th>
+                    <th>Day</th>
+                    <th>Time</th>
+                    <th>Duration</th>
+                </tr>
+                </thead>
+                <tr>
+                    <td>Placeholder table</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+            </table>
+            <a class="btn btn-primary" href="#" role="button">Edit bookings</a>
+        </div>
+    </div>
+    <div class = "row">
+        <div class="col-6">
+            <h2>Recent transactions</h2>
+            {% include 'partials/transactions_table.html' with transactions=transactions %}
+            <a class="btn btn-primary" href="{% url 'transaction_admin_view' %}" role="button">Submit student transaction</a>
+        </div>
+        <div class="col-6">
+        </div>
+</div>
+{% endblock %}

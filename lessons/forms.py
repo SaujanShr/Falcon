@@ -1,35 +1,29 @@
 from django import forms
 from django.core.validators import RegexValidator
 from django.contrib.auth.models import Group
-from .models import User, Child, DayOfTheWeek, Request, BankTransaction, Student, Invoice
-from django.utils import timezone
-
+from .models import User, Child, DayOfTheWeek, Request, BankTransaction, Student, Invoice, SchoolTerm, Booking
+    
 class DateInput(forms.DateInput):
     input_type = 'date'
 
 class NewChildForm(forms.ModelForm):
-    first_name = forms.CharField(max_length=50)
-    last_name = forms.CharField(max_length=50)
+    class Meta:
+        model = Child
+        fields = ['first_name', 'last_name']
     
-    def __init__(self, parent, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
         super(NewChildForm, self).__init__(*args, **kwargs)
-        
-        if parent:
-            self.parent = parent
     
     def save(self):
-        super().save(commit=False)
-        fullname = self.cleaned_data.get('first_name') + ' ' + self.cleaned_data.get('last_name')
-        child = Child.objects.create(
-            parent=self.parent,
-            fullname=fullname
-        )
-        return child
-        
-class NewRequestViewForm(forms.ModelForm):
+        child = super().save(commit=False)
+        child.parent = self.user
+        return child.save()
+
+class NewRequestForm(forms.ModelForm):
     class Meta:
         model = Request
-        fields = ['student_name', 'availability', 'number_of_lessons',
+        fields = ['availability', 'number_of_lessons',
                   'interval_between_lessons', 'duration_of_lessons', 'further_information']
 
     availability = forms.ModelMultipleChoiceField(
@@ -38,42 +32,25 @@ class NewRequestViewForm(forms.ModelForm):
         widget=forms.CheckboxSelectMultiple
     )
     
-    def __init__(self, user=None, *args, **kwargs): 
-        super(NewRequestViewForm, self).__init__(*args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        self.relation_id = kwargs.pop('relation_id', None)
+        super(NewRequestForm, self).__init__(*args, **kwargs)
         
-        if user:
-            self.user = user
-            student_names = []
-            student_names.append(('Me', 'Me'))
-            
-            for child in Child.objects.filter(parent=self.user):
-                student_names.append(child.fullname, child.fullname)
-                
-            self.fields['student_name'] = forms.ChoiceField(
-                choices=student_names,
-                initial=student_names[0]
-            )
-    
     def save(self):
-        super().save(commit=False)
-        request = Request.objects.create(
-            date=timezone.datetime.now(tz=timezone.utc),
-            user=self.user,
-            student_name=self.cleaned_data.get('student_name'),
-            number_of_lessons=self.cleaned_data.get('number_of_lessons'),
-            interval_between_lessons=self.cleaned_data.get('interval_between_lessons'),
-            duration_of_lessons=self.cleaned_data.get('duration_of_lessons'),
-            further_information=self.cleaned_data.get('further_information')
-        )
-        request.availability.set(self.cleaned_data.get('availability'))
-        return request
+        request = super().save(commit=False)
+        request.user = self.user
+        request.relation_id = self.relation_id
         
-    
+        res = request.save()
+        request.availability.set(self.cleaned_data.get('availability'))
+        
+        return res 
 
 class RequestViewForm(forms.ModelForm):
     class Meta:
         model = Request
-        fields = ['date', 'student_name', 'availability', 'number_of_lessons', 'interval_between_lessons',
+        fields = ['date', 'availability', 'number_of_lessons', 'interval_between_lessons', 
                   'duration_of_lessons', 'further_information', 'fulfilled']
 
     availability = forms.ModelMultipleChoiceField(
@@ -82,37 +59,106 @@ class RequestViewForm(forms.ModelForm):
         widget=forms.CheckboxSelectMultiple
     )
     
-    def __init__(self, user=None, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        self.relation_id = kwargs.pop('relation_id', None)
+        self.instance_id = kwargs.pop('instance_id', None)
         super(RequestViewForm, self).__init__(*args, **kwargs)
         self.fields['date'].disabled = True
         self.fields['fulfilled'].disabled = True
-        
-        if user:
-            self.user = user
-            student_names = []
-            student_names.append(('Me', 'Me'))
-            
-            for child in Child.objects.filter(parent=self.user):
-                student_names.append(child.fullname, child.fullname)
-                
-            self.fields['student_name'] = forms.ChoiceField(
-                choices=student_names,
-                initial=student_names[0]
-            )
-    
+
     def set_read_only(self):
         self.fields['availability'].disabled = True
-        self.fields['student_name'].disabled = True
         self.fields['number_of_lessons'].disabled = True
         self.fields['interval_between_lessons'].disabled = True
         self.fields['duration_of_lessons'].disabled = True
         self.fields['further_information'].disabled = True
     
     def save(self):
-        self.fields['date'].disabled = False
-        self.fields['fulfilled'].disabled = False
+        instance_set = Request.objects.filter(id=self.instance_id)
+        super().save(commit=False)
         
-        return super().save(commit=True)
+        instance_set.update(
+            number_of_lessons=self.cleaned_data.get('number_of_lessons'),
+            interval_between_lessons=self.cleaned_data.get('interval_between_lessons'),
+            duration_of_lessons=self.cleaned_data.get('duration_of_lessons'),
+            further_information=self.cleaned_data.get('further_information'),
+        )
+        instance_set[0].availability.set(self.cleaned_data.get('availability'))
+        
+        return instance_set[0]
+
+
+class FulfilRequestForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        if 'reqe' in kwargs:
+            reqe = kwargs.pop('reqe')
+        super(FulfilRequestForm, self).__init__(*args, **kwargs)
+        if 'reqe' in locals() and isinstance(reqe, Request):
+            self.fields['availability'] = forms.ModelChoiceField(
+                queryset=reqe.availability.all(),
+                label="Day of lessons:",
+                widget=forms.Select
+            )
+    class Meta:
+        model = Booking
+        fields = ['availability', 'number_of_lessons', 'interval_between_lessons',
+                  'duration_of_lessons', 'further_information']
+
+    date = forms.CharField(
+        widget=forms.HiddenInput
+    )
+
+    availability = forms.ModelChoiceField(
+        queryset=DayOfTheWeek.objects.all(),
+        label="Day of lessons:",
+        widget=forms.Select
+    )
+
+    time_of_lesson = forms.TimeField(
+        label='Lesson time:',
+        widget=forms.TimeInput(
+            attrs={'type':'time'}
+        )
+    )
+    teacher = forms.CharField(
+        label='Teacher:',
+        widget=forms.TextInput
+    )
+    start_date = forms.DateField(
+        label='Start date:',
+        widget=forms.DateInput(
+            attrs={'type':'date'}
+        )
+    )
+    hourly_cost = forms.CharField(
+        widget=forms.TextInput(
+            attrs={'type':'number'}
+        )
+    )
+
+    def save(self):
+        super().save(commit=False)
+        req = Request.objects.get(date=self.cleaned_data.get('date'))
+        if not req.fulfilled:
+            booking = Booking.objects.create(
+                time_of_the_day=self.cleaned_data.get('time_of_lesson'),
+                day_of_the_week=self.cleaned_data.get('availability'),
+                user=req.user,
+                student_name=req.student_name,
+                teacher=self.cleaned_data.get('teacher'),
+                start_date=self.cleaned_data.get('start_date'),
+                duration_of_lessons=self.cleaned_data.get('duration_of_lessons'),
+                interval_between_lessons=self.cleaned_data.get('interval_between_lessons'),
+                number_of_lessons=self.cleaned_data.get('number_of_lessons'),
+                further_information=self.cleaned_data.get('further_information'),
+                invoice_id="9999-999"
+            )
+
+            return [booking, req, self.cleaned_data.get('hourly_cost')]
+        else:
+            return [None, req]
+
 
 
 class LogInForm(forms.Form):
@@ -157,6 +203,37 @@ class SignUpForm(forms.ModelForm):
     #email = forms.EmailField(label='Email')
     #password = forms.CharField(label='Password', widget=forms.PasswordInput())
 
+class CreateUser(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email']
+
+    new_password = forms.CharField(
+        label='Password',
+        widget=forms.PasswordInput(),
+        validators=[RegexValidator(
+            regex=r'^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).*$',
+            message='Password must contain an uppercase character, a lower case character and a number'
+        )]
+    )
+    password_confirmation = forms.CharField(label='Password Confirmation', widget=forms.PasswordInput())
+
+    def clean(self):
+        super().clean()
+        new_password = self.cleaned_data.get('new_password')
+        password_confirmation = self.cleaned_data.get('password_confirmation')
+        if new_password != password_confirmation:
+            self.add_error('password_confirmation', 'Confirmation does not match password.')
+
+    def save(self):
+        super().save(commit=False)  # Do everything the save function would normally do except for storing the record in the database.
+        user = User.objects.create_user(
+            first_name=self.cleaned_data.get('first_name'),
+            last_name=self.cleaned_data.get('last_name'),
+            email=self.cleaned_data.get('email'),
+            password=self.cleaned_data.get('new_password'),
+        )
+        return user
 
 class UserForm(forms.ModelForm):
     class Meta:
@@ -230,3 +307,48 @@ class TransactionSubmitForm(forms.ModelForm):
         # alter string so that it fits the form xxxx-yyy
         pass
 
+class EditBookingForm(forms.ModelForm):
+    class Meta:
+        model = Booking
+        fields = ['invoice_id','day_of_the_week','time_of_the_day','teacher','start_date',
+                  'duration_of_lessons','interval_between_lessons','number_of_lessons',
+                  'further_information']
+        widgets = {'invoice_id': forms.HiddenInput()}
+
+    day_of_the_week = forms.ModelChoiceField(
+        queryset=DayOfTheWeek.objects.all(),
+        label="Day of lessons:",
+        widget=forms.Select
+    )
+
+    time_of_the_day = forms.TimeField(
+        label='Lesson time:',
+        widget=forms.TimeInput(
+            attrs={'type': 'time'}
+        )
+    )
+    teacher = forms.CharField(
+        label='Teacher:',
+        widget=forms.TextInput
+    )
+    start_date = forms.DateField(
+        label='Start date:',
+        widget=forms.DateInput(
+            attrs={'type': 'date'}
+        )
+    )
+    hourly_cost = forms.CharField(
+        widget=forms.TextInput(
+            attrs={'type': 'number'}
+        )
+    )
+
+
+class TermViewForm(forms.ModelForm):
+    class Meta:
+        model = SchoolTerm
+        fields = ['term_name', 'start_date', 'end_date']
+        widgets = {
+            'start_date': DateInput(),
+            'end_date': DateInput()
+        }

@@ -1,104 +1,231 @@
-from .models import Request, Student, Child
-from .forms import RequestViewForm, NewRequestViewForm
+import decimal
+from .models import Request, Invoice, Student, Child, User, Booking, DayOfTheWeek, SchoolTerm
+from .forms import RequestViewForm, NewChildForm, NewRequestForm, FulfilRequestForm,EditBookingForm
 from django.conf import settings
 from django.contrib.auth import authenticate
 from django.utils import timezone
 
 
-def get_request_object(request) -> Request:
+def get_request_object_from_request(request):
     if request.method == 'GET':
-        return Request.objects.get(date=request.GET['date'])
+        return Request.objects.get(id=request.GET['request_id'])
     elif request.method == 'POST':
-        return Request.objects.get(date=request.POST['date'])
+        return Request.objects.get(id=request.POST['request_id'])
     return None
 
 
-def get_user_requests(request, name=None):
-    user = request.user
-    
-    if name: return Request.objects.filter(user=user, student_name=name).order_by('-date')
-    return Request.objects.filter(user=user).order_by('-date')
+def get_child_object_from_request(request):
+    if request.method == 'GET':
+        return Child.objects.get(id=request.GET['relation_id'])
+    elif request.method == 'POST':
+        return Child.objects.get(id=request.POST['relation_id'])
+    return None
 
 
-def get_date_user_request_pairs(request, name=None):
-    user_requests = get_user_requests(request, name)
-    
-    date_user_request_pairs = []
-    for user_request in user_requests:
-        date_user_request_pairs.append({'date':str(user_request.date), 
-                                        'request':user_request})
-    return date_user_request_pairs
+def get_full_name(student):
+    return f'{student.first_name} {student.last_name}'
+
+def get_student_from_relation_id(user, relation_id):
+    if relation_id == -1:
+        return user
+    else:
+        return Child.objects.get(id=relation_id)
+
+def get_requests(request, relation_id = -1):
+    return Request.objects.filter(user=request.user, relation_id=relation_id).order_by('-date')
+
+def get_request_list(request, relation_id = -1):
+    requests = get_requests(request, relation_id)
+    request_list = []
+    for request in requests:
+        request_list.append({'request_id':request.id, 'request':request})
+    return request_list
 
 
 def delete_request(request):
-    return get_request_object(request).delete()
+    request_object = get_request_object_from_request(request)
+    if request_object:
+        return request_object.delete()
 
 
 def update_request(request):
-    user_request = get_request_object(request)
+    user_request = get_request_object_from_request(request)
+    data = request.POST
 
-    # Can't update a fulfilled request.
-    if user_request.fulfilled:
-        return None
-    
-    post_data = request.POST.copy()
-    post_data['date'] = user_request.date
-    post_data['fulfilled'] = user_request.fulfilled
-    
-    request_instance = Request.objects.get(date=post_data['date'])
-    
-    form = RequestViewForm(request.user, post_data, instance=request_instance)
+    form = RequestViewForm(instance_id=user_request.id, data=data)
     return form.save()
 
-def save_new_request(request):
-    form = NewRequestViewForm(request.user, request.POST)
-    return form.save()
+def delete_child(request):
+    return get_child_object_from_request(request).delete()
+
+def get_children(request):
+    return Child.objects.filter(parent=request.user)
+
+def get_children_list(request):
+    children = get_children(request)
+    child_list = []
+    for child in children:
+        child_list.append({'relation_id':child.id, 'full_name':get_full_name(child)})
+    return child_list
 
 
-def get_new_request_view_form(request):
-    this_request = get_request_object(request)
+def update_booking(request):
+    data = request.POST.copy()
+    booking = Booking.objects.get(invoice_id=data['invoice_id'])
+    booking.day_of_the_week = DayOfTheWeek.objects.get(order=(int(data['day_of_the_week'])-1))
+    booking.time_of_the_day = data['time_of_the_day']
+    booking.teacher = data['teacher']
+    booking.start_date = data['start_date']
+    booking.duration_of_lessons = data['duration_of_lessons']
+    booking.interval_between_lessons = data['interval_between_lessons']
+    booking.number_of_lessons = data['number_of_lessons']
+    booking.further_information = data['further_information']
+    booking.full_clean()
+
+    #Update invoice
+    student = Student.objects.get(user=booking.user)
+    invoice = Invoice.objects.get(invoice_number=data['invoice_id'])
+    new_cost = booking.duration_of_lessons * int(data['hourly_cost']) * booking.number_of_lessons / 60
+    invoice.full_amount = new_cost
+
+    if invoice.paid_amount > invoice.full_amount:
+        student.balance = student.balance + decimal.Decimal((invoice.paid_amount-decimal.Decimal(invoice.full_amount)))
+        invoice.paid_amount = invoice.full_amount
+        invoice.fully_paid = True
+        student.save()
+    elif invoice.paid_amount == invoice.full_amount:
+        invoice.fully_paid = True
+    else:
+        invoice.fully_paid = False
+
+    invoice.save()
+    booking.save()
+
+def delete_booking(request):
+    #This delete function will return any money paid
+    data = request.POST.copy()
+    booking = Booking.objects.get(invoice_id=data['invoice_id'])
+    invoice = Invoice.objects.get(invoice_number=data['invoice_id'])
+    student = Student.objects.get(user=booking.user)
+    student.balance = student.balance + invoice.paid_amount
+    invoice.paid_amount = 0
+    invoice.full_amount = 0
+    invoice.fully_paid = True
+    invoice.save()
+    booking.delete()
+    student.save()
+
+def get_booking_form(request):
+    booking = Booking.objects.get(invoice_id=request.GET['inv_id'])
+    invoice = Invoice.objects.get(invoice_number=booking.invoice_id)
+    hourly_cost = int(invoice.full_amount/booking.duration_of_lessons/booking.number_of_lessons*60)
+    form = EditBookingForm(
+        initial={
+            'invoice_id': booking.invoice_id,
+            'day_of_the_week': booking.day_of_the_week,
+            'time_of_the_day': booking.time_of_the_day,
+            'teacher': booking.teacher,
+            'start_date': booking.start_date,
+            'duration_of_lessons': booking.duration_of_lessons,
+            'interval_between_lessons': booking.interval_between_lessons,
+            'number_of_lessons': booking.number_of_lessons,
+            'further_information': booking.further_information,
+            'hourly_cost':hourly_cost
+        }
+    )
+    return form
+
+
+def get_request_view_form(request):
+    this_request = get_request_object_from_request(request)
     form = RequestViewForm(
         initial={
             'date':this_request.date,
-            'student_name':this_request.student_name,
+            'relation_id':this_request.relation_id,
             'availability':this_request.availability.all(),
             'number_of_lessons':this_request.number_of_lessons,
             'interval_between_lessons':this_request.interval_between_lessons,
             'duration_of_lessons':this_request.duration_of_lessons,
             'further_information':this_request.further_information,
             'fulfilled':this_request.fulfilled
-            },
-        user=this_request.user
+            }
         )
+    return form
+
+def get_fulfil_request_form(request):
+    this_request = get_request_object_from_request(request)
+    form = FulfilRequestForm(
+        initial={
+            'date': this_request.date,
+            'number_of_lessons': this_request.number_of_lessons,
+            'interval_between_lessons': this_request.interval_between_lessons,
+            'duration_of_lessons': this_request.duration_of_lessons,
+            'further_information': this_request.further_information
+        },
+        reqe=this_request
+    )
     return form
 
 def get_student(request):
     return Student.objects.get(user=request.user)
 
-def get_child(request):
-    full_name = request.full_name
-    return Child.objects.filter(parent=request.user,full_name=full_name)[0]
+def create_invoice(booking, hourly_cost):
 
-def get_children(request):
-    return Child.objects.filter(parent=request.user)
+    user = Student.objects.get(user__email=booking.user)
 
+    invoice_number = generate_invoice_number()
 
-def get_redirect_url(user, request):
-    if user.groups.exists():
-        if (user.groups.all()[0].name == 'Student'):
-            user_specific_redirect = settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_STUDENT
-        elif (user.groups.all()[0].name == 'Admin'):
-            user_specific_redirect = settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_ADMIN
-    else:
-        if user.is_staff:
-            user_specific_redirect = settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_DIRECTOR
-        else:
-            user_specific_redirect = ''
-    return request.POST.get('next') or user_specific_redirect
+    #Calculate amount to pay
+    total_required = (int(hourly_cost) * booking.number_of_lessons * booking.duration_of_lessons / 60)
 
+    #Create invoice
+    invoice = Invoice.objects.create(
+        invoice_number=invoice_number,
+        student=user,
+        full_amount=total_required,
+        paid_amount=0,
+        fully_paid=False
+    )
+    invoice.full_clean()
+    invoice.save()
+
+    return invoice_number
+
+def generate_invoice_number(user):
+    invoice_number = ""
+    user_id = user.id
+    number_of_invoices_for_user = Invoice.objects.all().filter(student=user).count() + 1
+    for i in range(4-len(str(user_id))):
+        invoice_number += "0"
+    invoice_number = invoice_number + str(user_id) + "-"
+    for i in range(3-len(str(number_of_invoices_for_user))):
+        invoice_number += "0"
+    invoice_number += str(number_of_invoices_for_user)
+    return invoice_number
 
 def get_user(form):
     email = form.cleaned_data.get('email')
     password = form.cleaned_data.get('password')
     return authenticate(email=email, password=password)
 
+def term_name_already_exists(old_term_name, new_term_name):
+    # Run if there has been a change to the term name
+    if old_term_name != new_term_name:
+        current_school_terms = SchoolTerm.objects.all()
+
+        for term in current_school_terms:
+            # If the new name is the same as any existing names:
+            if term.term_name == new_term_name:
+                return True
+
+    return False
+
+def get_redirect_url_for_user(user):
+    if user.get_group() == "Student":
+        return settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_STUDENT
+    elif user.get_group() == "Admin":
+        return settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_ADMIN
+    elif user.get_group() == 'Director':
+        return settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_DIRECTOR
+    else:
+        return ''

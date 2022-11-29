@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import User, Student, BankTransaction, Booking, Request
+from .models import User, Student, BankTransaction, Booking, Request, SchoolTerm
+
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
@@ -24,7 +25,7 @@ class RequestAdmin(admin.ModelAdmin):
     list_display = [
         'date', 
         'user',
-        'student_name',
+        'relation_id',
         'number_of_lessons', 
         'interval_between_lessons', 
         'duration_of_lessons',
@@ -36,14 +37,22 @@ class RequestAdmin(admin.ModelAdmin):
 class BookingAdmin(admin.ModelAdmin):
     list_display = [
         'invoice_id',
-        'day_of_the_week',
+        #'day_of_the_week',
         'time_of_the_day',
         'user',
-        'student_name',
+        'relation_id',
         'teacher',
         'start_date',
         'duration_of_lessons',
         'interval_between_lessons',
         'number_of_lessons',
         'further_information'
+    ]
+
+@admin.register(SchoolTerm)
+class SchoolTermAdmin(admin.ModelAdmin):
+    list_display = [
+        'term_name',
+        'start_date',
+        'end_date'
     ]

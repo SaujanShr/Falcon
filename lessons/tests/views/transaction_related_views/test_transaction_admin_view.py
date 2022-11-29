@@ -8,13 +8,13 @@ import datetime
 from lessons.tests.helpers import create_user_groups
 
 class TransactionAdminViewTestCase(TestCase):
+
+    fixtures = ['lessons/tests/fixtures/default_user.json']
+    
     def setUp(self):
         create_user_groups()
+        self.user = User.objects.get(email='johndoe@email.com')
         self.url = reverse('transaction_admin_view')
-        self.user = User.objects.create_user(
-                email='email1@email.com',
-                password='password'
-            )
         self.student = Student.objects.create(user = self.user)
         self.invoice1 = Invoice.objects.create(
             invoice_number='1234-123',
@@ -32,10 +32,6 @@ class TransactionAdminViewTestCase(TestCase):
             email='admin@email.com',
             password='password'
         )
-
-        #TODO make superuser creation automatically add the created user to the admin group.
-        admin_group = Group.objects.get(name='Admin')
-        admin_group.user_set.add(self.superuser)
 
     def test_transaction_admin_url(self):
         self.assertEqual(self.url, '/transactions/admin/submit')
