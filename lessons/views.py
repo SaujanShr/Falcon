@@ -8,6 +8,7 @@ from .decorators import login_prohibited, allowed_groups
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import Group
 from .views_functions import *
+from django.core.exceptions import ObjectDoesNotExist
 
 @login_required
 @allowed_groups(['Student'])
@@ -125,8 +126,18 @@ def sign_up(request):
 
 
 @login_required
-def profile(request,user_id):
-    user = User.objects.get(id=user_id)
+def profile(request, user_id):
+    # Redirect if the requested user_id is not a valid user.
+    try:
+        user = User.objects.get(id=user_id)
+    except ObjectDoesNotExist:
+        return redirect('/profile/' + str(request.user.id))
+
+    # Redirect if the current user is attempting to change the profile of another user.
+    if request.user.id != user_id:
+        form = UserForm(instance=request.user)
+        return redirect('/profile/'+str(request.user.id))
+
     if request.method == 'POST':
         form = UserForm(instance=user, data=request.POST)
         if form.is_valid():
@@ -135,7 +146,7 @@ def profile(request,user_id):
             return redirect(get_redirect_url_for_user(user))
     else:
         form = UserForm(instance=user)
-    return render(request, 'profile.html', {'form': form, 'user_id':user_id})
+    return render(request, 'profile.html', {'form': form, 'user_id': user_id})
 
 
 @login_required
