@@ -4,6 +4,7 @@
         <a class="nav-item nav-link text-white" href="{% url 'admin_requests_view' %}">Requests</a>
         <a class="nav-item nav-link text-white" href="{% url 'transaction_admin_view' %}">Submit Transaction</a>
         <a class="nav-item nav-link text-white" href="{% url 'transaction_list_admin' %}">View Transactions</a>
+        <a class="nav-item nav-link text-white" href="{% url 'invoice_list_admin' %}">View Invoices</a>
         <a class="nav-item nav-link text-white" href="{% url 'balance_list_admin' %}">View Balances</a>
         {% if user.is_superuser %}
             <a class="nav-item nav-link text-white" href="{% url 'admin_user_view' %}">Manage Users</a>
