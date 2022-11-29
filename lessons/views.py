@@ -218,7 +218,7 @@ def transaction_list_student(request):
 @login_required
 @allowed_groups(["Admin", "Director"])
 def invoice_list_admin(request):
-    invoices = Invoice.objects.all()
+    invoices = Invoice.objects.all().reverse()
     return render(request, 'invoice_list.html', {'invoices': invoices})
 
 @login_required
@@ -230,7 +230,7 @@ def invoice_list_student(request):
     if (not r_student):
         invoices = Invoice.objects.none()
     else:
-        invoices = Invoice.objects.all().filter(student=r_student)
+        invoices = Invoice.objects.all().filter(student=r_student).reverse()
     
     return render(request, 'invoice_list.html', {'invoices': invoices})
 
