@@ -32,11 +32,11 @@ def get_date_user_request_pairs(request, name=None):
 
 
 def delete_request(request):
-    return get_request_object(request).delete()
+    return get_request_object_from_request(request).delete()
 
 
 def update_request(request):
-    user_request = get_request_object(request)
+    user_request = get_request_object_from_request(request)
 
     # Can't update a fulfilled request.
     if user_request.fulfilled:
@@ -122,7 +122,7 @@ def get_booking_form(request):
 
 def get_new_request_view_form(request):
 
-    this_request = get_request_object(request)
+    this_request = get_request_object_from_request(request)
     form = RequestViewForm(
         initial={
             'date':this_request.date,
@@ -140,7 +140,7 @@ def get_new_request_view_form(request):
 
 
 def get_fulfil_request_form(request):
-    this_request = get_request_object(request)
+    this_request = get_request_object_from_request(request)
     form = FulfilRequestForm(
         initial={
             'date': this_request.date,
@@ -165,7 +165,7 @@ def create_invoice(booking, hourly_cost):
 
     user = Student.objects.get(user__email=booking.user)
 
-    invoice_number = generate_invoice_number()
+    invoice_number = generate_invoice_number(user)
 
     #Calculate amount to pay
     total_required = (int(hourly_cost) * booking.number_of_lessons * booking.duration_of_lessons / 60)
