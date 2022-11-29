@@ -18,10 +18,10 @@ def student_page(request):
 @login_required
 @allowed_groups(['Admin', 'Director'])
 def admin_page(request):
-    transactions = BankTransaction.objects.order_by('date')
-    #TODO add requests and bookings data to pass into template
-    #TODO if any of these datasets are too large, filter to only first 15
-    return render(request, 'admin_page.html', {'transactions': transactions})
+    transactions = BankTransaction.objects.order_by('-date')
+    requests = get_and_format_request_for_display()
+    bookings = get_and_format_booking_for_display()
+    return render(request, 'admin_page.html', {'transactions': transactions[:5], 'requests': requests[1][:5], 'bookings': bookings[:5]})
 
 
 @login_required
@@ -209,7 +209,7 @@ def transaction_admin_view(request):
 @login_required
 @allowed_groups(["Admin", "Director"])
 def transaction_list_admin(request):
-    transactions = BankTransaction.objects.order_by('date')
+    transactions = BankTransaction.objects.order_by('-date')
     return render(request, 'transaction_list.html', {'transactions': transactions})
 
 
@@ -256,32 +256,14 @@ def balance_list_admin(request):
 #@login_required
 #@allowed_groups(["Admin","Director"])
 def admin_bookings_view(request):
-    bookings = Booking.objects.all()
-
-    for booking in bookings:
-        booking.interval_between_lessons = \
-            booking.IntervalBetweenLessons.choices[booking.interval_between_lessons - 1][1]
-        for duration in booking.LessonDuration.choices:
-            if duration[0] == booking.duration_of_lessons:
-                booking.duration_of_lessons = duration[1]
+    bookings = get_and_format_booking_for_display()
     return render(request, 'admin_bookings_view.html', {'bookings': bookings})
 
 def admin_requests_view(request):
-    requests = Request.objects.all()
-    fulfilled_requests = []
-    unfulfilled_requests = []
-    for req in requests:
-        req.interval_between_lessons = req.IntervalBetweenLessons.choices[req.interval_between_lessons - 1][1]
-        for duration in req.LessonDuration.choices:
-            if duration[0] == req.duration_of_lessons:
-                req.duration_of_lessons = duration[1]
-        req.raw_date = str(req.date).split('+')[0] # To do: Ensure this works regardless of timezone, change
-        if req.fulfilled:
-            fulfilled_requests.append(req)
-        else:
-            unfulfilled_requests.append(req)
-    return render(request, 'admin_requests_view.html', {'fulfilled_requests': fulfilled_requests,
-                                                        'unfulfilled_requests': unfulfilled_requests})
+    requests = get_and_format_request_for_display()
+            
+    return render(request, 'admin_requests_view.html', {'fulfilled_requests': requests[0],
+                                                        'unfulfilled_requests': requests[1]})
 
 
 #@login_required

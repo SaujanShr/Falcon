@@ -30,6 +30,33 @@ def get_date_user_request_pairs(request, name=None):
                                         'request': user_request})
     return date_user_request_pairs
 
+def get_and_format_request_for_display():
+    requests = Request.objects.all()
+    #request_list[0] for fulfilled, rqeuest_list[1] for unfulfilled
+    request_list = [[], []] 
+    for req in requests:
+        req.interval_between_lessons = req.IntervalBetweenLessons.choices[req.interval_between_lessons - 1][1]
+        for duration in req.LessonDuration.choices:
+            if duration[0] == req.duration_of_lessons:
+                req.duration_of_lessons = duration[1]
+        req.raw_date = str(req.date).split('+')[0] # To do: Ensure this works regardless of timezone, change
+        if req.fulfilled:
+            request_list[0].append(req)
+        else:
+            request_list[1].append(req)
+    return request_list
+
+def get_and_format_booking_for_display():
+    bookings = Booking.objects.all()
+
+    for booking in bookings:
+        booking.interval_between_lessons = \
+            booking.IntervalBetweenLessons.choices[booking.interval_between_lessons - 1][1]
+        for duration in booking.LessonDuration.choices:
+            if duration[0] == booking.duration_of_lessons:
+                booking.duration_of_lessons = duration[1]
+    
+    return bookings
 
 def delete_request(request):
     return get_request_object_from_request(request).delete()
