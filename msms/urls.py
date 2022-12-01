@@ -30,6 +30,7 @@ urlpatterns = [
     path('request_view/', views.request_view, name='request_view'),
     path('new_request_view/', views.new_request_view, name='new_request_view'),
     path('children_list/', views.children_list, name='children_list'),
+    path('child_view/', views.child_view, name='child_view'),
     path('child_page/', views.child_page, name='child_page'),
     path('new_child_view/', views.new_child_view, name='new_child_view'),
     path(r'child_request_list/<relation_id>/', views.child_request_list, name='child_request_list'),

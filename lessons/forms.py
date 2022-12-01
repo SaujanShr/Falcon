@@ -20,6 +20,24 @@ class NewChildForm(forms.ModelForm):
         child.parent = self.user
         return child.save()
 
+class ChildViewForm(forms.ModelForm):
+    class Meta:
+        model = Child
+        fields = ['first_name', 'last_name']
+    
+    def __init__(self, *args, **kwargs):
+        self.instance_id = kwargs.pop('instance_id', None)
+        super(ChildViewForm, self).__init__(*args, **kwargs)
+    
+    def save(self):
+        instance_set = Child.objects.filter(id=self.instance_id)
+        super().save(commit=False)
+        instance_set.update(
+            first_name=self.cleaned_data.get('first_name'),
+            last_name=self.cleaned_data.get('last_name')
+        )
+        return instance_set[0]
+
 class NewRequestForm(forms.ModelForm):
     class Meta:
         model = Request

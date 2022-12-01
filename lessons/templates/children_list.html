@@ -4,11 +4,12 @@
 <div class="container">
   <h1>My Children</h1>
   <p><a href="{% url 'new_child_view' %}" class=" btn btn-sm btn-primary">Register New Child</a></p>
-  <table class="table table-dark table-striped">
+  <table class="table table-striped">
     <thead>
       <tr>
-        <th>Full Name</th>
+        <th style=>Full Name</th>
         <th>View Child</th>
+        <th>Edit Child Profile</th>
       </tr>
     </thead>
     {% if children %}
@@ -16,7 +17,12 @@
         <tr><form action="{% url 'child_page' %}" method="get">
             <input type="hidden" name="relation_id" value={{ child.id }}>
             <td>{{ child.name }}</td>
-            <td><input type="submit" value="View here"></td>
+            <td><input type="submit" name="view" value="View" class="btn btn-primary"></td>
+          </form>
+          <form action="{% url 'child_view' %}" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="relation_id" value={{ child.id }}>
+            <td><input type="submit" name="edit" value="Edit" class="btn btn-primary"></td>
           </form>
         </tr>
       {% endfor %}

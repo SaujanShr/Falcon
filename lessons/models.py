@@ -134,7 +134,10 @@ class Request(models.Model):
     user = models.ForeignKey(User, blank=False, on_delete=models.CASCADE)
     relation_id = models.IntegerField(MinValueValidator(-1))
     availability = models.ManyToManyField(DayOfTheWeek, blank=False)
-    number_of_lessons = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(9223372036854775807)])
+    number_of_lessons = models.PositiveIntegerField(blank=False,
+                                                    default=1,
+                                                    validators=[MinValueValidator(1), 
+                                                                MaxValueValidator(9223372036854775807)])
     interval_between_lessons = models.PositiveIntegerField(choices=IntervalBetweenLessons.choices)
     duration_of_lessons = models.PositiveIntegerField(choices=LessonDuration.choices)
     further_information = models.CharField(blank=False, max_length=500)

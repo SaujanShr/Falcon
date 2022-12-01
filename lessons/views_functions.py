@@ -1,6 +1,6 @@
 import decimal
 from .models import Request, Invoice, Student, Child, User, Booking, DayOfTheWeek, SchoolTerm
-from .forms import RequestViewForm, FulfilRequestForm, EditBookingForm
+from .forms import RequestViewForm, FulfilRequestForm, EditBookingForm, ChildViewForm
 from django.conf import settings
 from django.contrib.auth import authenticate
 
@@ -79,8 +79,17 @@ def get_children_idname(user):
         children_idname.append(get_child_idname(child.id))
     return children_idname
 
-def delete_child(request):
-    return get_child_object_from_request(request).delete()
+def delete_child(user, relation_id):
+    get_request_objects(user, relation_id).delete()
+    get_booking_objects(user, relation_id).delete()
+    return get_child_object(relation_id).delete()
+
+def update_child_object_from_request(request):
+    child = get_child_object_from_request(request)
+    data = request.POST
+    
+    form = ChildViewForm(instance_id=child.id, data=data)
+    return form.save()
 
 def update_booking(request):
     data = request.POST.copy()
@@ -148,6 +157,15 @@ def get_booking_form(request):
     )
     return form
 
+def get_child_view_form(request_id):
+    child = get_child_object(request_id)
+    form = ChildViewForm(
+        initial={
+            'first_name':child.first_name,
+            'last_name':child.last_name
+        }
+    )
+    return form
 
 def get_request_view_form(request_id):
     user_request = get_request_object(request_id)

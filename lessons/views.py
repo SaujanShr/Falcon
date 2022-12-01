@@ -108,9 +108,10 @@ def child_page(request):
             return redirect('children_list')
     
     child = get_child_idname(relation_id)
-    
     return render(request, 'child_page.html', {'child':child})
 
+@login_required
+@allowed_groups(['Student'])
 def new_child_view(request):
     if request.method == 'POST':
         form = NewChildForm(user=request.user, data=request.POST)
@@ -118,8 +119,24 @@ def new_child_view(request):
         return redirect('children_list')
     
     form = NewChildForm()
-        
     return render(request, 'new_child_view.html', {'form': form})
+
+def child_view(request):
+    relation_id = get_relation_id_from_request(request)
+    
+    if request.method == 'POST':
+        if request.POST.get('update', None) and update_child_object_from_request(request): 
+            return redirect('children_list')
+        if request.POST.get('delete', None):
+            delete_child(request.user, request.POST.get('relation_id'))
+            return redirect('children_list')
+        elif request.POST.get('return', None):
+            return redirect('children_list')
+    
+    form = get_child_view_form(relation_id)
+    
+    return render(request, 'child_view.html', {'relation_id':relation_id, 'form':form})
+        
 
 @login_required
 @allowed_groups(['Student'])

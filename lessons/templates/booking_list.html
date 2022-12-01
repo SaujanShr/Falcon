@@ -1,33 +1,35 @@
 {% extends 'base_content.html' %}
 {% block content %}
 
-<h1>Bookings</h1>
-<table class="table table-striped">
-  <thead>
-    <tr>
-      <th>Start Date</th>
-      <th>Teacher</th>
-      <th>Further Information</th>
-      <th>View Booking</th>
-    </tr>
-  </thead>
-  {% if user_bookings %}
-    {% for user_booking in user_bookings %}
-      <tr><form action="{% url 'request_view' %}" method="get">
-        <td>{{ user_bookings.start_date }}</td>
-        <td>{{ user_bookings.teacher }}</td>
-        <td>{{ user_bookings.further_information }}</td>
-        <td><input type="submit" class="btn btn-primary" value="View here"></td>
-      </form></tr>
-    {% endfor %}
-  {% else %}
-    <tr>
-      <td>No bookings yet...</td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-  {% endif %}
-</table>
+<div class="container">
+  <h1>Bookings</h1>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Start Date</th>
+        <th>Teacher</th>
+        <th>Further Information</th>
+        <th>View Booking</th>
+      </tr>
+    </thead>
+    {% if user_bookings %}
+      {% for user_booking in user_bookings %}
+        <tr><form action="{% url 'request_view' %}" method="get">
+          <td>{{ user_bookings.start_date }}</td>
+          <td>{{ user_bookings.teacher }}</td>
+          <td>{{ user_bookings.further_information }}</td>
+          <td><input type="submit" class="btn btn-primary" value="View here"></td>
+        </form></tr>
+      {% endfor %}
+    {% else %}
+      <tr>
+        <td>No bookings yet...</td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+    {% endif %}
+  </table>
+</div>
 
 {% endblock %}
