@@ -1,6 +1,6 @@
 import decimal
-from .models import Request, Invoice, Student, Child, User, Booking, DayOfTheWeek, SchoolTerm
-from .forms import RequestViewForm, NewRequestViewForm, FulfilRequestForm,EditBookingForm
+from .models import Request, Invoice, Student, Child, User, Booking, DayOfTheWeek, SchoolTerm, BankTransaction
+from .forms import RequestViewForm, NewRequestViewForm, FulfilRequestForm,EditBookingForm, TransactionSubmitForm
 from django.conf import settings
 from django.contrib.auth import authenticate
 from django.utils import timezone
@@ -48,6 +48,18 @@ def get_and_format_request_for_display():
 
 def get_and_format_booking_for_display():
     bookings = Booking.objects.all()
+
+    for booking in bookings:
+        booking.interval_between_lessons = \
+            booking.IntervalBetweenLessons.choices[booking.interval_between_lessons - 1][1]
+        for duration in booking.LessonDuration.choices:
+            if duration[0] == booking.duration_of_lessons:
+                booking.duration_of_lessons = duration[1]
+    
+    return bookings
+
+def get_and_format_student_bookings_for_display(request):
+    bookings = Booking.objects.all().filter(user=request.user)
 
     for booking in bookings:
         booking.interval_between_lessons = \
@@ -249,3 +261,25 @@ def get_redirect_url_for_user(user):
         return settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_DIRECTOR
     else:
         return ''
+
+def get_invoice_list(request):
+    r_user = request.user
+    r_student = Student.objects.get(user=r_user)
+
+    if (not r_student):
+        invoices = Invoice.objects.none()
+    else:
+        invoices = Invoice.objects.all().filter(student=r_student).reverse()
+    
+    return invoices
+
+def get_transaction_list(request):
+    r_user = request.user
+    r_student = Student.objects.get(user=r_user)
+
+    if (not r_student):
+        transactions = BankTransaction.objects.none()
+    else:
+        transactions = BankTransaction.objects.order_by('date').filter(student=r_student)
+
+    return transactions

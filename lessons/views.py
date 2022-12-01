@@ -13,7 +13,11 @@ from django.core.exceptions import ObjectDoesNotExist
 @login_required
 @allowed_groups(['Student'])
 def student_page(request):
-    return render(request, 'student_page.html')
+    date_user_request_pairs = get_date_user_request_pairs(request)
+    bookings = get_and_format_student_bookings_for_display(request)
+    invoices = get_invoice_list(request)
+    transactions = get_transaction_list(request)
+    return render(request, 'student_page.html', {'date_user_request_pairs': date_user_request_pairs, 'invoices': invoices, 'transactions': transactions, 'bookings': bookings})
 
 @login_required
 @allowed_groups(['Admin', 'Director'])
@@ -90,7 +94,8 @@ def child_booking_list(request):
 @login_required
 @allowed_groups(['Student'])
 def booking_list(request):
-    return render(request, 'booking_list.html')
+    bookings = get_and_format_student_bookings_for_display(request)
+    return render(request, 'booking_list.html', {'bookings': bookings})
 
 @login_prohibited
 def home(request):
@@ -216,14 +221,7 @@ def transaction_list_admin(request):
 @login_required
 @allowed_groups(["Student"])
 def transaction_list_student(request):
-    r_user = request.user
-    r_student = Student.objects.get(user=r_user)
-
-    if (not r_student):
-        transactions = BankTransaction.objects.none()
-    else:
-        transactions = BankTransaction.objects.order_by('date').filter(student=r_student)
-
+    transactions = get_transaction_list(request)
     return render(request, 'transaction_list.html', {'transactions': transactions})
 
 @login_required
@@ -235,14 +233,7 @@ def invoice_list_admin(request):
 @login_required
 @allowed_groups(["Student"])
 def invoice_list_student(request):
-    r_user = request.user
-    r_student = Student.objects.get(user=r_user)
-
-    if (not r_student):
-        invoices = Invoice.objects.none()
-    else:
-        invoices = Invoice.objects.all().filter(student=r_student).reverse()
-    
+    invoices = get_invoice_list(request)
     return render(request, 'invoice_list.html', {'invoices': invoices})
 
 
