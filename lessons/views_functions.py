@@ -1,6 +1,7 @@
 import decimal
 from .models import Request, Invoice, Student, Child, User, Booking, DayOfTheWeek, SchoolTerm, BankTransaction
 from .forms import RequestViewForm, NewRequestViewForm, FulfilRequestForm,EditBookingForm, TransactionSubmitForm
+from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.contrib.auth import authenticate
 from django.utils import timezone
@@ -263,23 +264,22 @@ def get_redirect_url_for_user(user):
         return ''
 
 def get_invoice_list(request):
-    r_user = request.user
-    r_student = Student.objects.get(user=r_user)
-
-    if (not r_student):
-        invoices = Invoice.objects.none()
-    else:
+    try:
+        r_user = request.user
+        r_student = Student.objects.get(user=r_user)
         invoices = Invoice.objects.all().filter(student=r_student).reverse()
+        return invoices
+    except ObjectDoesNotExist:
+        return Invoice.objects.none()
     
-    return invoices
 
 def get_transaction_list(request):
-    r_user = request.user
-    r_student = Student.objects.get(user=r_user)
-
-    if (not r_student):
-        transactions = BankTransaction.objects.none()
-    else:
+    try:
+        r_user = request.user
+        r_student = Student.objects.get(user=r_user)
         transactions = BankTransaction.objects.order_by('date').filter(student=r_student)
+        return transactions
+    except ObjectDoesNotExist:
+        return BankTransaction.objects.none()
 
-    return transactions
+    
