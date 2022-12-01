@@ -13,15 +13,19 @@ from django.core.exceptions import ObjectDoesNotExist
 @login_required
 @allowed_groups(['Student'])
 def student_page(request):
-    return render(request, 'student_page.html')
+    date_user_request_pairs = get_date_user_request_pairs(request)
+    bookings = get_and_format_student_bookings_for_display(request)
+    invoices = get_invoice_list(request)
+    transactions = get_transaction_list(request)
+    return render(request, 'student_page.html', {'date_user_request_pairs': date_user_request_pairs[:5], 'invoices': invoices[:5], 'transactions': transactions[:5], 'bookings': bookings[:5]})
 
 @login_required
 @allowed_groups(['Admin', 'Director'])
 def admin_page(request):
-    transactions = BankTransaction.objects.order_by('date')
-    #TODO add requests and bookings data to pass into template
-    #TODO if any of these datasets are too large, filter to only first 15
-    return render(request, 'admin_page.html', {'transactions': transactions})
+    transactions = BankTransaction.objects.order_by('-date')
+    requests = get_and_format_request_for_display()
+    bookings = get_and_format_booking_for_display()
+    return render(request, 'admin_page.html', {'transactions': transactions[:5], 'requests': requests[1][:5], 'bookings': bookings[:5]})
 
 
 @login_required
@@ -90,7 +94,8 @@ def child_booking_list(request):
 @login_required
 @allowed_groups(['Student'])
 def booking_list(request):
-    return render(request, 'booking_list.html')
+    bookings = get_and_format_student_bookings_for_display(request)
+    return render(request, 'booking_list.html', {'bookings': bookings})
 
 @login_prohibited
 def home(request):
@@ -209,21 +214,14 @@ def transaction_admin_view(request):
 @login_required
 @allowed_groups(["Admin", "Director"])
 def transaction_list_admin(request):
-    transactions = BankTransaction.objects.order_by('date')
+    transactions = BankTransaction.objects.order_by('-date')
     return render(request, 'transaction_list.html', {'transactions': transactions})
 
 
 @login_required
 @allowed_groups(["Student"])
 def transaction_list_student(request):
-    r_user = request.user
-    r_student = Student.objects.get(user=r_user)
-
-    if (not r_student):
-        transactions = BankTransaction.objects.none()
-    else:
-        transactions = BankTransaction.objects.order_by('date').filter(student=r_student)
-
+    transactions = get_transaction_list(request)
     return render(request, 'transaction_list.html', {'transactions': transactions})
 
 @login_required
@@ -235,14 +233,7 @@ def invoice_list_admin(request):
 @login_required
 @allowed_groups(["Student"])
 def invoice_list_student(request):
-    r_user = request.user
-    r_student = Student.objects.get(user=r_user)
-
-    if (not r_student):
-        invoices = Invoice.objects.none()
-    else:
-        invoices = Invoice.objects.all().filter(student=r_student).reverse()
-    
+    invoices = get_invoice_list(request)
     return render(request, 'invoice_list.html', {'invoices': invoices})
 
 
@@ -256,32 +247,14 @@ def balance_list_admin(request):
 #@login_required
 #@allowed_groups(["Admin","Director"])
 def admin_bookings_view(request):
-    bookings = Booking.objects.all()
-
-    for booking in bookings:
-        booking.interval_between_lessons = \
-            booking.IntervalBetweenLessons.choices[booking.interval_between_lessons - 1][1]
-        for duration in booking.LessonDuration.choices:
-            if duration[0] == booking.duration_of_lessons:
-                booking.duration_of_lessons = duration[1]
+    bookings = get_and_format_booking_for_display()
     return render(request, 'admin_bookings_view.html', {'bookings': bookings})
 
 def admin_requests_view(request):
-    requests = Request.objects.all()
-    fulfilled_requests = []
-    unfulfilled_requests = []
-    for req in requests:
-        req.interval_between_lessons = req.IntervalBetweenLessons.choices[req.interval_between_lessons - 1][1]
-        for duration in req.LessonDuration.choices:
-            if duration[0] == req.duration_of_lessons:
-                req.duration_of_lessons = duration[1]
-        req.raw_date = str(req.date).split('+')[0] # To do: Ensure this works regardless of timezone, change
-        if req.fulfilled:
-            fulfilled_requests.append(req)
-        else:
-            unfulfilled_requests.append(req)
-    return render(request, 'admin_requests_view.html', {'fulfilled_requests': fulfilled_requests,
-                                                        'unfulfilled_requests': unfulfilled_requests})
+    requests = get_and_format_request_for_display()
+            
+    return render(request, 'admin_requests_view.html', {'fulfilled_requests': requests[0],
+                                                        'unfulfilled_requests': requests[1]})
 
 
 #@login_required
