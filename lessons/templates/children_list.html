@@ -8,27 +8,22 @@
     <thead>
       <tr>
         <th>Full Name</th>
-        <th>View Page</th>
-        <th>Delete Child</th>
+        <th>View Child</th>
       </tr>
     </thead>
     {% if children %}
       {% for child in children %}
         <tr><form action="{% url 'child_page' %}" method="get">
-            <input type="hidden" name="relation_id" value={{ child.relation_id }}>
-            <td>{{ child.full_name }}</td>
+            <input type="hidden" name="relation_id" value={{ child.id }}>
+            <td>{{ child.name }}</td>
             <td><input type="submit" value="View here"></td>
-          </form>
-          <form action="{% url 'children_list' %}" method="post">
-            {% csrf_token %}
-            <input type="hidden" name="relation_id" value={{ child.relation_id }}>
-            <td><input type="submit" name="delete" value="Delete"></td>
           </form>
         </tr>
       {% endfor %}
     {% else %}
       <tr>
         <td>No children...</td>
+        <td></td>
         <td></td>
         <td></td>
       </tr>

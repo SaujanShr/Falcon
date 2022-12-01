@@ -1,0 +1,37 @@
+{% extends 'base_content.html' %}
+{% block content %}
+
+<div class="container">
+  {% include 'partials/child_menu.html' with child=child %}
+  <h1>Bookings</h1>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Start Date</th>
+        <th>Teacher</th>
+        <th>Further Information</th>
+        <th>View Booking</th>
+      </tr>
+    </thead>
+    {% if child_bookings %}
+      {% for child_booking in child_bookings %}
+        <tr><form action="{% url 'request_view' %}" method="get">
+          <input type="hidden" name="relation_id" value="{{ child.id }}">
+          <td>{{ child_bookings.start_date }}</td>
+          <td>{{ child_bookings.teacher }}</td>
+          <td>{{ child_bookings.further_information }}</td>
+          <td><input type="submit" class="btn btn-primary" value="View here"></td>
+        </form></tr>
+      {% endfor %}
+    {% else %}
+      <tr>
+        <td>No bookings yet...</td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+    {% endif %}
+  </table>
+</div>
+
+{% endblock %}

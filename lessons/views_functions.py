@@ -1,73 +1,86 @@
 import decimal
 from .models import Request, Invoice, Student, Child, User, Booking, DayOfTheWeek, SchoolTerm
-from .forms import RequestViewForm, NewChildForm, NewRequestForm, FulfilRequestForm,EditBookingForm
+from .forms import RequestViewForm, FulfilRequestForm, EditBookingForm
 from django.conf import settings
 from django.contrib.auth import authenticate
-from django.utils import timezone
 
+def get_request_object(request_id):
+    return Request.objects.get(id=request_id)
+
+def get_child_object(relation_id):
+    return Child.objects.get(id=relation_id)
+
+def get_request_id_from_request(request):
+    if request.method == 'GET':
+        return request.GET.get('request_id', None)
+    elif request.method == 'POST':
+        return request.POST.get('request_id', None)
+    return None
+
+def get_relation_id_from_request(request):
+    if request.method == 'GET':
+        return request.GET.get('relation_id', -1)
+    elif request.method == 'POST':
+        return request.POST.get('relation_id', -1)
+    return None
 
 def get_request_object_from_request(request):
-    if request.method == 'GET':
-        return Request.objects.get(id=request.GET['request_id'])
-    elif request.method == 'POST':
-        return Request.objects.get(id=request.POST['request_id'])
-    return None
-
+    return get_request_object(get_request_id_from_request(request))
 
 def get_child_object_from_request(request):
-    if request.method == 'GET':
-        return Child.objects.get(id=request.GET['relation_id'])
-    elif request.method == 'POST':
-        return Child.objects.get(id=request.POST['relation_id'])
-    return None
+    return get_child_object(get_relation_id_from_request(request))
 
+def is_child(relation_id):
+    return int(relation_id) != -1
+
+def get_client_from_relation_id(user, relation_id):
+    if is_child(relation_id):
+        return Child.objects.get(id=relation_id)
+    else:
+        return user
+
+def get_request_objects(user, relation_id = -1):
+    return Request.objects.filter(user=user, relation_id=relation_id).order_by('-date')
+
+def delete_request_object_from_request(request):
+    return get_request_object_from_request(request).delete()
+
+def update_request_object_from_request(request):
+    user_request = get_request_object_from_request(request)
+    data = request.POST
+    
+    form = RequestViewForm(instance_id=user_request.id, data=data)
+    return form.save()
+
+def get_booking_objects(user, relation_id = -1):
+    return Booking.objects.filter(user=user, relation_id=relation_id).order_by('start_date')
 
 def get_full_name(student):
     return f'{student.first_name} {student.last_name}'
 
-def get_student_from_relation_id(user, relation_id):
+def get_full_name_by_relation_id(user, relation_id):
     if relation_id == -1:
-        return user
+        return get_full_name(user)
     else:
-        return Child.objects.get(id=relation_id)
+        child = get_child_object(relation_id)
+        return get_full_name(child)
 
-def get_requests(request, relation_id = -1):
-    return Request.objects.filter(user=request.user, relation_id=relation_id).order_by('-date')
+def get_child_idname(relation_id):
+    child = get_child_object(relation_id)
+    return {'id':child.id, 'name':get_full_name(child)}
 
-def get_request_list(request, relation_id = -1):
-    requests = get_requests(request, relation_id)
-    request_list = []
-    for request in requests:
-        request_list.append({'request_id':request.id, 'request':request})
-    return request_list
+def get_children(user):
+    return Child.objects.filter(parent=user)
 
-
-def delete_request(request):
-    request_object = get_request_object_from_request(request)
-    if request_object:
-        return request_object.delete()
-
-
-def update_request(request):
-    user_request = get_request_object_from_request(request)
-    data = request.POST
-
-    form = RequestViewForm(instance_id=user_request.id, data=data)
-    return form.save()
+def get_children_idname(user):
+    children = get_children(user)
+    children_idname = []
+    for child in children:
+        children_idname.append(get_child_idname(child.id))
+    return children_idname
 
 def delete_child(request):
     return get_child_object_from_request(request).delete()
-
-def get_children(request):
-    return Child.objects.filter(parent=request.user)
-
-def get_children_list(request):
-    children = get_children(request)
-    child_list = []
-    for child in children:
-        child_list.append({'relation_id':child.id, 'full_name':get_full_name(child)})
-    return child_list
-
 
 def update_booking(request):
     data = request.POST.copy()
@@ -136,18 +149,18 @@ def get_booking_form(request):
     return form
 
 
-def get_request_view_form(request):
-    this_request = get_request_object_from_request(request)
+def get_request_view_form(request_id):
+    user_request = get_request_object(request_id)
     form = RequestViewForm(
         initial={
-            'date':this_request.date,
-            'relation_id':this_request.relation_id,
-            'availability':this_request.availability.all(),
-            'number_of_lessons':this_request.number_of_lessons,
-            'interval_between_lessons':this_request.interval_between_lessons,
-            'duration_of_lessons':this_request.duration_of_lessons,
-            'further_information':this_request.further_information,
-            'fulfilled':this_request.fulfilled
+            'date':user_request.date,
+            'relation_id':user_request.relation_id,
+            'availability':user_request.availability.all(),
+            'number_of_lessons':user_request.number_of_lessons,
+            'interval_between_lessons':user_request.interval_between_lessons,
+            'duration_of_lessons':user_request.duration_of_lessons,
+            'further_information':user_request.further_information,
+            'fulfilled':user_request.fulfilled
             }
         )
     return form

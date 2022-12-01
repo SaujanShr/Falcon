@@ -22,93 +22,128 @@ def admin_page(request):
     #TODO if any of these datasets are too large, filter to only first 15
     return render(request, 'admin_page.html', {'transactions': transactions})
 
-
 @login_required
 @allowed_groups(['Student'])
-def request_list(request):
-    user_requests = get_request_list(request)
+def request_list(request, relation_id=None):
+    user_requests = get_request_objects(user=request.user)
     return render(request, 'request_list.html', {'user_requests': user_requests})
 
 @login_required
 @allowed_groups(['Student'])
+def booking_list(request, relation_id=None):
+    user_bookings = get_booking_objects(user=request.user)
+    return render(request, 'booking_list.html', {'user_bookings': user_bookings})
+
+@login_required
+@allowed_groups(['Student'])
 def request_view(request):
+    relation_id = get_relation_id_from_request(request)
+    request_id = get_request_id_from_request(request)
+    
+    if is_child(relation_id):
+        redirect_page = 'child_request_list'
+    else:
+        redirect_page = 'request_list'
+    
     if request.method == 'POST':
-        if request.POST.get('delete', None) and delete_request(request): 
-            return redirect('request_list')
-        elif request.POST.get('update', None) and update_request(request): 
-            return redirect('request_list')
+        if request.POST.get('delete', None) and delete_request_object_from_request(request):
+            return redirect(redirect_page, relation_id=relation_id)
+            
+        elif request.POST.get('update', None) and update_request_object_from_request(request): 
+            return redirect(redirect_page, relation_id=relation_id)
+        
+        elif request.POST.get('return', None):
+            return redirect(redirect_page, relation_id=relation_id)
     
-    full_name = get_full_name(request.user)
-    user_request = get_request_object_from_request(request)
-    request_id = user_request.id
-    form = get_request_view_form(request)
+    full_name = get_full_name_by_relation_id(request.user, relation_id)
+    request_fulfilled = get_request_object(request_id).fulfilled
     
-    request_fulfilled = user_request.fulfilled
-    if request_fulfilled: form.set_read_only()
+    form = get_request_view_form(request_id)
     
-    return render(request, 'request_view.html', {'request_id':request_id, 'full_name':full_name, 'form':form, 'readonly':request_fulfilled})
+    if request_fulfilled:
+        form.set_read_only()
+    
+    return render(request, 'request_view.html', {'request_id':request_id, 'relation_id':relation_id, 
+                                                 'full_name':full_name, 'form':form, 'readonly':request_fulfilled})
 
 @login_required
 @allowed_groups(['Student'])
 def new_request_view(request):
+    relation_id = get_relation_id_from_request(request)
+    user = request.user
+    
     if request.method == 'POST':
-        user = request.user
-        relation_id = request.POST['relation_id']
         form = NewRequestForm(user=user, relation_id=relation_id, data=request.POST)
         if form.is_valid():
             form.save()
-            return redirect('request_list')
-    
-    relation_id = -1
-    full_name = get_full_name(request.user)
+            if is_child(relation_id):
+                return redirect('child_request_list', relation_id=relation_id)
+            else:
+                return redirect('request_list')
+                
+        
+    full_name = get_full_name_by_relation_id(user, relation_id)
     form = NewRequestForm()
-    return render(request, 'new_request_view.html', {
-        'relation_id':relation_id,
-        'full_name':full_name,
-        'form':form
-        })
+    
+    return render(request, 'new_request_view.html', {'relation_id':relation_id, 'full_name':full_name, 'form':form})
 
 
 @login_required
 @allowed_groups(['Student'])
 def children_list(request):
-    if request.method == 'POST':
-        print(request.POST['relation_id'], Child.objects.all())
-        if request.POST.get('delete', None):
-            delete_child(request)
-    
-    children = get_children_list(request)
+    children = get_children_idname(request.user)
     return render(request, 'children_list.html', {'children': children})
 
 @login_required
 @allowed_groups(['Student'])
 def child_page(request):
-    child = get_child_object_from_request(request)
-    return render(request, 'child_page.html', {'child': child})
+    relation_id = get_relation_id_from_request(request)
+    
+    if request.method == 'GET':
+        if request.GET.get('requests', None):
+            return redirect('child_request_list', relation_id=relation_id)
+        if request.GET.get('bookings', None):
+            return redirect('child_booking_list', relation_id=relation_id)
+        if request.GET.get('return', None):
+            return redirect('children_list')
+    
+    child = get_child_idname(relation_id)
+    
+    return render(request, 'child_page.html', {'child':child})
 
 def new_child_view(request):
     if request.method == 'POST':
         form = NewChildForm(user=request.user, data=request.POST)
         form.save()
         return redirect('children_list')
-    else:
-        form = NewChildForm()
+    
+    form = NewChildForm()
+        
     return render(request, 'new_child_view.html', {'form': form})
 
 @login_required
 @allowed_groups(['Student'])
-def child_request_list(request):
-    pass
+def child_request_list(request, relation_id=None):
+    if not relation_id:
+        relation_id = get_relation_id_from_request(request)
+    
+    child = get_child_idname(relation_id)
+    child_requests = get_request_objects(request.user, relation_id)
+    
+    return render(request, 'child_request_list.html', {'child':child, 'child_requests': child_requests})
+    
 
 @login_required
 @allowed_groups(['Student'])
-def child_booking_list(request):
-    pass
-
-@login_required
-@allowed_groups(['Student'])
-def booking_list(request):
-    return render(request, 'booking_list.html')
+def child_booking_list(request, relation_id=None):
+    if not relation_id:
+        relation_id = get_relation_id_from_request(request)
+    
+    child = get_child_idname(relation_id)
+    child_bookings = get_booking_objects(request.user, relation_id)
+    
+    return render(request, 'child_booking_list.html', {'child':child, 'child_bookings': child_bookings})
+    
 
 @login_prohibited
 def home(request):
@@ -295,7 +330,7 @@ def fulfil_request_view(request):
                 print('Booking is already fulfilled')
                 return redirect('admin_bookings_view')
         elif request.POST.get('delete', None):
-            delete_request(request)
+            delete_request_object_from_request(request)
             return redirect('admin_requests_view')
         elif request.POST.get('return', None):
             return redirect('admin_requests_view')

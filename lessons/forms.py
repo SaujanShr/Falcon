@@ -64,6 +64,7 @@ class RequestViewForm(forms.ModelForm):
         self.relation_id = kwargs.pop('relation_id', None)
         self.instance_id = kwargs.pop('instance_id', None)
         super(RequestViewForm, self).__init__(*args, **kwargs)
+        
         self.fields['date'].disabled = True
         self.fields['fulfilled'].disabled = True
 
