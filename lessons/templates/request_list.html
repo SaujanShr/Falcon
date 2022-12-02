@@ -3,34 +3,7 @@
 <div class ="container">
   <div class = "row">
     <p><a href="{% url 'new_request_view' %}" class=" btn btn-sm btn-primary">New Request</a></p>
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th style="width: 10%">Date</th>
-          <th>Further Information</th>
-          <th style="width: 5%">Fulfilled</th>
-          <th stype="width: 5%">View Request</th>
-        </tr>
-      </thead>
-      {% if date_user_request_pairs %}
-        {% for date_user_request_pair in date_user_request_pairs %}
-          <tr><form action="{% url 'request_view' %}" method="get">
-              <input type="hidden" name="date" value="{{ date_user_request_pair.date }}"/>
-              <td>{{ date_user_request_pair.request.date }}</td>
-              <td>{{ date_user_request_pair.request.further_information }}</td>
-              <td>{{ date_user_request_pair.request.fulfilled }}</td>
-              <td><input type="submit" class="btn btn-primary" value="View here"></td>
-            </form></tr>
-        {% endfor %}
-      {% else %}
-        <tr>
-          <td>No requests yet...</td>
-          <td></td>
-          <td></td>
-          <td></td>
-        </tr>
-      {% endif %}
-    </table>
+    {% include 'partials/request_table.html' with date_user_request_pairs=date_user_request_pairs%}
   </div>
 </div>
 {% endblock %}

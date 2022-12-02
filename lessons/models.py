@@ -236,6 +236,8 @@ class BankTransaction(models.Model):
             self.student.balance = Decimal(self.student.balance) + overpay
             self.invoice.save()
             self.student.save()
+            return
+        self.invoice.save()
 
 
 class SchoolTerm(models.Model):

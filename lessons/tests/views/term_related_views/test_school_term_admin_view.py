@@ -2,7 +2,7 @@
 import datetime
 from django.test import TestCase
 from django.urls import reverse
-from lessons.models import SchoolTerm
+from lessons.models import SchoolTerm, User
 from django.db.models.query import QuerySet
 from lessons.tests.helpers import HandleGroups, reverse_with_next
 
@@ -10,7 +10,7 @@ from lessons.tests.helpers import HandleGroups, reverse_with_next
 class SchoolTermStudentView(TestCase):
     """Unit tests of the school term admin view"""
 
-    fixtures = ['lessons/tests/fixtures/default_user.json', 'lessons/tests/fixtures/other_users.json','lessons/tests/fixtures/default_terms.json']
+    fixtures = ['lessons/tests/fixtures/default_user.json', 'lessons/tests/fixtures/other_users.json', 'lessons/tests/fixtures/default_terms.json']
 
     def setUp(self):
         HandleGroups.set_default_user_to_student()
@@ -41,15 +41,14 @@ class SchoolTermStudentView(TestCase):
 
     def test_student_cannot_access_school_terms_admin_view(self):
         self.client.login(email='johndoe@email.com', password='Password123')
-        response = self.client.get(self.url)
+        response = self.client.get(self.url, follow=True)
 
         response_url = reverse('student_page')
         self.assertRedirects(response, response_url, status_code=302, target_status_code=200)
-        #self.assertTemplateUsed(response, 'student_page.html') #This doesn't work properly
+        self.assertTemplateUsed(response, 'student_page.html')
 
     def test_get_school_term_edit_redirects_when_not_logged_in(self):
         self.client.logout()
         redirect_url = reverse_with_next('log_in', self.url)
         response = self.client.get(self.url)
         self.assertRedirects(response, redirect_url, status_code=302, target_status_code=200)
-

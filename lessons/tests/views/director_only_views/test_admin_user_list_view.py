@@ -28,9 +28,9 @@ class AdminUserListTestCase(TestCase):
 
     def test_edit_button_redirects_to_edit_page(self):
         self.client.login(email=self.user.email, password='Password123')
-        payload = {'edit': self.other_user.id}
+        payload = {'edit': self.user.id}
         response = self.client.post(self.url,payload, follow=True)
-        redirect_url = reverse('profile',kwargs={'user_id':self.other_user.id})
+        redirect_url = reverse('profile',kwargs={'user_id':self.user.id})
         self.assertRedirects(response, redirect_url,
                              status_code=302, target_status_code=200)
         self.assertTemplateUsed(response, 'profile.html')
