@@ -138,8 +138,8 @@ def profile(request, user_id):
     except ObjectDoesNotExist:
         return redirect('/profile/' + str(request.user.id))
 
-    # Redirect if the current user is attempting to change the profile of another user.
-    if request.user.id != user_id:
+    # Redirect if the current user is attempting to change the profile of another user and the user is not a director.
+    if request.user.id != user_id and not request.user.is_superuser:
         form = UserForm(instance=request.user)
         return redirect('/profile/'+str(request.user.id))
 
