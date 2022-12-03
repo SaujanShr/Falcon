@@ -1,0 +1,51 @@
+<table class="table table-striped">
+    <thead>
+        <tr>
+          {% if is_student %}
+            <th style="width: 25%">Date</th>
+            <th>Further Information</th>
+            <th style="width: 5%">Fulfilled</th>
+            <th stype="width: 5%">View Request</th>
+          {% else %}
+            <th style="width: 25%">Date</th>
+            <th style="width: 5%">Student</th>
+            <th>Further Information</th>
+            <th style="width: 5%">View Request</th>
+            {% if unfulfilled %}
+              <th style="width: 5%">Fulfill Request</th>
+            {% endif %}
+          {% endif %}
+        </tr>
+    </thead>
+    {% if requests %}
+      {% if is_student %}
+        {% for request in requests %}
+          <tr>
+              <td style="vertical-align: top">{{ request.raw_date }}</td>
+              <td style="vertical-align: top">{{ request.further_information|truncatechars:30 }}</td>
+              <td style="vertical-align: top">{{ request.fulfilled }}</td>
+              <td style="vertical-align: top"><a href="{% url 'request_view' %}?request_id={{ request.id }}">View Request</a></td>
+          </tr>
+        {% endfor %}
+      {% else %}
+        {% for request in requests %}
+          <tr>
+            <td style="vertical-align: top">{{ request.raw_date }}</td>
+            <td style="vertical-align: top">{{ request.student_name }}</td>
+            <td style="vertical-align: top">{{ request.further_information|truncatechars:30 }}</td>
+            <td style="vertical-align: top"><a href="{% url 'request_view' %}?request_id={{ request.id }}">View Request</a></td>
+            {% if unfulfilled %}
+              <td style="vertical-align: top"><a href="{% url 'fulfil_request' %}?request_id={{ request.id }}">Fulfill Request</a></td>
+            {% endif %}
+          </tr>
+          {% endfor %}
+      {% endif %}
+    {% else %}
+      <tr>
+        <td>No requests yet...</td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+    {% endif %}
+  </table>
