@@ -1,14 +1,11 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, Group
 from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from datetime import date, datetime
 from .user_manager import UserManager
-from django.contrib.auth.models import PermissionsMixin
-from django.contrib.auth.models import Group
 from decimal import Decimal
-from django.core.exceptions import ValidationError
 
 
 class DayOfTheWeek(models.Model):
@@ -115,8 +112,8 @@ class Child(models.Model):
 
 class Request(models.Model):
     class IntervalBetweenLessons(models.IntegerChoices):
-        ONE_WEEK = 1, '1 Week'
-        TWO_WEEKS = 2, '2 Weeks'
+        ONE_WEEK = 7, '1 Week'
+        TWO_WEEKS = 14, '2 Weeks'
 
     class LessonDuration(models.IntegerChoices):
         THIRTY_MINUTES = 30, '30 Minutes'
@@ -146,8 +143,8 @@ class Request(models.Model):
 
 class Booking(models.Model):
     class IntervalBetweenLessons(models.IntegerChoices):
-        ONE_WEEK = 1, '1 Week'
-        TWO_WEEKS = 2, '2 Weeks'
+        ONE_WEEK = 7, '1 Week'
+        TWO_WEEKS = 14, '2 Weeks'
 
     class LessonDuration(models.IntegerChoices):
         THIRTY_MINUTES = 30, '30 Minutes'
@@ -214,6 +211,8 @@ class BankTransaction(models.Model):
             self.student.balance = Decimal(self.student.balance) + overpay
             self.invoice.save()
             self.student.save()
+            return
+        self.invoice.save()
 
 
 class SchoolTerm(models.Model):

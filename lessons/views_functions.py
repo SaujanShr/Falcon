@@ -1,8 +1,18 @@
 import decimal
-from .models import Request, Invoice, Student, Child, User, Booking, DayOfTheWeek, SchoolTerm
-from .forms import RequestViewForm, FulfilRequestForm, EditBookingForm, ChildViewForm
+import urllib
+from .models import Request, Invoice, Student, Child, Booking, DayOfTheWeek, SchoolTerm, BankTransaction
+from .forms import RequestViewForm, FulfilRequestForm, EditBookingForm, ChildViewForm, TransactionSubmitForm
+from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.contrib.auth import authenticate
+from django.shortcuts import redirect
+
+def redirect_with_queries(url, **queries):
+    response = redirect(url)
+    if queries:
+        query_string = urllib.parse.urlencode(queries)
+        response['location'] += '?' + query_string
+    return response
 
 def get_request_object(request_id):
     return Request.objects.get(id=request_id)
@@ -31,6 +41,7 @@ def get_child_object_from_request(request):
     return get_child_object(get_relation_id_from_request(request))
 
 def is_child(relation_id):
+    print('ischild:', relation_id)
     return int(relation_id) != -1
 
 def get_client_from_relation_id(user, relation_id):
@@ -59,11 +70,11 @@ def get_full_name(student):
     return f'{student.first_name} {student.last_name}'
 
 def get_full_name_by_relation_id(user, relation_id):
-    if relation_id == -1:
-        return get_full_name(user)
-    else:
+    if is_child(relation_id):
         child = get_child_object(relation_id)
         return get_full_name(child)
+    else:
+        return get_full_name(user)
 
 def get_child_idname(relation_id):
     child = get_child_object(relation_id)
@@ -90,6 +101,92 @@ def update_child_object_from_request(request):
     
     form = ChildViewForm(instance_id=child.id, data=data)
     return form.save()
+
+def format_request_for_display(request: Request):
+    request.interval_between_lessons = Request.IntervalBetweenLessons.choices[
+        Request.IntervalBetweenLessons.values.index(request.interval_between_lessons)
+    ]
+    Request.IntervalBetweenLessons._member_names_
+    request.duration_of_lessons = request.LessonDuration.choices[
+        request.LessonDuration.values.index(request.duration_of_lessons)
+    ]
+    request.raw_date = str(request.date).split()[0]
+    request.student_name = get_full_name_by_relation_id(request.user, request.relation_id)
+    
+    return request
+
+def get_and_format_requests_for_display(user, relation_id=-1):
+    requests = get_request_objects(user, relation_id)
+    formatted_requests = []
+    
+    for request in requests:
+        formatted_requests.append(format_request_for_display(request))
+    
+    return formatted_requests
+
+def get_and_format_requests_for_admin_display():
+    requests = Request.objects.all()
+    formatted_request_set = {'fulfilled': [], 'unfulfilled': []}
+    
+    for request in requests:
+        request = format_request_for_display(request)
+        
+        if request.fulfilled:
+            formatted_request_set['fulfilled'].append(request)
+        else:
+            formatted_request_set['unfulfilled'].append(request)
+            
+    return formatted_request_set
+
+def format_booking_for_display(booking: Booking):
+    booking.interval_between_lessons = Booking.IntervalBetweenLessons.choices[
+        Booking.IntervalBetweenLessons.values.index(booking.interval_between_lessons)
+    ]
+    booking.duration_of_lessons = Booking.LessonDuration.choices[
+        Booking.LessonDuration.values.index(booking.duration_of_lessons)
+    ]
+    booking.raw_date = str(booking.start_date).split()[0]
+    booking.student_name = get_full_name_by_relation_id(booking.user, booking.relation_id)
+    
+    return booking
+
+def get_and_format_bookings_for_display(user, relation_id=-1):
+    bookings = get_booking_objects(user, relation_id)
+    formatted_bookings = []
+    
+    for booking in bookings:
+        formatted_bookings.append(format_booking_for_display(booking))
+    
+    return formatted_bookings
+
+def get_and_format_bookings_for_admin_display():
+    bookings = Booking.objects.all()
+    formatted_bookings = []
+
+    for booking in bookings:
+        formatted_bookings.append(format_booking_for_display(booking))
+    
+    return formatted_bookings
+
+def delete_request(request):
+    return get_request_object_from_request(request).delete()
+
+
+def update_request(request):
+    user_request = get_request_object_from_request(request)
+
+    # Can't update a fulfilled request.
+    if user_request.fulfilled:
+        return None
+    
+    post_data = request.POST.copy()
+    post_data['date'] = user_request.date
+    post_data['fulfilled'] = user_request.fulfilled
+
+    request_instance = Request.objects.get(date=post_data['date'])
+
+    form = RequestViewForm(request.user, post_data, instance=request_instance)
+    return form.save()    
 
 def update_booking(request):
     data = request.POST.copy()
@@ -204,7 +301,7 @@ def create_invoice(booking, hourly_cost):
 
     user = Student.objects.get(user__email=booking.user)
 
-    invoice_number = generate_invoice_number()
+    invoice_number = generate_invoice_number(user)
 
     #Calculate amount to pay
     total_required = (int(hourly_cost) * booking.number_of_lessons * booking.duration_of_lessons / 60)
@@ -260,3 +357,24 @@ def get_redirect_url_for_user(user):
         return settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_DIRECTOR
     else:
         return ''
+
+def get_invoice_list(request):
+    try:
+        r_user = request.user
+        r_student = Student.objects.get(user=r_user)
+        invoices = Invoice.objects.all().filter(student=r_student).reverse()
+        return invoices
+    except ObjectDoesNotExist:
+        return Invoice.objects.none()
+    
+
+def get_transaction_list(request):
+    try:
+        r_user = request.user
+        r_student = Student.objects.get(user=r_user)
+        transactions = BankTransaction.objects.order_by('date').filter(student=r_student)
+        return transactions
+    except ObjectDoesNotExist:
+        return BankTransaction.objects.none()
+
+    

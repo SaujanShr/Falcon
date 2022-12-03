@@ -9,7 +9,6 @@
                 {% csrf_token %}
                 <h3>{{ full_name }}</h3>
                 {{ form.as_p }}
-                <input type="hidden" name="relation_id" value="{{ relation_id }}">
                 <input type="hidden" name="request_id" value="{{ request_id }}">
                 {% if not readonly %}
                     <input type="submit" class="btn btn-primary" name="update" value="Update">

@@ -1,42 +1,10 @@
 {% extends 'base_content.html' %}
 {% block content %}
+
 <div class ="container">
   {% include 'partials/child_menu.html' with child=child %}
-  <h1>My Requests</h1>
-  <form action="{% url 'new_request_view' %}" method="get">
-    <input type="hidden" name="relation_id" value="{{ child.id }}">
-    <input type="submit" class="btn btn-primary" value="New Request">
-  </form>
-  <table class="table table-striped">
-    <thead>
-      <tr>
-        <th style="width: 10%">Date</th>
-        <th style="width: 80%">Further Information</th>
-        <th style="width: 5%">Fulfilled</th>
-        <th stype="width: 5%">View Request</th>
-      </tr>
-    </thead>
-    {% if child_requests %}
-      {% for child_request in child_requests %}
-        <tr><form action="{% url 'request_view' %}" method="get">
-            <input type="hidden" name="relation_id" value="{{ child.id }}">
-            <input type="hidden" name="request_id" value="{{ child_request.id }}"/>
-            <td>{{ child_request.date }}</td>
-            <td>{{ child_request.further_information }}</td>
-            <td>{{ child_request.fulfilled }}</td>
-            <td><input type="submit" class="btn btn-primary" value="View here"></td>
-          </form></tr>
-      {% endfor %}
-    {% else %}
-      <tr>
-        <td>No requests yet...</td>
-        <td></td>
-        <td></td>
-        <td></td>
-      </tr>
-    {% endif %}
-  </table>
-  </div>
-  
+  <a href="{% url 'new_request_view' %}?relation_id={{ child.id }}" class=" btn btn-sm btn-primary">New Request</a>
+  {% include 'partials/request_table_big.html' with requests=child_requests is_student=1 %}
+</div>
 
 {% endblock %}

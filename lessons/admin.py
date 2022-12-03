@@ -1,11 +1,11 @@
 from django.contrib import admin
-from .models import User, Student, BankTransaction, Booking, Request, SchoolTerm
+from .models import User, Student, BankTransaction, Booking, Request, SchoolTerm, Invoice
 
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
     list_display = [
-        'email', 'first_name', 'last_name', 'is_active',
+        'email', 'first_name', 'last_name', 'is_active', 'id'
     ]
 
 @admin.register(BankTransaction)
@@ -55,4 +55,13 @@ class SchoolTermAdmin(admin.ModelAdmin):
         'term_name',
         'start_date',
         'end_date'
+    ]
+
+@admin.register(Invoice)
+class InvoiceAdmin(admin.ModelAdmin):
+    list_display = [
+        'invoice_number',
+        'student',
+        'full_amount',
+        'paid_amount'
     ]

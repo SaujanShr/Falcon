@@ -1,35 +1,10 @@
 {% extends 'base_content.html' %}
 {% block content %}
+
 <div class ="container">
-  <h1>My Requests</h1>
-  <p><a href="{% url 'new_request_view' %}" class=" btn btn-sm btn-primary">New Request</a></p>
-  <table class="table table-striped">
-    <thead>
-      <tr>
-        <th style="width: 10%">Date</th>
-        <th style="width: 80%">Further Information</th>
-        <th style="width: 5%">Fulfilled</th>
-        <th stype="width: 5%">View Request</th>
-      </tr>
-    </thead>
-    {% if user_requests %}
-      {% for user_request in user_requests %}
-        <tr><form action="{% url 'request_view' %}" method="get">
-            <input type="hidden" name="request_id" value="{{ user_request.id }}"/>
-            <td>{{ user_request.date }}</td>
-            <td>{{ user_request.further_information }}</td>
-            <td>{{ user_request.fulfilled }}</td>
-            <td><input type="submit" class="btn btn-primary" value="View here"></td>
-          </form></tr>
-      {% endfor %}
-    {% else %}
-      <tr>
-        <td>No requests yet...</td>
-        <td></td>
-        <td></td>
-        <td></td>
-      </tr>
-    {% endif %}
-  </table>
+  <h1>Requests</h1>
+  <a href="{% url 'new_request_view' %}?relation_id=-1" class=" btn btn-sm btn-primary">New Request</a>
+  {% include 'partials/request_table_big.html' with requests=user_requests is_student=1 %}
 </div>
+
 {% endblock %}

@@ -164,7 +164,7 @@ class FulfilRequestForm(forms.ModelForm):
                 time_of_the_day=self.cleaned_data.get('time_of_lesson'),
                 day_of_the_week=self.cleaned_data.get('availability'),
                 user=req.user,
-                student_name=req.student_name,
+                relation_id=req.relation_id,
                 teacher=self.cleaned_data.get('teacher'),
                 start_date=self.cleaned_data.get('start_date'),
                 duration_of_lessons=self.cleaned_data.get('duration_of_lessons'),

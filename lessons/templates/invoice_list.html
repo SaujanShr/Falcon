@@ -1,0 +1,8 @@
+{% extends 'base_content.html' %}
+{% block content %}
+
+<div class="container">
+  {% include 'partials/invoice_table.html' with invoices=invoices %}
+</div>
+
+{% endblock %}
