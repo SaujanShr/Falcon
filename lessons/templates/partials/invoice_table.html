@@ -1,0 +1,27 @@
+<table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Invoice no.</th>
+        <th>Student email</th>
+        <th>Full amount</th>
+        <th>Paid amount</th>
+      </tr>
+    </thead>
+    {% if invoices %}
+      {% for invoice in invoices %}
+        <tr>
+            <td><a href="{% url 'invoice_view' %}?invoice_id={{ invoice.invoice_number }}">{{ invoice.invoice_number }}</a></td>
+            <td>{{ invoice.student.user.email }}</td>
+            <td>{{ invoice.full_amount }}</td>
+            <td>{{ invoice.paid_amount }}</td>
+        </tr>
+      {% endfor %}
+    {% else %}
+      <tr>
+        <td>No invoices yet...</td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+    {% endif %}
+  </table>

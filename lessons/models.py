@@ -1,14 +1,11 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, Group
 from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from datetime import date, datetime
 from .user_manager import UserManager
-from django.contrib.auth.models import PermissionsMixin
-from django.contrib.auth.models import Group
 from decimal import Decimal
-from django.core.exceptions import ValidationError
 
 
 class DayOfTheWeek(models.Model):
@@ -66,17 +63,13 @@ class User(AbstractBaseUser,PermissionsMixin):
     )
 
     def is_admin(self):
-        if self.groups.exists() and self.groups.all()[0].name == "Admin":
-            return True
-        else:
-            return False
-
+        return self.groups.exists() and self.groups.all()[0].name == "Admin"
 
     def is_student(self):
-        if self.groups.exists() and self.groups.all()[0].name == "Student":
-            return True
-        else:
-            return False
+        return self.groups.exists() and self.groups.all()[0].name == "Student"
+    
+    def is_admin_or_director(self):
+        return self.is_admin() or self.is_superuser
 
     def get_group(self):
         if self.is_superuser:
@@ -110,19 +103,13 @@ class Student(models.Model):
 
 class Child(models.Model):
     parent = models.ForeignKey(User, blank=False, on_delete=models.CASCADE)
-    full_name = models.CharField(max_length=100, blank=False)
-    
-    # Two children can't exist with the same parent, first name and last name.
-    def clean(self):
-        if Child.objects.filter(parent=self.parent, 
-                                full_name=self.full_name).exists():
-            raise ValidationError("Child with that name already exists!")
-
+    first_name = models.CharField(max_length=50, blank=False)
+    last_name = models.CharField(max_length=50, blank=False)
 
 class Request(models.Model):
     class IntervalBetweenLessons(models.IntegerChoices):
-        ONE_WEEK = 1, '1 Week'
-        TWO_WEEKS = 2, '2 Weeks'
+        ONE_WEEK = 7, '1 Week'
+        TWO_WEEKS = 14, '2 Weeks'
 
     class LessonDuration(models.IntegerChoices):
         THIRTY_MINUTES = 30, '30 Minutes'
@@ -131,16 +118,17 @@ class Request(models.Model):
     
     date = models.DateTimeField(
         blank=False,
-        unique=True,
+        default=timezone.now,
         validators=[
             MaxValueValidator(
             limit_value=timezone.now,
-            message='')]
-        )
+            message="The request date can't be in the future.")]
+    )
     user = models.ForeignKey(User, blank=False, on_delete=models.CASCADE)
-    student_name = models.CharField(max_length=100, blank=False)
+    relation_id = models.IntegerField(MinValueValidator(-1))
     availability = models.ManyToManyField(DayOfTheWeek, blank=False)
-    number_of_lessons = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(9223372036854775807)])
+    number_of_lessons = models.PositiveIntegerField(blank=False, default=1, 
+                                                    validators=[MinValueValidator(1), MaxValueValidator(1000)])
     interval_between_lessons = models.PositiveIntegerField(choices=IntervalBetweenLessons.choices)
     duration_of_lessons = models.PositiveIntegerField(choices=LessonDuration.choices)
     further_information = models.CharField(blank=False, max_length=500)
@@ -149,8 +137,8 @@ class Request(models.Model):
 
 class Booking(models.Model):
     class IntervalBetweenLessons(models.IntegerChoices):
-        ONE_WEEK = 1, '1 Week'
-        TWO_WEEKS = 2, '2 Weeks'
+        ONE_WEEK = 7, '1 Week'
+        TWO_WEEKS = 14, '2 Weeks'
 
     class LessonDuration(models.IntegerChoices):
         THIRTY_MINUTES = 30, '30 Minutes'
@@ -169,7 +157,7 @@ class Booking(models.Model):
     day_of_the_week = models.ForeignKey(DayOfTheWeek, blank=True, on_delete=models.CASCADE)
     time_of_the_day = models.TimeField(auto_now=False, auto_now_add=False)
     user = models.ForeignKey(User, blank=True, on_delete=models.CASCADE)
-    student_name = models.CharField(max_length=100, blank=False)
+    relation_id = models.IntegerField(MinValueValidator(-1))
     teacher = models.CharField(blank=False, max_length=100)
     start_date = models.DateField(blank=False)
     duration_of_lessons = models.PositiveIntegerField(blank=False, choices=LessonDuration.choices)
@@ -217,6 +205,8 @@ class BankTransaction(models.Model):
             self.student.balance = Decimal(self.student.balance) + overpay
             self.invoice.save()
             self.student.save()
+            return
+        self.invoice.save()
 
 
 class SchoolTerm(models.Model):

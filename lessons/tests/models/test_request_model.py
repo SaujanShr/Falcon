@@ -16,7 +16,7 @@ class RequestModelTestCase(TestCase):
 
         self.request1 = Request.objects.create(
             user = User.objects.get(email='johndoe@email.com'),
-            student_name = 'John Doe',
+            relation_id = 1,
             date = timezone.datetime(2000, 1, 1, 1, 1, 1, tzinfo=timezone.utc),
             number_of_lessons = 1,
             interval_between_lessons = Request.IntervalBetweenLessons.ONE_WEEK,
@@ -29,7 +29,7 @@ class RequestModelTestCase(TestCase):
 
         self.request2 = Request.objects.create(
             user = User.objects.get(email='janedoe@email.com'),
-            student_name = 'Jane Doe',
+            relation_id = 2,
             date = timezone.datetime(2001, 2, 2, 2, 2, 2, tzinfo=timezone.utc),
             number_of_lessons = 2,
             interval_between_lessons = Request.IntervalBetweenLessons.TWO_WEEKS,
@@ -57,9 +57,9 @@ class RequestModelTestCase(TestCase):
         self.request1.date = ''
         self._assert_request_is_invalid()
     
-    def test_date_must_be_unique(self):
+    def test_date_can_already_exist(self):
         self.request1.date = self.request2.date
-        self._assert_request_is_invalid()
+        self._assert_request_is_valid()
     
     def test_date_can_be_today(self):
         self.request1.date = timezone.datetime.now(tz=timezone.utc)
@@ -108,12 +108,12 @@ class RequestModelTestCase(TestCase):
         self.request1.number_of_lessons = self.request2.number_of_lessons
         self._assert_request_is_valid()
 
-    def test_number_of_lessons_can_be_max_int_for_SQLite_DB(self):
-        self.request1.number_of_lessons = 9223372036854775807
+    def test_number_of_lessons_can_be_1000(self):
+        self.request1.number_of_lessons = 1000
         self._assert_request_is_valid()
 
-    def test_number_of_lessons_cannot_be_greater_than_max_int_for_SQLite_DB(self):
-        self.request1.number_of_lessons = 92233720368547758071
+    def test_number_of_lessons_cannot_be_greater_than_1000(self):
+        self.request1.number_of_lessons = 1001
         self._assert_request_is_invalid()
     
     def test_interval_between_lessons_may_be_the_same(self):

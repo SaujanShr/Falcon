@@ -1,0 +1,32 @@
+<table class="table table-striped">
+    <thead>
+      <tr>
+        <th style>Term</th>
+        <th>Start Date</th>
+        <th>End Date</th>
+        {% if edit == True%}
+        <th></th>
+        {% endif %}
+      </tr>
+    </thead>
+    {% if terms %}
+      {% for term in terms %}
+        <tr><form action="{% url 'term_view' %}" method="get">
+          <input type="hidden" name="term_name" value="{{ term.term_name }}"/>
+          <td>{{ term.term_name }}</td>
+          <td>{{ term.start_date }}</td>
+          <td>{{ term.end_date }}</td>
+          {% if edit == True%}
+          <td><input type="submit" value="Edit"/></td>
+          {% endif %}
+        </form></tr>
+      {% endfor %}
+    {% else %}
+      <tr>
+        <td>No terms yet...</td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+    {% endif %}
+  </table>

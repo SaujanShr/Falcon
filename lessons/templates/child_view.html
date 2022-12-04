@@ -1,0 +1,20 @@
+{% extends 'base_content.html' %}
+{% block content %}
+
+<div class="container">
+    <div class="row">
+        <div class="col-sm-12 col-md-6 offset-md-3">
+            <h1>Child</h1>
+            <form action="{% url 'child_view' %}" method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <input type="hidden" name="relation_id" value="{{ relation_id }}">
+                <input type="submit" class="btn btn-primary" name="update" value="Update">
+                <input type="submit" class="btn btn-primary" name="delete" value="Delete">
+                <input type="submit" class="btn btn-primary" name="return" value="Return">
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

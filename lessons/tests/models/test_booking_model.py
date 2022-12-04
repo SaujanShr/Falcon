@@ -14,7 +14,7 @@ class BookingModelTestCase(TestCase):
         
         self.booking1 = Booking.objects.create(
             user=User.objects.get(email="johndoe@email.com"),
-            student_name="John Doe",
+            relation_id=1,
             invoice_id="0001-001",
             time_of_the_day="12:00",
             teacher="Mr Smith",
@@ -28,7 +28,7 @@ class BookingModelTestCase(TestCase):
 
         self.booking2 = Booking.objects.create(
             user = User.objects.get(email="janedoe@email.com"),
-            student_name="Jane Doe",
+            relation_id=2,
             invoice_id="0002-001",
             time_of_the_day="9:00",
             teacher="Mr Singh",

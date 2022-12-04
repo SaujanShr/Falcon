@@ -8,17 +8,11 @@ import datetime
 class SchoolTermModelTestCase(TestCase):
     """Unit tests of the school term model"""
 
+    fixtures = ['lessons/tests/fixtures/default_terms.json']
+    
     def setUp(self):
-        self.term1 = SchoolTerm.objects.create(
-            term_name="Term one",
-            start_date=datetime.date(2022, 1, 1),
-            end_date=datetime.date(2022, 12, 31)
-        )
-        self.term2 = SchoolTerm.objects.create(
-            term_name="Term two",
-            start_date=datetime.date(2023, 1, 1),
-            end_date=datetime.date(2023, 12, 31)
-        )
+        self.term1 = SchoolTerm.objects.get(id=1)
+        self.term2 = SchoolTerm.objects.get(id=2)
 
     def _assert_term1_is_valid(self):
         try:

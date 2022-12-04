@@ -1,0 +1,20 @@
+[
+    {
+        "model": "lessons.SchoolTerm",
+        "pk": 1,
+        "fields": {
+            "term_name": "TermOne",
+            "start_date": "2022-01-01",
+            "end_date": "2022-12-31"
+        }
+    },
+    {
+        "model": "lessons.SchoolTerm",
+        "pk": 2,
+        "fields": {
+            "term_name": "TermTwo",
+            "start_date": "2023-01-01",
+            "end_date": "2023-12-31"
+        }
+    }
+]

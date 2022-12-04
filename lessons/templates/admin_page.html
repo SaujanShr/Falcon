@@ -1,51 +1,22 @@
 {% extends 'base_content.html' %}
 {% block content %}
 <div class="container">
-    <div class="row">
+    <div class="row mb-3">
         <div class="col-6">
             <h2>Current requests</h2>
-            <table class="table table-striped">
-                <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>User</th>
-                    <th>Availability</th>
-                    <th># of Lessons</th>
-                    <th>Duration</th>
-                </tr>
-                </thead>
-                <tr>
-                    <td>Placeholder table</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-            </table>
-            <a class="btn btn-primary" href="{% url 'admin_requests_view' %}" role="button">Fulfill requests</a>
+            {% include 'partials/request_table_small.html' with user_requests=requests %}
         </div>
         <div class="col-6">
             <h2>Upcoming bookings</h2>
-            <table class="table table-striped">
-                <thead>
-                <tr>
-                    <th>Teacher</th>
-                    <th>Student</th>
-                    <th>Day</th>
-                    <th>Time</th>
-                    <th>Duration</th>
-                </tr>
-                </thead>
-                <tr>
-                    <td>Placeholder table</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-            </table>
-            <a class="btn btn-primary" href="#" role="button">Edit bookings</a>
+            {% include 'partials/bookings_table_small.html' with bookings=bookings %}
+            <a class="btn btn-primary" href="{% url 'admin_booking_list' %}" role="button">Edit bookings</a>
         </div>
     </div>
     <div class = "row">
+        <div class="col-6">
+            <h2>Terms</h2>
+            {% include 'partials/terms_table.html' with terms=terms %}
+        </div>
         <div class="col-6">
             <h2>Recent transactions</h2>
             {% include 'partials/transactions_table.html' with transactions=transactions %}

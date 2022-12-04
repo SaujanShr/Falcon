@@ -1,0 +1,27 @@
+<table class="table table-striped">
+    <thead>
+      <tr>
+        <th style="width: 25%">Date</th>
+        <th>Further Information</th>
+        <th style="width: 5%">Fulfilled</th>
+        <th stype="width: 5%">View Request</th>
+      </tr>
+    </thead>
+    {% if user_requests %}
+      {% for user_request in user_requests %}
+        <tr>
+            <td style="vertical-align: top">{{ user_request.date }}</td>
+            <td style="vertical-align: top">{{ user_request.further_information|truncatechars:30 }}</td>
+            <td style="vertical-align: top">{{ user_request.fulfilled }}</td>
+            <td style="vertical-align: top"><a href="{% url 'request_view' %}?request_id={{ user_request.id }}">View Request</a></td>
+        </tr>
+      {% endfor %}
+    {% else %}
+      <tr>
+        <td>No requests yet...</td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+    {% endif %}
+  </table>
