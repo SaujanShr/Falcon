@@ -1,4 +1,4 @@
-"""Tests of the log out view."""
+"""Tests of the admin user list view."""
 from django.test import TestCase
 from django.urls import reverse
 from lessons.models import User
@@ -6,7 +6,7 @@ from lessons.tests.helpers import HandleGroups
 from django.conf import settings
 
 class AdminUserListTestCase(TestCase):
-    """Tests of the log out view."""
+    """Tests of the admin user list view."""
 
     fixtures = ['lessons/tests/fixtures/default_user.json', 'lessons/tests/fixtures/other_users.json']
 

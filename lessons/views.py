@@ -493,15 +493,15 @@ def admin_user_list_view(request):
             user_to_promote.is_superuser = True
             user_to_promote.is_staff = True
             user_to_promote.save()
-        elif request.POST.get('create_director', None):
+        elif request.POST.get('create_director') == '':
             return redirect("create_director_user")
-        elif request.POST.get('create_student', None):
+        elif request.POST.get('create_student') == '':
             return redirect("create_student_user")
-        elif request.POST.get('create_administrator', None):
+        elif request.POST.get('create_administrator') == '':
             return redirect("create_admin_user")
 
     users = User.objects.all().order_by("groups")
-    return render(request,'admin_user_list.html', {'users':users})
+    return render(request, 'admin_user_list.html', {'users': users})
 
 @login_required
 @allowed_groups("Director")
