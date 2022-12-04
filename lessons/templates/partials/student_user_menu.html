@@ -8,7 +8,7 @@
         <a class="nav-item nav-link text-white" href="{% url 'children_list' %}">Children</a>
         <a class="nav-item nav-link text-white" href="{% url 'student_term_view' %}">Terms</a>
     </div>
-    {% if balance %}
+    {% if balance != null %}
     <div>
         <a class="nav-item text-white">Balance: {{balance}}</a>
     </div>
