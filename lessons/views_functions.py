@@ -19,6 +19,11 @@ def get_request_object(request_id):
 
 def get_child_object(relation_id):
     return Child.objects.get(id=relation_id)
+    
+def get_student_balance(request):
+    user = request.user
+    student = Student.objects.get(user=user)
+    return student.balance
 
 def get_request_id_from_request(request):
     if request.method == 'GET':

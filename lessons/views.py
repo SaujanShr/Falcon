@@ -17,10 +17,12 @@ def student_page(request):
     bookings = get_and_format_bookings_for_display(request.user)
     invoices = get_invoice_list(request)
     transactions = get_transaction_list(request)
+    balance = get_student_balance(request)
     return render(request, 'student_page.html', {'user_requests': user_requests[:5],
                                                  'invoices': invoices[:5],
                                                  'transactions': transactions[:5],
-                                                 'bookings': bookings[:5]})
+                                                 'bookings': bookings[:5],
+                                                 'balance': balance})
 
 @login_required
 @allowed_groups(['Admin', 'Director'])
