@@ -23,6 +23,11 @@ def get_booking_object(booking_id):
 
 def get_child_object(relation_id):
     return Child.objects.get(id=relation_id)
+    
+def get_student_balance(request):
+    user = request.user
+    student = Student.objects.get(user=user)
+    return student.balance
 
 def get_invoice_object(invoice_number):
     return Invoice.objects.get(invoice_number=invoice_number)

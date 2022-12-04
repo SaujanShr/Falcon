@@ -1,6 +1,6 @@
 <div class="collapse navbar-collapse" id="navbarSupportedContent">
     <div class="navbar-nav me-auto mb-2 mb-lg-0">
-        <a class="nav-item nav-link text-white" href="{% url 'student_page' %}">Dashboard</a>
+        <a class="nav-item nav-link text-white" href="{% url 'student_page'%}">Dashboard</a>
         <a class="nav-item nav-link text-white" href="{% url 'request_list' %}">My Requests</a>
         <a class="nav-item nav-link text-white" href="{% url 'booking_list' %}">My Bookings</a>
         <a class="nav-item nav-link text-white" href="{% url 'transaction_list_student' %}">My Transactions</a>
@@ -8,6 +8,11 @@
         <a class="nav-item nav-link text-white" href="{% url 'children_list' %}">Children</a>
         <a class="nav-item nav-link text-white" href="{% url 'student_term_view' %}">Terms</a>
     </div>
+    {% if balance != null %}
+    <div>
+        <a class="nav-item text-white">Balance: {{balance}}</a>
+    </div>
+    {% endif %}
     <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
         <li class="nav-item dropdown">
             <a class="nav-link" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
