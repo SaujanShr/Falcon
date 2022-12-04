@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from .forms import LogInForm, TransactionSubmitForm, NewRequestViewForm, SignUpForm, PasswordForm, UserForm,CreateUser, TermViewForm
+from .forms import LogInForm, TransactionSubmitForm, NewRequestForm, NewChildForm, SignUpForm, PasswordForm, UserForm,CreateUser, TermViewForm
 from .models import Student, Booking, BankTransaction, User
 from django.contrib import messages
 from django.contrib.auth import login, logout
@@ -13,95 +13,173 @@ from django.core.exceptions import ObjectDoesNotExist
 @login_required
 @allowed_groups(['Student'])
 def student_page(request):
-    date_user_request_pairs = get_date_user_request_pairs(request)
-    bookings = get_and_format_student_bookings_for_display(request)
+    user_requests = get_and_format_requests_for_display(request.user)
+    bookings = get_and_format_bookings_for_display(request.user)
     invoices = get_invoice_list(request)
     transactions = get_transaction_list(request)
     balance = get_student_balance(request)
-    return render(request, 'student_page.html', {'date_user_request_pairs': date_user_request_pairs[:5], 'invoices': invoices[:5], 'transactions': transactions[:5], 'bookings': bookings[:5], 'balance': balance})
+    return render(request, 'student_page.html', {'user_requests': user_requests[:5],
+                                                 'invoices': invoices[:5],
+                                                 'transactions': transactions[:5],
+                                                 'bookings': bookings[:5],
+                                                 'balance': balance})
 
 @login_required
 @allowed_groups(['Admin', 'Director'])
 def admin_page(request):
     transactions = BankTransaction.objects.order_by('-date')
-    requests = get_and_format_request_for_display()
-    bookings = get_and_format_booking_for_display()
-    return render(request, 'admin_page.html', {'transactions': transactions[:5], 'requests': requests[1][:5], 'bookings': bookings[:5]})
-
+    requests = get_and_format_requests_for_admin_display()
+    bookings = get_and_format_bookings_for_admin_display()
+    return render(request, 'admin_page.html', {'transactions': transactions[:5],
+                                               'requests': requests['unfulfilled'][:5],
+                                               'bookings': bookings[:5]})
 
 @login_required
 @allowed_groups(['Student'])
 def request_list(request):
-    date_user_request_pairs = get_date_user_request_pairs(request)
-    return render(request, 'request_list.html', {'date_user_request_pairs': date_user_request_pairs})
+    user_requests = get_and_format_requests_for_display(request.user)
+    return render(request, 'request_list.html', {'user_requests': user_requests, 'is_student':True})
+
+@login_required
+@allowed_groups(['Student'])
+def booking_list(request):
+    user_bookings = get_and_format_bookings_for_display(request.user)
+    return render(request, 'booking_list.html', {'user_bookings': user_bookings, 'is_student':True})
 
 @login_required
 @allowed_groups(['Student'])
 def request_view(request):
+    request_id = get_request_id_from_request(request)
+    relation_id = get_request_object(request_id).relation_id
+    
+    if is_child(relation_id):
+        redirect_page = 'child_request_list'
+    else:
+        redirect_page = 'request_list'
+    
     if request.method == 'POST':
-        if 'delete' in request.POST and delete_request(request): 
-                return redirect('request_list')
-        elif 'update' in request.POST and update_request(request): 
-                return redirect('request_list')
+        if request.POST.get('delete', None) and delete_request_object_from_request(request):
+            return redirect_with_queries(redirect_page, relation_id=relation_id)
+            
+        elif request.POST.get('update', None) and update_request_object_from_request(request): 
+            return redirect_with_queries(redirect_page, relation_id=relation_id)
+        
+        elif request.POST.get('return', None):
+            return redirect_with_queries(redirect_page, relation_id=relation_id)
     
-    user_request = get_request_object_from_request(request)
-    date = str(user_request.date)
-    form = get_new_request_view_form(request)
+    full_name = get_full_name_by_relation_id(request.user, relation_id)
+    request_fulfilled = get_request_object(request_id).fulfilled
     
-    request_fulfilled = user_request.fulfilled
-    if request_fulfilled: form.set_read_only()
+    form = get_request_view_form(request_id)
     
-    return render(request, 'request_view.html', {'date': date, 'form': form, 'readonly': request_fulfilled})
-
+    if request_fulfilled:
+        form.set_read_only()
+    
+    return render(request, 'request_view.html', {'request_id':request_id, 'relation_id':relation_id, 
+                                                 'full_name':full_name, 'form':form, 'readonly':request_fulfilled})
 
 @login_required
 @allowed_groups(['Student'])
 def new_request_view(request):
+    relation_id = get_relation_id_from_request(request)
+    user = request.user
+    
     if request.method == 'POST':
-        form = NewRequestViewForm(request.user, request.POST)
+        form = NewRequestForm(user=user, relation_id=relation_id, data=request.POST)
         if form.is_valid():
-            request_created = form.save()
-            if request_created:
+            form.save()
+            if is_child(relation_id):
+                return redirect_with_queries('child_request_list', relation_id=relation_id)
+            else:
                 return redirect('request_list')
-    form = NewRequestViewForm(request.user)
-    return render(request, 'new_request_view.html', {'form': form})
+                
+        
+    full_name = get_full_name_by_relation_id(user, relation_id)
+    form = NewRequestForm()
+    
+    return render(request, 'new_request_view.html', {'relation_id':relation_id, 'full_name':full_name, 'form':form})
 
 
 @login_required
 @allowed_groups(['Student'])
 def children_list(request):
-    children = Child.objects.filter(parent=request.user)
+    children = get_children_idname(request.user)
     return render(request, 'children_list.html', {'children': children})
 
 @login_required
 @allowed_groups(['Student'])
 def child_page(request):
-    child = get_child(request)
-    return render(request, 'child_page.html', {'child': child})
+    relation_id = get_relation_id_from_request(request)
+    
+    if request.method == 'GET':
+        if request.GET.get('requests', None):
+            return redirect_with_queries('child_request_list', relation_id=relation_id)
+        
+        if request.GET.get('bookings', None):
+            return redirect_with_queries('child_booking_list', relation_id=relation_id)
+        
+        if request.GET.get('return', None):
+            return redirect('children_list')
+    
+    child = get_child_idname(relation_id)
+    return render(request, 'child_page.html', {'child':child})
+
+@login_required
+@allowed_groups(['Student'])
+def new_child_view(request):
+    if request.method == 'POST':
+        form = NewChildForm(user=request.user, data=request.POST)
+        form.save()
+        return redirect('children_list')
+    
+    form = NewChildForm()
+    return render(request, 'new_child_view.html', {'form': form})
+
+@login_required
+@allowed_groups(['Student'])
+def child_view(request):
+    relation_id = get_relation_id_from_request(request)
+    
+    if request.method == 'POST':
+        if request.POST.get('update', None) and update_child_object_from_request(request): 
+            return redirect('children_list')
+        
+        if request.POST.get('delete', None):
+            delete_child(request.user, request.POST.get('relation_id'))
+            return redirect('children_list')
+        
+        elif request.POST.get('return', None):
+            return redirect('children_list')
+    
+    form = get_child_view_form(relation_id)
+    
+    return render(request, 'child_view.html', {'relation_id':relation_id, 'form':form})
+        
 
 @login_required
 @allowed_groups(['Student'])
 def child_request_list(request):
-    child = get_child(request)
+    relation_id = get_relation_id_from_request(request)
+    
+    child = get_child_idname(relation_id)
+    child_requests = get_and_format_requests_for_display(request.user, relation_id)
+    
+    return render(request, 'child_request_list.html', {'child':child, 'child_requests': child_requests})
+    
 
 @login_required
 @allowed_groups(['Student'])
 def child_booking_list(request):
-    pass
-
-@login_required
-@allowed_groups(['Student'])
-
-@login_required
-@allowed_groups(['Student'])
-def booking_list(request):
-    bookings = get_and_format_student_bookings_for_display(request)
-    return render(request, 'booking_list.html', {'bookings': bookings})
+    relation_id = get_relation_id_from_request(request)
+    
+    child = get_child_idname(relation_id)
+    child_bookings = get_booking_objects(request.user, relation_id)
+    
+    return render(request, 'child_booking_list.html', {'child':child, 'child_bookings': child_bookings})
 
 @login_prohibited
 def home(request):
     return render(request, 'home.html')
-
 
 @login_prohibited
 def log_in(request):
@@ -137,12 +215,12 @@ def profile(request, user_id):
     try:
         user = User.objects.get(id=user_id)
     except ObjectDoesNotExist:
-        return redirect('/profile/' + str(request.user.id))
+        return redirect_with_queries('/profile/', user_id=str(request.user.id))
 
-    # Redirect if the current user is attempting to change the profile of another user.
-    if request.user.id != user_id:
+    # Redirect if the current user is attempting to change the profile of another user and the user is not a director.
+    if request.user.id != user_id and not request.user.is_superuser:
         form = UserForm(instance=request.user)
-        return redirect('/profile/'+str(request.user.id))
+        return redirect_with_queries('/profile/', user_id=str(request.user.id))
 
     if request.method == 'POST':
         form = UserForm(instance=user, data=request.POST)
@@ -245,17 +323,21 @@ def balance_list_admin(request):
     return render(request, 'balance_list.html', {'students': students})
 
 
-#@login_required
-#@allowed_groups(["Admin","Director"])
-def admin_bookings_view(request):
-    bookings = get_and_format_booking_for_display()
-    return render(request, 'admin_bookings_view.html', {'bookings': bookings})
+@login_required
+@allowed_groups(["Admin","Director"])
+def admin_booking_list(request):
+    bookings = get_and_format_bookings_for_admin_display()
+    print(bookings)
+    return render(request, 'admin_booking_list.html', {'bookings': bookings})
 
-def admin_requests_view(request):
-    requests = get_and_format_request_for_display()
+@login_required
+@allowed_groups(["Admin","Director"])
+def admin_request_list(request):
+    requests = get_and_format_requests_for_admin_display()
             
-    return render(request, 'admin_requests_view.html', {'fulfilled_requests': requests[0],
-                                                        'unfulfilled_requests': requests[1]})
+    return render(request, 'admin_request_list.html', {'fulfilled_requests': requests['fulfilled'],
+                                                'unfulfilled_requests': requests['unfulfilled']})
+
 
 
 #@login_required
@@ -263,7 +345,7 @@ def admin_requests_view(request):
 def fulfil_request_view(request):
 
     if request.method == 'POST':
-        if 'fulfil' in request.POST:
+        if request.POST.get('fulfil', None):
             form = FulfilRequestForm(request.POST)
             booking_req = form.save()
 
@@ -274,15 +356,15 @@ def fulfil_request_view(request):
                 booking_req[1].fulfilled = True
                 booking_req[1].save()
                 booking_req[0].save()
-                return redirect('admin_bookings_view')
+                return redirect('admin_booking_list')
             else:
                 print('Booking is already fulfilled')
-                return redirect('admin_bookings_view')
-        elif 'delete' in request.POST:
-            delete_request(request)
-            return redirect('admin_requests_view')
-        elif 'return' in request.POST:
-            return redirect('admin_requests_view')
+                return redirect('admin_booking_list')
+        elif request.POST.get('delete', None):
+            delete_request_object_from_request(request)
+            return redirect('admin_request_list')
+        elif request.POST.get('return', None):
+            return redirect('admin_request_list')
 
     date = str(get_request_object_from_request(request).date)
     form = get_fulfil_request_form(request)
@@ -291,11 +373,12 @@ def fulfil_request_view(request):
 
 def edit_booking_view(request):
     if request.method == 'POST':
-        if 'update' in request.POST:
+        if request.POST.get('update', None):
             update_booking(request)
-        elif 'delete' in request.POST:
+        elif request.POST.get('delete', None):
             delete_booking(request)
-        return redirect('admin_bookings_view')
+        return redirect('admin_booking_list')
+    
     booking = Booking.objects.get(invoice_id=request.GET['inv_id'])
     form = get_booking_form(request)
     return render(request, 'edit_booking.html', {'form': form})
@@ -397,14 +480,14 @@ def term_deletion_confirmation_view(request):
 @allowed_groups(["Director"])
 def admin_user_list_view(request):
     if request.method == 'POST':
-        if 'edit' in request.POST:
+        if request.POST.get('edit', None):
             id_user_to_edit = request.POST.get("edit","")
-            return redirect("profile",user_id=id_user_to_edit)
-        elif 'delete' in request.POST:
+            return redirect("profile", user_id=id_user_to_edit)
+        elif request.POST.get('delete', None):
             id_user_to_delete = request.POST.get("delete","")
             user_to_delete = User.objects.get(id=id_user_to_delete)
             user_to_delete.delete()
-        elif 'promote_director' in request.POST:
+        elif request.POST.get('promote_director', None):
             id_user_to_promote = request.POST.get("promote_director","")
             user_to_promote = User.objects.get(id=id_user_to_promote)
             if user_to_promote.groups.exists():
@@ -412,11 +495,11 @@ def admin_user_list_view(request):
             user_to_promote.is_superuser = True
             user_to_promote.is_staff = True
             user_to_promote.save()
-        elif 'create_director' in request.POST:
+        elif request.POST.get('create_director', None):
             return redirect("create_director_user")
-        elif 'create_student' in request.POST:
+        elif request.POST.get('create_student', None):
             return redirect("create_student_user")
-        elif 'create_administrator' in request.POST:
+        elif request.POST.get('create_administrator', None):
             return redirect("create_admin_user")
 
     users = User.objects.all().order_by("groups")

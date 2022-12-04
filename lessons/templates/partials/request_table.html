@@ -7,15 +7,14 @@
         <th stype="width: 5%">View Request</th>
       </tr>
     </thead>
-    {% if date_user_request_pairs %}
-      {% for date_user_request_pair in date_user_request_pairs %}
-        <tr><form action="{% url 'request_view' %}" method="get">
-            <input type="hidden" name="date" value="{{ date_user_request_pair.date }}"/>
-            <td>{{ date_user_request_pair.request.date }}</td>
-            <td>{{ date_user_request_pair.request.further_information|truncatechars:30 }}</td>
-            <td>{{ date_user_request_pair.request.fulfilled }}</td>
-            <td><input type="submit" class="btn btn-primary" value="View here"></td>
-          </form></tr>
+    {% if user_requests %}
+      {% for user_request in user_requests %}
+        <tr>
+            <td style="vertical-align: top">{{ user_request.date }}</td>
+            <td style="vertical-align: top">{{ user_request.further_information|truncatechars:30 }}</td>
+            <td style="vertical-align: top">{{ user_request.fulfilled }}</td>
+            <td style="vertical-align: top"><a href="{% url 'request_view' %}?request_id={{ user_request.id }}">View Request</a></td>
+        </tr>
       {% endfor %}
     {% else %}
       <tr>

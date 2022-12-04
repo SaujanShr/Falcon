@@ -1,9 +1,10 @@
 {% extends 'base_content.html' %}
 {% block content %}
+
 <div class ="container">
-  <div class = "row">
-    <p><a href="{% url 'new_request_view' %}" class=" btn btn-sm btn-primary">New Request</a></p>
-    {% include 'partials/request_table.html' with date_user_request_pairs=date_user_request_pairs%}
-  </div>
+  <h1>Requests</h1>
+  <a href="{% url 'new_request_view' %}?relation_id=-1" class=" btn btn-sm btn-primary">New Request</a>
+  {% include 'partials/request_table_big.html' with requests=user_requests is_student=1 %}
 </div>
+
 {% endblock %}

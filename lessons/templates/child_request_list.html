@@ -1,0 +1,10 @@
+{% extends 'base_content.html' %}
+{% block content %}
+
+<div class ="container">
+  {% include 'partials/child_menu.html' with child=child %}
+  <a href="{% url 'new_request_view' %}?relation_id={{ child.id }}" class=" btn btn-sm btn-primary">New Request</a>
+  {% include 'partials/request_table_big.html' with requests=child_requests is_student=1 %}
+</div>
+
+{% endblock %}
