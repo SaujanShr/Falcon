@@ -471,16 +471,8 @@ def term_view(request):
         # Use old term name in case the user has changed the term name.
         term = SchoolTerm.objects.get(term_name=request.POST['old_term_name'])
         old_term_name = request.POST['old_term_name']
-        new_term_name = request.POST['term_name']
         old_start_date = term.start_date
         old_end_date = term.end_date
-
-        initial_form = TermViewForm(instance=term)
-
-        # Check if there already exists a term with the same name, if there is a change in the name of the term.
-        if term_name_already_exists(old_term_name, new_term_name):
-            messages.add_message(request, messages.ERROR, "There already exists a term with this name!")
-            return render(request, "term_view.html", {'form': initial_form, 'old_term_name': old_term_name})
 
         # Create a copy of the request data, and delete term, Otherwise term name validation (Unique constraint)
         data = request.POST.copy()
