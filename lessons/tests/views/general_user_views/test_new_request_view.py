@@ -1,8 +1,8 @@
 """Tests of the new-request view."""
 from django.test import TestCase
 from django.urls import reverse
-from lessons.forms import NewRequestViewForm
-from lessons.models import Request, DayOfTheWeek
+from lessons.forms import NewRequestForm
+from lessons.models import Request
 from lessons.tests.helpers import create_user_groups, HandleGroups, create_days_of_the_week
 
 
@@ -42,7 +42,7 @@ class NewRequestViewTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'new_request_view.html')
         form = response.context['form']
-        self.assertTrue(isinstance(form, NewRequestViewForm))
+        self.assertTrue(isinstance(form, NewRequestForm))
         self.assertFalse(form.is_bound)
 
     def test_unsuccessful_new_request(self):
@@ -54,7 +54,7 @@ class NewRequestViewTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'new_request_view.html')
         form = response.context['form']
-        self.assertTrue(isinstance(form, NewRequestViewForm))
+        self.assertTrue(isinstance(form, NewRequestForm))
         #self.assertTrue(form.is_bound)
 
     def test_successful_new_request(self):

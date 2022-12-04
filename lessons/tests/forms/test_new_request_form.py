@@ -1,7 +1,7 @@
 """Unit tests of the new requests form."""
 from django.utils import timezone
 from django.test import TestCase
-from lessons.forms import NewRequestViewForm
+from lessons.forms import NewRequestForm
 from lessons.models import DayOfTheWeek, Request, User
 from lessons.tests.helpers import create_user_groups, create_days_of_the_week
 
@@ -36,11 +36,11 @@ class NewRequestFormTestCase(TestCase):
         }
 
     def test_valid_sign_up_form(self):
-        form = NewRequestViewForm(data=self.form_input)
+        form = NewRequestForm(data=self.form_input)
         self.assertTrue(form.is_valid())
 
     def test_form_has_necessary_fields(self):
-        form = NewRequestViewForm()
+        form = NewRequestForm()
         self.assertIn('availability', form.fields)
 
         self.assertIn('number_of_lessons', form.fields)
@@ -53,14 +53,14 @@ class NewRequestFormTestCase(TestCase):
 
     def test_availability_cannot_accept_no_choices(self):
         self.form_input['availability'] = None
-        form = NewRequestViewForm(data=self.form_input)
+        form = NewRequestForm(data=self.form_input)
         self.assertFalse(form.is_valid())
 
     def test_availability_can_accept_multiple_choices(self):
         self.form_input['availability'] = DayOfTheWeek.objects.get(
             day=DayOfTheWeek.Day.TUESDAY), DayOfTheWeek.objects.get(
             day=DayOfTheWeek.Day.WEDNESDAY), DayOfTheWeek.objects.get(day=DayOfTheWeek.Day.THURSDAY)
-        form = NewRequestViewForm(data=self.form_input)
+        form = NewRequestForm(data=self.form_input)
         self.assertTrue(form.is_valid())
 
     def test_availability_can_accept_all_choices(self):
@@ -69,80 +69,80 @@ class NewRequestFormTestCase(TestCase):
             day=DayOfTheWeek.Day.TUESDAY), DayOfTheWeek.objects.get(
             day=DayOfTheWeek.Day.WEDNESDAY), DayOfTheWeek.objects.get(
             day=DayOfTheWeek.Day.THURSDAY), DayOfTheWeek.objects.get(day=DayOfTheWeek.Day.FRIDAY)
-        form = NewRequestViewForm(data=self.form_input)
+        form = NewRequestForm(data=self.form_input)
         self.assertTrue(form.is_valid())
 
     def test_number_of_lessons_cannot_be_empty(self):
         self.form_input['number_of_lessons'] = None
-        form = NewRequestViewForm(data=self.form_input)
+        form = NewRequestForm(data=self.form_input)
 
         self.assertFalse(form.is_valid())
 
     def test_number_of_lessons_can_be_1(self):
         self.form_input['number_of_lessons'] = 1
-        form = NewRequestViewForm(data=self.form_input)
+        form = NewRequestForm(data=self.form_input)
 
         self.assertTrue(form.is_valid())
 
     def test_number_of_lessons_can_greater_than_1(self):
         self.form_input['number_of_lessons'] = 2
-        form = NewRequestViewForm(data=self.form_input)
+        form = NewRequestForm(data=self.form_input)
 
         self.assertTrue(form.is_valid())
 
     def test_number_of_lessons_cannot_be_less_than_1(self):
         self.form_input['number_of_lessons'] = 0
-        form = NewRequestViewForm(data=self.form_input)
+        form = NewRequestForm(data=self.form_input)
         self.assertFalse(form.is_valid())
 
     def test_number_of_lessons_can_be_max_int_for_SQLite_DB(self):
         self.form_input['number_of_lessons'] = 9223372036854775807
-        form = NewRequestViewForm(data=self.form_input)
+        form = NewRequestForm(data=self.form_input)
         self.assertTrue(form.is_valid())
 
     def test_number_of_lessons_cannot_be_greater_than_max_int_for_SQLite_DB(self):
         self.form_input['number_of_lessons'] = 92233720368547758071
-        form = NewRequestViewForm(data=self.form_input)
+        form = NewRequestForm(data=self.form_input)
         self.assertFalse(form.is_valid())
 
     def test_interval_between_lessons_cannot_be_empty(self):
         self.form_input['interval_between_lessons'] = None
-        form = NewRequestViewForm(data=self.form_input)
+        form = NewRequestForm(data=self.form_input)
         self.assertFalse(form.is_valid())
 
     def test_duration_of_lessons_can_accept_30_minutes(self):
         self.form_input['duration_of_lessons'] = Request.LessonDuration.THIRTY_MINUTES
-        form = NewRequestViewForm(data=self.form_input)
+        form = NewRequestForm(data=self.form_input)
         self.assertTrue(form.is_valid())
 
     def test_duration_of_lessons_can_accept_45_minutes(self):
         self.form_input['duration_of_lessons'] = Request.LessonDuration.FOURTY_FIVE_MINUTES
-        form = NewRequestViewForm(data=self.form_input)
+        form = NewRequestForm(data=self.form_input)
         self.assertTrue(form.is_valid())
 
     def test_duration_of_lessons_can_accept_60_minutes(self):
         self.form_input['duration_of_lessons'] = Request.LessonDuration.SIXTY_MINUTES
-        form = NewRequestViewForm(data=self.form_input)
+        form = NewRequestForm(data=self.form_input)
         self.assertTrue(form.is_valid())
 
     def test_duration_of_lessons_cannot_be_empty(self):
         self.form_input['duration_of_lessons'] = None
-        form = NewRequestViewForm(data=self.form_input)
+        form = NewRequestForm(data=self.form_input)
         self.assertFalse(form.is_valid())
 
     def test_further_information_cannot_be_empty(self):
         self.form_input['further_information'] = ''
-        form = NewRequestViewForm(data=self.form_input)
+        form = NewRequestForm(data=self.form_input)
         self.assertFalse(form.is_valid())
 
     def test_further_information_can_be_500_characters_long(self):
         self.form_input['further_information'] = 'a' * 500
-        form = NewRequestViewForm(data=self.form_input)
+        form = NewRequestForm(data=self.form_input)
         self.assertTrue(form.is_valid())
 
     def test_further_information_cannot_be_over_500_characters_long(self):
         self.form_input['further_information'] = 'a' * 501
-        form = NewRequestViewForm(data=self.form_input)
+        form = NewRequestForm(data=self.form_input)
         self.assertFalse(form.is_valid())
 
     # Not sure how to do this.
