@@ -1,30 +1,48 @@
 <table class="table table-striped">
     <thead>
-    <tr>
-        <th>Teacher</th>
-        <th>Student</th>
-        <th>Day</th>
-        <th>Time</th>
-        <th>Duration</th>
-    </tr>
+        <tr>
+            <th>Start Date</th>
+            <th>Teacher</th>
+            {% if not is_student %}
+                <th>Student</th>
+            {% endif %}
+            <th>Day</th>
+            <th>Time</th>
+            <th>Duration</th>
+        </tr>
     </thead>
-    {% if bookings %}
-    {% for booking in bookings %}
-        <tr>
-            <td style="vertical-align: top">{{ booking.teacher }}</td>
-            <td style="vertical-align: top">{{ booking.student_name}} ({{ booking.user.email }})</td>
-            <td style="vertical-align: top">{{ booking.day_of_the_week }}</td>
-            <td style="vertical-align: top">{{ booking.time_of_the_day}}</td>
-            <td style="vertical-align: top">{{ booking.duration_of_lessons }}</td>
-        </tr>
-    {% endfor %}
-    {% else %}
-        <tr>
-            <td style="text-align: left">No bookings yet...</td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-        </tr>
-    {% endif %}
+    <tbody>
+        {% if bookings %}
+            {% if is_student %}
+                {% for booking in bookings %}
+                    <tr>
+                        <td style="vertical-align: top">{{ booking.start_date }}</td>
+                        <td style="vertical-align: top">{{ booking.teacher }}</td>
+                        <td style="vertical-align: top">{{ booking.day_of_the_week }}</td>
+                        <td style="vertical-align: top">{{ booking.time_of_the_day}}</td>
+                        <td style="vertical-align: top">{{ booking.duration_of_lessons }}</td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                {% for booking in bookings %}
+                    <tr>
+                        <td style="vertical-align: top">{{ booking.start_date }}</td>
+                        <td style="vertical-align: top">{{ booking.teacher }}</td>
+                        <td style="vertical-align: top">{{ booking.student_name }}</td>
+                        <td style="vertical-align: top">{{ booking.day_of_the_week }}</td>
+                        <td style="vertical-align: top">{{ booking.time_of_the_day}}</td>
+                        <td style="vertical-align: top">{{ booking.duration_of_lessons }}</td>
+                    </tr>
+                {% endfor %}
+            {% endif %}
+        {% else %}
+            <tr>
+                <td style="text-align: left">No bookings yet...</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        {% endif %}
+    </tbody>
 </table>

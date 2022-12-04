@@ -1,4 +1,9 @@
 {% extends 'base_content.html' %}
 {% block content %}
 
+<div class="container">
+    {% include 'partials/child_menu.html' with child=child %}
+    <h1>Timetable</h1>
+</div>
+
 {% endblock %}

@@ -1,0 +1,11 @@
+{% extends 'base_content.html' %}
+{% block content %}
+
+<div class ="container">
+    <h1>Unfulfilled Requests</h1>
+    {% include 'partials/request_table_big.html' with requests=unfulfilled_requests unfulfilled=1 %}
+    <h1>Fulfilled Requests</h1>
+    {% include 'partials/request_table_big.html' with requests=fulfilled_requests %}
+</div>
+
+{% endblock %}

@@ -57,9 +57,9 @@ class RequestModelTestCase(TestCase):
         self.request1.date = ''
         self._assert_request_is_invalid()
     
-    def test_date_must_be_unique(self):
+    def test_date_can_already_exist(self):
         self.request1.date = self.request2.date
-        self._assert_request_is_invalid()
+        self._assert_request_is_valid()
     
     def test_date_can_be_today(self):
         self.request1.date = timezone.datetime.now(tz=timezone.utc)
