@@ -29,7 +29,7 @@
                         <td style="vertical-align: top">{{ booking.teacher }}</td>
                         <td style="vertical-align: top">{{ booking.further_information|truncatechars:30 }}</td>
                         <td style="vertical-align: top"><a href="{% url 'edit_booking_view' %}?booking_id={{ booking.id }}">View Booking</a></td>
-                        <td style="vertical-align: top"><a href="{% url 'invoice_view' %}?booking_id={{ booking.id }}">View Invoice</a></td>
+                        <td style="vertical-align: top"><a href="{% url 'invoice_view' %}?invoice_id={{ booking.invoice_id }}">View Invoice</a></td>
                     </tr>
                 {% endfor %}
             {% else %}
