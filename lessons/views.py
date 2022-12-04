@@ -56,7 +56,7 @@ def request_view(request):
     user_request = get_request_object(request_id)
     
     # If the user is not authorised, kick them back to the student page.
-    if user != user_request.user and not user.is_admin():
+    if user != user_request.user and not user.is_admin_or_director():
         return redirect('')
     
     relation_id = user_request.relation_id
@@ -72,7 +72,7 @@ def request_view(request):
             return redirect_to_request_list(user, relation_id)
     
     full_name = get_full_name_by_relation_id(user, relation_id)
-    readonly = user.is_admin() or user_request.fulfilled
+    readonly = user.is_admin_or_director() or user_request.fulfilled
     
     form = get_request_view_form(request_id)
     
@@ -393,12 +393,12 @@ def booking_view(request):
     user = request.user
     
     # If the user is not authorised, kick them back to the student page.
-    if user != booking.user and not user.is_admin():
+    if user != booking.user and not user.is_admin_or_director():
         return redirect('student_page')
     
     relation_id = booking.relation_id
     
-    if user.is_admin():
+    if user.is_admin_or_director():
         redirect_page= 'admin_booking_list'
     elif is_child(relation_id):
         redirect_page = 'child_booking_list'
@@ -416,7 +416,7 @@ def booking_view(request):
             return redirect_with_queries(redirect_page, relation_id=relation_id)
     
     full_name = get_full_name_by_relation_id(user, relation_id)
-    readonly = not user.is_admin()
+    readonly = not user.is_admin_or_director()
     
     form = get_booking_form(booking_id)
     

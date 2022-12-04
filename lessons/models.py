@@ -68,7 +68,7 @@ class User(AbstractBaseUser,PermissionsMixin):
     def is_student(self):
         return self.groups.exists() and self.groups.all()[0].name == "Student"
     
-    def is_admin(self):
+    def is_admin_or_director(self):
         return self.is_staff or self.is_superuser
 
     def get_group(self):
