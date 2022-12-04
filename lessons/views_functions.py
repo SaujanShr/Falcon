@@ -1,7 +1,8 @@
 import decimal
 import urllib
+from django.utils import timezone
 from .models import Request, Invoice, Student, Child, Booking, DayOfTheWeek, SchoolTerm, BankTransaction
-from .forms import RequestViewForm, FulfilRequestForm, EditBookingForm, ChildViewForm, TransactionSubmitForm
+from .forms import RequestForm, FulfilRequestForm, EditBookingForm, ChildViewForm, TransactionSubmitForm
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.contrib.auth import authenticate
@@ -17,8 +18,14 @@ def redirect_with_queries(url, **queries):
 def get_request_object(request_id):
     return Request.objects.get(id=request_id)
 
+def get_booking_object(booking_id):
+    return Booking.objects.get(invoice_id=booking_id)
+
 def get_child_object(relation_id):
     return Child.objects.get(id=relation_id)
+
+def get_invoice_object(invoice_number):
+    return Invoice.objects.get(invoice_number=invoice_number)
 
 def get_request_id_from_request(request):
     if request.method == 'GET':
@@ -34,14 +41,23 @@ def get_relation_id_from_request(request):
         return request.POST.get('relation_id', -1)
     return None
 
+def get_booking_id_from_request(request):
+    if request.method == 'GET':
+        return request.GET.get('booking_id', None)
+    elif request.method == 'POST':
+        return request.POST.get('booking_id', None)
+    return None
+
 def get_request_object_from_request(request):
     return get_request_object(get_request_id_from_request(request))
 
 def get_child_object_from_request(request):
     return get_child_object(get_relation_id_from_request(request))
 
+def get_booking_object_from_request(request):
+    return get_booking_object(get_booking_id_from_request(request))
+
 def is_child(relation_id):
-    print('ischild:', relation_id)
     return int(relation_id) != -1
 
 def get_client_from_relation_id(user, relation_id):
@@ -60,8 +76,10 @@ def update_request_object_from_request(request):
     user_request = get_request_object_from_request(request)
     data = request.POST
     
-    form = RequestViewForm(instance_id=user_request.id, data=data)
-    return form.save()
+    form = RequestForm(instance_id=user_request.id, data=data)
+    
+    if form.is_valid():
+        return form.save()
 
 def get_booking_objects(user, relation_id = -1):
     return Booking.objects.filter(user=user, relation_id=relation_id).order_by('start_date')
@@ -92,7 +110,11 @@ def get_children_idname(user):
 
 def delete_child(user, relation_id):
     get_request_objects(user, relation_id).delete()
-    get_booking_objects(user, relation_id).delete()
+    bookings = get_booking_objects(user, relation_id).delete()
+    for booking in bookings:
+        refund_booking_if_valid(booking)
+    bookings.delete()
+        
     return get_child_object(relation_id).delete()
 
 def update_child_object_from_request(request):
@@ -100,7 +122,8 @@ def update_child_object_from_request(request):
     data = request.POST
     
     form = ChildViewForm(instance_id=child.id, data=data)
-    return form.save()
+    if form.is_valid():
+        return form.save()
 
 def format_request_for_display(request: Request):
     request.interval_between_lessons = Request.IntervalBetweenLessons.choices[
@@ -168,29 +191,24 @@ def get_and_format_bookings_for_admin_display():
     
     return formatted_bookings
 
-def delete_request(request):
-    return get_request_object_from_request(request).delete()
 
-
-def update_request(request):
-    user_request = get_request_object_from_request(request)
-
-    # Can't update a fulfilled request.
-    if user_request.fulfilled:
-        return None
+def refund_booking_if_valid(booking: Booking):
+    if booking.start_date >= timezone.now().date():
+        return
     
-    post_data = request.POST.copy()
-    post_data['date'] = user_request.date
-    post_data['fulfilled'] = user_request.fulfilled
-
-    request_instance = Request.objects.get(date=post_data['date'])
-
-    form = RequestViewForm(request.user, post_data, instance=request_instance)
-    return form.save()    
+    invoice = get_invoice_object(booking.invoice_id)
+    student = Student.objects.get(user=booking.user)
+    student.balance += invoice.paid_amount
+    invoice.paid_amount = 0
+    invoice.full_amount = 0
+    invoice.fully_paid = True
+    invoice.save()
+    student.save()
 
 def update_booking(request):
     data = request.POST.copy()
-    booking = Booking.objects.get(invoice_id=data['invoice_id'])
+    booking = get_booking_object_from_request(request)
+    print(data['invoice_id'])
     booking.day_of_the_week = DayOfTheWeek.objects.get(order=(int(data['day_of_the_week'])-1))
     booking.time_of_the_day = data['time_of_the_day']
     booking.teacher = data['teacher']
@@ -219,23 +237,18 @@ def update_booking(request):
 
     invoice.save()
     booking.save()
+    
+    return booking
 
 def delete_booking(request):
-    #This delete function will return any money paid
-    data = request.POST.copy()
-    booking = Booking.objects.get(invoice_id=data['invoice_id'])
-    invoice = Invoice.objects.get(invoice_number=data['invoice_id'])
-    student = Student.objects.get(user=booking.user)
-    student.balance = student.balance + invoice.paid_amount
-    invoice.paid_amount = 0
-    invoice.full_amount = 0
-    invoice.fully_paid = True
-    invoice.save()
-    booking.delete()
-    student.save()
+    data = request.POST
+    booking = get_booking_object_from_request(request)
+    refund_booking_if_valid(booking)
+    
+    return booking.delete()
 
-def get_booking_form(request):
-    booking = Booking.objects.get(invoice_id=request.GET['inv_id'])
+def get_booking_form(booking_id):
+    booking = get_booking_object(booking_id)
     invoice = Invoice.objects.get(invoice_number=booking.invoice_id)
     hourly_cost = int(invoice.full_amount/booking.duration_of_lessons/booking.number_of_lessons*60)
     form = EditBookingForm(
@@ -267,7 +280,7 @@ def get_child_view_form(request_id):
 def get_request_view_form(request_id):
     user_request = get_request_object(request_id)
 
-    form = RequestViewForm(
+    form = RequestForm(
         initial={
             'date':user_request.date,
             'relation_id':user_request.relation_id,
@@ -305,7 +318,7 @@ def create_invoice(booking, hourly_cost):
     invoice_number = generate_invoice_number(user)
 
     #Calculate amount to pay
-    total_required = (int(hourly_cost) * booking.number_of_lessons * booking.duration_of_lessons / 60)
+    total_required = (float(hourly_cost) * booking.number_of_lessons * booking.duration_of_lessons / 60)
 
     #Create invoice
     invoice = Invoice.objects.create(

@@ -8,14 +8,12 @@
                 <th>Teacher</th>
                 <th>Further Information</th>
                 <th>View Booking</th>
-                <th>View Invoice</th>
             {% else %}
                 <th>Start Date</th>
                 <th>Student</th>
                 <th>Teacher</th>
                 <th>Further Information</th>
                 <th>Edit Booking</th>
-                <th>View Invoice</th>
             {% endif %}
         </tr>
     </thead>
@@ -28,8 +26,9 @@
                         <td style="vertical-align: top">{{ booking.day_of_the_week }}</td>
                         <td style="vertical-align: top">{{ booking.teacher }}</td>
                         <td style="vertical-align: top">{{ booking.further_information|truncatechars:30 }}</td>
-                        <td style="vertical-align: top"><a href="{% url 'edit_booking_view' %}?booking_id={{ booking.id }}">View Booking</a></td>
-                        <td style="vertical-align: top"><a href="{% url 'invoice_view' %}?booking_id={{ booking.id }}">View Invoice</a></td>
+                        <td style="vertical-align: top">
+                            <a href="{% url 'booking_view' %}?booking_id={{ booking.invoice_id }}" class="btn btn-primary">View</a>
+                        </td>
                     </tr>
                 {% endfor %}
             {% else %}
@@ -39,8 +38,9 @@
                         <td style="vertical-align: top">{{ booking.student_name }}</td>
                         <td style="vertical-align: top">{{ booking.teacher }}</td>
                         <td style="vertical-align: top">{{ booking.further_information|truncatechars:30 }}</td>
-                        <td style="vertical-align: top"><a href="{% url 'edit_booking_view' %}?booking_id={{ booking.id }}">Edit Booking</a></td>
-                        <td style="vertical-align: top"><a href="{% url 'invoice_view' %}?booking_id={{ booking.id }}">View Invoice</a></td>
+                        <td style="vertical-align: top">
+                            <a href="{% url 'booking_view' %}?booking_id={{ booking.invoice_id }}" class="btn btn-primary">Edit</a>
+                        </td>
                     </tr>
                 {% endfor %}
             {% endif %}
