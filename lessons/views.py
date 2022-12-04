@@ -228,18 +228,16 @@ def sign_up(request):
 
 
 @login_required
-def profile(request):
+def profile(request, user_id):
     # Redirect if the requested user_id is not a valid user.
     try:
-        user_id = request.GET.get('user_id', None)
         user = User.objects.get(id=user_id)
     except ObjectDoesNotExist:
-        return redirect_with_queries('/profile/', user_id=request.user.id)
+        return redirect('/profile/' + str(request.user.id))
 
-    # Redirect if the current user is attempting to change the profile of another user and the user is not a director.
-    if request.user.id != user_id and not request.user.is_superuser:
-        form = UserForm(instance=request.user)
-        return redirect_with_queries('/profile/', user_id=request.user.id)
+    # Redirect if the current user is attempting to change the profile of another user.
+    if request.user.id != user_id:
+        return redirect('/profile/'+str(request.user.id))
 
     if request.method == 'POST':
         form = UserForm(instance=user, data=request.POST)
@@ -250,7 +248,6 @@ def profile(request):
     else:
         form = UserForm(instance=user)
     return render(request, 'profile.html', {'form': form, 'user_id': user_id})
-
 
 @login_required
 def change_user_password(request):
@@ -533,7 +530,7 @@ def term_deletion_confirmation_view(request):
 
 @login_required
 @allowed_groups(["Director"])
-def admin_user_list_view(request):
+def admin_user_list(request):
     if request.method == 'POST':
         if request.POST.get('edit', None):
             id_user_to_edit = request.POST.get("edit","")
@@ -550,15 +547,15 @@ def admin_user_list_view(request):
             user_to_promote.is_superuser = True
             user_to_promote.is_staff = True
             user_to_promote.save()
-        elif request.POST.get('create_director', None):
+        elif request.POST.get('create_director') == '':
             return redirect("create_director_user")
-        elif request.POST.get('create_student', None):
+        elif request.POST.get('create_student') == '':
             return redirect("create_student_user")
-        elif request.POST.get('create_administrator', None):
+        elif request.POST.get('create_administrator') == '':
             return redirect("create_admin_user")
 
     users = User.objects.all().order_by("groups")
-    return render(request,'admin_user_list.html', {'users':users})
+    return render(request, 'admin_user_list.html', {'users': users})
 
 @login_required
 @allowed_groups(['Admin'])
@@ -587,7 +584,7 @@ def create_director_user(request):
             created_user.is_superuser = True
             created_user.is_staff = True
             created_user.save()
-            return redirect('admin_user_view')
+            return redirect('admin_user_list')
     else:
         form = CreateUser()
     return render(request, 'create_user.html', {'form': form,'user_type':"Director"})
@@ -601,7 +598,7 @@ def create_admin_user(request):
             created_user = form.save()
             admin_group = Group.objects.get(name='Admin')
             admin_group.user_set.add(created_user)
-            return redirect('admin_user_view')
+            return redirect('admin_user_list')
     else:
         form = CreateUser()
     return render(request, 'create_user.html', {'form': form,'user_type':"Administrator"})
@@ -615,7 +612,7 @@ def create_student_user(request):
             created_user = form.save()
             student_group = Group.objects.get(name='Student')
             student_group.user_set.add(created_user)
-            return redirect('admin_user_view')
+            return redirect('admin_user_list')
     else:
         form = CreateUser()
     return render(request, 'create_user.html', {'form': form,'user_type':"Student"})
