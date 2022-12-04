@@ -46,8 +46,11 @@ def get_child_object(relation_id):
     
 def get_student_balance(request):
     user = request.user
-    student = Student.objects.get(user=user)
-    return student.balance
+    try:
+        student = Student.objects.get(user=user)
+        return student.balance
+    except ObjectDoesNotExist:
+        return None
 
 def get_invoice_object(invoice_number):
     return Invoice.objects.get(invoice_number=invoice_number)

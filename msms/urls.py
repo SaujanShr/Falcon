@@ -20,7 +20,7 @@ from lessons import views
 urlpatterns = [
     path('', views.home, name='home'),
     path('admin/', admin.site.urls),
-    path('admin_user_list/', views.admin_user_list_view, name='admin_user_view'),
+    path('admin_user_list/', views.admin_user_list, name='admin_user_list'),
     path('student_page/', views.student_page, name='student_page'),
     path('admin_page/', views.admin_page, name='admin_page'),
     path('request_list/', views.request_list, name='request_list'),
