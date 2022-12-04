@@ -108,12 +108,12 @@ class RequestModelTestCase(TestCase):
         self.request1.number_of_lessons = self.request2.number_of_lessons
         self._assert_request_is_valid()
 
-    def test_number_of_lessons_can_be_max_int_for_SQLite_DB(self):
-        self.request1.number_of_lessons = 9223372036854775807
+    def test_number_of_lessons_can_be_1000(self):
+        self.request1.number_of_lessons = 1000
         self._assert_request_is_valid()
 
-    def test_number_of_lessons_cannot_be_greater_than_max_int_for_SQLite_DB(self):
-        self.request1.number_of_lessons = 92233720368547758071
+    def test_number_of_lessons_cannot_be_greater_than_1000(self):
+        self.request1.number_of_lessons = 1001
         self._assert_request_is_invalid()
     
     def test_interval_between_lessons_may_be_the_same(self):
