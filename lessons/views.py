@@ -79,6 +79,21 @@ def request_view(request):
                                                  'full_name':full_name, 'form':form, 'readonly':request_fulfilled})
 
 @login_required
+@allowed_groups(['Student', 'Admin', 'Director'])
+def invoice_view(request):
+    #Only possible post request is the 'Return' button/
+    if request.method == 'POST':
+        return redirect_to_invoice_list(request)
+    
+    try:
+        invoice_id = get_invoice_id_from_request(request)
+        form = get_invoice_view_form(invoice_id)
+    except ObjectDoesNotExist:
+        return redirect_to_invoice_list(request)
+    
+    return render(request, 'invoice_view.html', {'form': form, 'invoice_id': invoice_id})
+
+@login_required
 @allowed_groups(['Student'])
 def new_request_view(request):
     relation_id = get_relation_id_from_request(request)
