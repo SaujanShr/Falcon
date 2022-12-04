@@ -59,7 +59,6 @@ class InvoiceViewTestCase(TestCase):
         self.assertIn('student_name', form.fields)
         self.assertIn('full_amount', form.fields)
         self.assertIn('paid_amount', form.fields)
-        self.assertIn('fully_paid', form.fields)
 
     def test_invoice_form_in_view_contains_correct_info(self):
         response = self.client.get(self.url, {'invoice_id': self.invoice1.invoice_number})
@@ -70,7 +69,6 @@ class InvoiceViewTestCase(TestCase):
         self.assertEqual(form.initial['student_name'], self.invoice1.student.user.email)
         self.assertEqual(Decimal(form.initial['full_amount']), Decimal(self.invoice1.full_amount))
         self.assertEqual(Decimal(form.initial['paid_amount']), Decimal(self.invoice1.paid_amount))
-        self.assertEqual(form.initial['fully_paid'], self.invoice1.fully_paid)
 
 
     def test_invoice_form_fields_are_disabled_in_view(self):
@@ -82,4 +80,3 @@ class InvoiceViewTestCase(TestCase):
         self.assertTrue(form.fields['student_name'].disabled)
         self.assertTrue(form.fields['full_amount'].disabled)
         self.assertTrue(form.fields['paid_amount'].disabled)
-        self.assertTrue(form.fields['fully_paid'].disabled)
