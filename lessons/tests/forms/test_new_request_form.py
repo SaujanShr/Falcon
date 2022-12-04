@@ -17,7 +17,7 @@ class NewRequestFormTestCase(TestCase):
         self.user = User.objects.get(email="johndoe@email.com")
 
         # Create form inputs
-        student_name = 'John Doe'
+        relation_id = 1
         availability = DayOfTheWeek.objects.get(day=DayOfTheWeek.Day.TUESDAY), DayOfTheWeek.objects.get(
             day=DayOfTheWeek.Day.WEDNESDAY)
         number_of_lessons = 1
@@ -27,7 +27,7 @@ class NewRequestFormTestCase(TestCase):
 
         # Initialise form input
         self.form_input = {
-            'student_name': student_name,
+            'relation_id': relation_id,
             'availability': availability,
             'number_of_lessons': number_of_lessons,
             'interval_between_lessons': interval_between_lessons,
@@ -149,7 +149,7 @@ class NewRequestFormTestCase(TestCase):
     # django.db.utils.IntegrityError: NOT NULL constraint failed: lessons_request.user_id
 
     # def test_form_must_save_correctly(self):
-    #     form = NewRequestViewForm(data=self.form_input)
+    #     form = NewRequestForm(data=self.form_input)
     #     form.is_valid()
     #     form_availability = form.cleaned_data.get('availability')
     #     form_number_of_lessons = form.cleaned_data.get('number_of_lessons')

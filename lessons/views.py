@@ -530,7 +530,7 @@ def term_deletion_confirmation_view(request):
 
 @login_required
 @allowed_groups(["Director"])
-def admin_user_list_view(request):
+def admin_user_list(request):
     if request.method == 'POST':
         if request.POST.get('edit', None):
             id_user_to_edit = request.POST.get("edit","")
@@ -584,7 +584,7 @@ def create_director_user(request):
             created_user.is_superuser = True
             created_user.is_staff = True
             created_user.save()
-            return redirect('admin_user_view')
+            return redirect('admin_user_list')
     else:
         form = CreateUser()
     return render(request, 'create_user.html', {'form': form,'user_type':"Director"})
@@ -598,7 +598,7 @@ def create_admin_user(request):
             created_user = form.save()
             admin_group = Group.objects.get(name='Admin')
             admin_group.user_set.add(created_user)
-            return redirect('admin_user_view')
+            return redirect('admin_user_list')
     else:
         form = CreateUser()
     return render(request, 'create_user.html', {'form': form,'user_type':"Administrator"})
@@ -612,7 +612,7 @@ def create_student_user(request):
             created_user = form.save()
             student_group = Group.objects.get(name='Student')
             student_group.user_set.add(created_user)
-            return redirect('admin_user_view')
+            return redirect('admin_user_list')
     else:
         form = CreateUser()
     return render(request, 'create_user.html', {'form': form,'user_type':"Student"})
