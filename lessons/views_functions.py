@@ -218,7 +218,7 @@ def get_and_format_bookings_for_admin_display():
 
 
 def refund_booking_if_valid(booking: Booking):
-    if booking.start_date >= timezone.now().date():
+    if booking.start_date <= timezone.now().date():
         return
     
     invoice = get_invoice_object(booking.invoice_id)
@@ -231,7 +231,7 @@ def refund_booking_if_valid(booking: Booking):
     student.save()
 
 def update_booking(request):
-    data = request.POST.copy()
+    data = request.POST
     booking = get_booking_object_from_request(request)
     print(data['invoice_id'])
     booking.day_of_the_week = DayOfTheWeek.objects.get(order=(int(data['day_of_the_week'])-1))
@@ -266,7 +266,6 @@ def update_booking(request):
     return booking
 
 def delete_booking(request):
-    data = request.POST
     booking = get_booking_object_from_request(request)
     refund_booking_if_valid(booking)
     
