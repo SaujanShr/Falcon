@@ -15,6 +15,12 @@ def get_request_object_from_request(request) -> Request:
     return None
 
 
+def get_student_balance(request):
+    user = request.user
+    student = Student.objects.get(user=user)
+    return student.balance
+
+
 def get_user_requests(request, name=None):
     user = request.user
     

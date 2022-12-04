@@ -17,7 +17,8 @@ def student_page(request):
     bookings = get_and_format_student_bookings_for_display(request)
     invoices = get_invoice_list(request)
     transactions = get_transaction_list(request)
-    return render(request, 'student_page.html', {'date_user_request_pairs': date_user_request_pairs[:5], 'invoices': invoices[:5], 'transactions': transactions[:5], 'bookings': bookings[:5]})
+    balance = get_student_balance(request)
+    return render(request, 'student_page.html', {'date_user_request_pairs': date_user_request_pairs[:5], 'invoices': invoices[:5], 'transactions': transactions[:5], 'bookings': bookings[:5], 'balance': balance})
 
 @login_required
 @allowed_groups(['Admin', 'Director'])
