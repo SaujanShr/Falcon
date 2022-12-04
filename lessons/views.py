@@ -228,18 +228,16 @@ def sign_up(request):
 
 
 @login_required
-def profile(request):
+def profile(request, user_id):
     # Redirect if the requested user_id is not a valid user.
     try:
-        user_id = request.GET.get('user_id', None)
         user = User.objects.get(id=user_id)
     except ObjectDoesNotExist:
-        return redirect_with_queries('/profile/', user_id=request.user.id)
+        return redirect('/profile/' + str(request.user.id))
 
-    # Redirect if the current user is attempting to change the profile of another user and the user is not a director.
-    if request.user.id != user_id and not request.user.is_superuser:
-        form = UserForm(instance=request.user)
-        return redirect_with_queries('/profile/', user_id=request.user.id)
+    # Redirect if the current user is attempting to change the profile of another user.
+    if request.user.id != user_id:
+        return redirect('/profile/'+str(request.user.id))
 
     if request.method == 'POST':
         form = UserForm(instance=user, data=request.POST)
@@ -250,7 +248,6 @@ def profile(request):
     else:
         form = UserForm(instance=user)
     return render(request, 'profile.html', {'form': form, 'user_id': user_id})
-
 
 @login_required
 def change_user_password(request):
