@@ -1,5 +1,4 @@
 """Unit tests of the school term student view"""
-import datetime
 from django.test import TestCase
 from django.urls import reverse
 from lessons.models import SchoolTerm
@@ -10,24 +9,12 @@ from lessons.tests.helpers import HandleGroups, reverse_with_next
 class SchoolTermStudentView(TestCase):
     """Unit tests of the school term student view"""
 
-    fixtures = ['lessons/tests/fixtures/default_user.json']
+    fixtures = ['lessons/tests/fixtures/default_user.json', 'lessons/tests/fixtures/default_terms.json']
 
     def setUp(self):
         HandleGroups.set_default_user_to_student()
         self.client.login(email='johndoe@email.com', password='Password123')
         self.url = reverse('student_term_view')
-
-        self.term1 = SchoolTerm.objects.create(
-            term_name="Term one",
-            start_date=datetime.date(2022, 1, 1),
-            end_date=datetime.date(2022, 12, 31)
-        )
-
-        self.term2 = SchoolTerm.objects.create(
-            term_name="Term two",
-            start_date=datetime.date(2023, 1, 1),
-            end_date=datetime.date(2023, 12, 31)
-        )
 
     def test_school_term_student_view_url(self):
         self.assertEqual(self.url, '/student_page/terms')

@@ -24,7 +24,9 @@
               <td style="vertical-align: top">{{ request.raw_date }}</td>
               <td style="vertical-align: top">{{ request.further_information|truncatechars:30 }}</td>
               <td style="vertical-align: top">{{ request.fulfilled }}</td>
-              <td style="vertical-align: top"><a href="{% url 'request_view' %}?request_id={{ request.id }}">View Request</a></td>
+              <td style="vertical-align: top">
+                <a href="{% url 'request_view' %}?request_id={{ request.id }}" class="btn btn-primary">View</a>
+              </td>
           </tr>
         {% endfor %}
       {% else %}
@@ -33,9 +35,13 @@
             <td style="vertical-align: top">{{ request.raw_date }}</td>
             <td style="vertical-align: top">{{ request.student_name }}</td>
             <td style="vertical-align: top">{{ request.further_information|truncatechars:30 }}</td>
-            <td style="vertical-align: top"><a href="{% url 'request_view' %}?request_id={{ request.id }}">View Request</a></td>
+            <td style="vertical-align: top">
+              <a href="{% url 'request_view' %}?request_id={{ request.id }}" class="btn btn-primary">View</a>
+            </td>
             {% if unfulfilled %}
-              <td style="vertical-align: top"><a href="{% url 'fulfil_request' %}?request_id={{ request.id }}">Fulfill Request</a></td>
+              <td style="vertical-align: top">
+                <a href="{% url 'fulfil_request' %}?request_id={{ request.id }}" class="btn btn-primary">Fulfill</a>
+              </td>
             {% endif %}
           </tr>
           {% endfor %}

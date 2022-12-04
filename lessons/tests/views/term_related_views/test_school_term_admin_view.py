@@ -1,8 +1,7 @@
 """Unit tests of the school term admin view"""
-import datetime
 from django.test import TestCase
 from django.urls import reverse
-from lessons.models import SchoolTerm, User
+from lessons.models import SchoolTerm
 from django.db.models.query import QuerySet
 from lessons.tests.helpers import HandleGroups, reverse_with_next
 

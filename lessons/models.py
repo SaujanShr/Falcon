@@ -63,17 +63,13 @@ class User(AbstractBaseUser,PermissionsMixin):
     )
 
     def is_admin(self):
-        if self.groups.exists() and self.groups.all()[0].name == "Admin":
-            return True
-        else:
-            return False
-
+        return self.groups.exists() and self.groups.all()[0].name == "Admin"
 
     def is_student(self):
-        if self.groups.exists() and self.groups.all()[0].name == "Student":
-            return True
-        else:
-            return False
+        return self.groups.exists() and self.groups.all()[0].name == "Student"
+    
+    def is_admin_or_director(self):
+        return self.is_admin() or self.is_superuser
 
     def get_group(self):
         if self.is_superuser:
@@ -201,10 +197,8 @@ class Request(models.Model):
     user = models.ForeignKey(User, blank=False, on_delete=models.CASCADE)
     relation_id = models.IntegerField(MinValueValidator(-1))
     availability = models.ManyToManyField(DayOfTheWeek, blank=False)
-    number_of_lessons = models.PositiveIntegerField(blank=False,
-                                                    default=1,
-                                                    validators=[MinValueValidator(1), 
-                                                                MaxValueValidator(9223372036854775807)])
+    number_of_lessons = models.PositiveIntegerField(blank=False, default=1, 
+                                                    validators=[MinValueValidator(1), MaxValueValidator(1000)])
     interval_between_lessons = models.PositiveIntegerField(choices=IntervalBetweenLessons.choices)
     duration_of_lessons = models.PositiveIntegerField(choices=LessonDuration.choices)
     further_information = models.CharField(blank=False, max_length=500)

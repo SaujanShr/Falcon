@@ -1,4 +1,4 @@
-"""Tests of the log out view."""
+"""Tests of the admin user list view."""
 from django.test import TestCase
 from django.urls import reverse
 from lessons.models import User
@@ -6,12 +6,10 @@ from lessons.tests.helpers import HandleGroups
 from django.conf import settings
 
 class AdminUserListTestCase(TestCase):
-    """Tests of the log out view."""
-
     fixtures = ['lessons/tests/fixtures/default_user.json', 'lessons/tests/fixtures/other_users.json']
 
     def setUp(self):
-        self.url = reverse('admin_user_view')
+        self.url = reverse('admin_user_list')
         self.user = User.objects.get(email='johndoe@email.com')
         self.other_user = User.objects.get(email="janedoe@email.com")
         self.user.is_superuser = True
@@ -20,7 +18,7 @@ class AdminUserListTestCase(TestCase):
     def test_log_out_url(self):
         self.assertEqual(self.url, '/admin_user_list/')
 
-    def test_get_admin_user_view(self):
+    def test_get_admin_user_list(self):
         self.client.login(email=self.user.email, password='Password123')
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200) 
@@ -35,7 +33,7 @@ class AdminUserListTestCase(TestCase):
                              status_code=302, target_status_code=200)
         self.assertTemplateUsed(response, 'profile.html')
 
-    def test_admin_user_view_only_accessible_to_director(self):
+    def test_admin_user_list_only_accessible_to_director(self):
         HandleGroups.set_other_user_to_student()
         self.client.login(email=self.other_user.email, password='Password123')
         response = self.client.get(self.url)
