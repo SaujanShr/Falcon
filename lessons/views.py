@@ -81,14 +81,13 @@ def request_view(request):
 def invoice_view(request):
     #Only possible post request is the 'Return' button/
     if request.method == 'POST':
-        print(request.META.get('HTTP_REFERER'))
-        if request.user.get_group() == 'Student':
-            return redirect('invoice_list_student') #Redirects user to previous page
-        else:
-            return redirect('invoice_list_admin')
+        return redirect_to_invoice_list(request)
     
-    invoice_id = get_invoice_id_from_request(request)
-    form = get_invoice_view_form(invoice_id)
+    try:
+        invoice_id = get_invoice_id_from_request(request)
+        form = get_invoice_view_form(invoice_id)
+    except ObjectDoesNotExist:
+        return redirect_to_invoice_list(request)
     
     return render(request, 'invoice_view.html', {'form': form, 'invoice_id': invoice_id})
 

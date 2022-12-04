@@ -414,4 +414,10 @@ def get_transaction_list(request):
     except ObjectDoesNotExist:
         return BankTransaction.objects.none()
 
+def redirect_to_invoice_list(request):
+    if request.user.get_group() == 'Student':
+        return redirect('invoice_list_student')
+    else:
+        return redirect('invoice_list_admin')
+
     
