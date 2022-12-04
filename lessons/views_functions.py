@@ -135,7 +135,7 @@ def get_children_idname(user):
 
 def delete_child(user, relation_id):
     get_request_objects(user, relation_id).delete()
-    bookings = get_booking_objects(user, relation_id).delete()
+    bookings = get_booking_objects(user, relation_id)
     for booking in bookings:
         refund_booking_if_valid(booking)
     bookings.delete()
