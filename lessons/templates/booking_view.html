@@ -4,12 +4,12 @@
 <div class="container">
     <div class="row">
         <div class="col-sm-12 col-md-6 offset-md-3">
-            <h1>Request</h1>
-            <form action="{% url 'request_view' %}" method="post">
+            <h1>Booking</h1>
+            <form action="{% url 'booking_view' %}" method="post">
                 {% csrf_token %}
                 <h3>{{ full_name }}</h3>
                 {{ form.as_p }}
-                <input type="hidden" name="request_id" value="{{ request_id }}">
+                <input type="hidden" name="booking_id" value="{{ booking_id }}">
                 {% if not readonly %}
                     <input type="submit" class="btn btn-primary" name="update" value="Update">
                     <input type="submit" formnovalidate="formnovalidate" class="btn btn-primary" name="delete" value="Delete">

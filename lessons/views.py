@@ -17,10 +17,12 @@ def student_page(request):
     bookings = get_and_format_bookings_for_display(request.user)
     invoices = get_invoice_list(request)
     transactions = get_transaction_list(request)
+    balance = get_student_balance(request)
     return render(request, 'student_page.html', {'user_requests': user_requests[:5],
                                                  'invoices': invoices[:5],
                                                  'transactions': transactions[:5],
-                                                 'bookings': bookings[:5]})
+                                                 'bookings': bookings[:5],
+                                                 'balance': balance})
 
 @login_required
 @allowed_groups(['Admin', 'Director'])
@@ -45,36 +47,57 @@ def booking_list(request):
     return render(request, 'booking_list.html', {'user_bookings': user_bookings, 'is_student':True})
 
 @login_required
-@allowed_groups(['Student'])
+@allowed_groups(['Student', 'Admin', 'Director'])
 def request_view(request):
+    user = request.user
     request_id = get_request_id_from_request(request)
-    relation_id = get_request_object(request_id).relation_id
     
-    if is_child(relation_id):
-        redirect_page = 'child_request_list'
-    else:
-        redirect_page = 'request_list'
+    
+    user_request = get_request_object(request_id)
+    
+    # If the user is not authorised, kick them back to the student page.
+    if user != user_request.user and not user.is_admin_or_director():
+        return redirect('')
+    
+    relation_id = user_request.relation_id
     
     if request.method == 'POST':
         if request.POST.get('delete', None) and delete_request_object_from_request(request):
-            return redirect_with_queries(redirect_page, relation_id=relation_id)
+            return redirect_to_request_list(user, relation_id)
             
         elif request.POST.get('update', None) and update_request_object_from_request(request): 
-            return redirect_with_queries(redirect_page, relation_id=relation_id)
+            return redirect_to_request_list(user, relation_id)
         
         elif request.POST.get('return', None):
-            return redirect_with_queries(redirect_page, relation_id=relation_id)
+            return redirect_to_request_list(user, relation_id)
     
-    full_name = get_full_name_by_relation_id(request.user, relation_id)
-    request_fulfilled = get_request_object(request_id).fulfilled
+    full_name = get_full_name_by_relation_id(user, relation_id)
+    readonly = user.is_admin_or_director() or user_request.fulfilled
     
     form = get_request_view_form(request_id)
     
-    if request_fulfilled:
+    if readonly:
         form.set_read_only()
     
     return render(request, 'request_view.html', {'request_id':request_id, 'relation_id':relation_id, 
-                                                 'full_name':full_name, 'form':form, 'readonly':request_fulfilled})
+                                                 'full_name':full_name, 'form':form, 'readonly':readonly})
+
+@login_required
+@allowed_groups(['Student', 'Admin', 'Director'])
+def invoice_view(request):
+    user = request.user
+    
+    #Only possible post request is the 'Return' button/
+    if request.method == 'POST':
+        return redirect_to_invoice_list(user)
+    
+    try:
+        invoice_id = get_invoice_id_from_request(request)
+        form = get_invoice_view_form(invoice_id)
+    except ObjectDoesNotExist:
+        return redirect_to_invoice_list(user)
+    
+    return render(request, 'invoice_view.html', {'form': form, 'invoice_id': invoice_id})
 
 @login_required
 @allowed_groups(['Student'])
@@ -86,10 +109,7 @@ def new_request_view(request):
         form = NewRequestForm(user=user, relation_id=relation_id, data=request.POST)
         if form.is_valid():
             form.save()
-            if is_child(relation_id):
-                return redirect_with_queries('child_request_list', relation_id=relation_id)
-            else:
-                return redirect('request_list')
+            return redirect_to_request_list(user, relation_id)
                 
         
     full_name = get_full_name_by_relation_id(user, relation_id)
@@ -208,17 +228,18 @@ def sign_up(request):
 
 
 @login_required
-def profile(request, user_id):
+def profile(request):
     # Redirect if the requested user_id is not a valid user.
     try:
+        user_id = request.GET.get('user_id', None)
         user = User.objects.get(id=user_id)
     except ObjectDoesNotExist:
-        return redirect_with_queries('/profile/', user_id=str(request.user.id))
+        return redirect_with_queries('/profile/', user_id=request.user.id)
 
     # Redirect if the current user is attempting to change the profile of another user and the user is not a director.
     if request.user.id != user_id and not request.user.is_superuser:
         form = UserForm(instance=request.user)
-        return redirect_with_queries('/profile/', user_id=str(request.user.id))
+        return redirect_with_queries('/profile/', user_id=request.user.id)
 
     if request.method == 'POST':
         form = UserForm(instance=user, data=request.POST)
@@ -313,7 +334,6 @@ def invoice_list_student(request):
     invoices = get_invoice_list(request)
     return render(request, 'invoice_list.html', {'invoices': invoices})
 
-
 @login_required
 @allowed_groups(["Admin", "Director"])
 def balance_list_admin(request):
@@ -325,7 +345,6 @@ def balance_list_admin(request):
 @allowed_groups(["Admin","Director"])
 def admin_booking_list(request):
     bookings = get_and_format_bookings_for_admin_display()
-    print(bookings)
     return render(request, 'admin_booking_list.html', {'bookings': bookings})
 
 @login_required
@@ -341,7 +360,7 @@ def admin_request_list(request):
 #@login_required
 #@allowed_groups(["Admin","Director"])
 def fulfil_request_view(request):
-
+    
     if request.method == 'POST':
         if request.POST.get('fulfil', None):
             form = FulfilRequestForm(request.POST)
@@ -368,8 +387,46 @@ def fulfil_request_view(request):
     form = get_fulfil_request_form(request)
     return render(request, 'fulfil_view.html', {'date': date, 'form': form})
 
+def booking_view(request):
+    booking_id = get_booking_id_from_request(request)
+    booking = get_booking_object(booking_id)
+    user = request.user
+    
+    # If the user is not authorised, kick them back to the student page.
+    if user != booking.user and not user.is_admin_or_director():
+        return redirect('student_page')
+    
+    relation_id = booking.relation_id
+    
+    if user.is_admin_or_director():
+        redirect_page= 'admin_booking_list'
+    elif is_child(relation_id):
+        redirect_page = 'child_booking_list'
+    else:
+        redirect_page = 'booking_list'
+    
+    if request.method == 'POST':
+        if request.POST.get('delete', None) and delete_booking(request):
+            return redirect_with_queries(redirect_page, relation_id=relation_id)
+            
+        elif request.POST.get('update', None) and update_booking(request): 
+            return redirect_with_queries(redirect_page, relation_id=relation_id)
+        
+        elif request.POST.get('return', None):
+            return redirect_with_queries(redirect_page, relation_id=relation_id)
+    
+    full_name = get_full_name_by_relation_id(user, relation_id)
+    readonly = not user.is_admin_or_director()
+    
+    form = get_booking_form(booking_id)
+    
+    if readonly:
+        form.set_read_only()
+    
+    return render(request, 'booking_view.html', {'booking_id':booking_id, 'relation_id':relation_id, 
+                                                 'full_name':full_name, 'form':form, 'readonly':readonly})
 
-def edit_booking_view(request):
+def admin_booking_view(request):
     if request.method == 'POST':
         if request.POST.get('update', None):
             update_booking(request)
@@ -394,7 +451,7 @@ def student_term_view(request):
 A view to see and edit all terms as well as create a new term.
 """
 @login_required
-@allowed_groups(["Admin"])
+@allowed_groups(["Admin", "Director"])
 def admin_term_view(request):
     terms = SchoolTerm.objects.all()
     return render(request, 'admin_term_view.html', {'terms': terms})
@@ -403,7 +460,7 @@ def admin_term_view(request):
 A view that handles a single term.
 """
 @login_required
-@allowed_groups(["Admin"])
+@allowed_groups(["Admin", "Director"])
 def term_view(request):
     # Check whether the get request contains term_name, otherwise redirect back to term view.
     if request.method == 'GET' and request.GET.__contains__('term_name'):
@@ -446,7 +503,7 @@ def term_view(request):
 This view enables the creation of a new term.
 """
 @login_required
-@allowed_groups(["Admin"])
+@allowed_groups(["Admin", "Director"])
 def new_term_view(request):
     if request.method == 'POST':
         form = TermViewForm(request.POST)
@@ -463,7 +520,7 @@ def new_term_view(request):
 This view confirms the deletion of a term.
 """
 @login_required
-@allowed_groups(["Admin"])
+@allowed_groups(["Admin", "Director"])
 def term_deletion_confirmation_view(request):
     if request.method == 'GET' and request.GET.__contains__('old_term_name'):
         old_term_name = request.GET['old_term_name']
@@ -502,6 +559,23 @@ def admin_user_list_view(request):
 
     users = User.objects.all().order_by("groups")
     return render(request, 'admin_user_list.html', {'users': users})
+
+@login_required
+@allowed_groups(['Admin'])
+def admin_request_view(request):
+    request_id = get_request_id_from_request(request)
+    relation_id = get_request_object(request_id).relation_id
+    
+    if request.method == 'GET':
+        if request.POST.get('return', None):
+            return redirect_with_queries('admin_request_list')
+    
+    full_name = get_full_name_by_relation_id(request.user, relation_id)
+    
+    form = get_request_view_form(request_id)
+    form.set_read_only()
+    
+    return render(request, 'request_view.html', {'full_name':full_name, 'form':form})
 
 @login_required
 @allowed_groups("Director")

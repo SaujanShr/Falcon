@@ -14,6 +14,10 @@
     </div>
     <div class = "row">
         <div class="col-6">
+            <h2>Terms</h2>
+            {% include 'partials/terms_table.html' with terms=terms %}
+        </div>
+        <div class="col-6">
             <h2>Recent transactions</h2>
             {% include 'partials/transactions_table.html' with transactions=transactions %}
             <a class="btn btn-primary" href="{% url 'transaction_admin_view' %}" role="button">Submit student transaction</a>

@@ -1,32 +1,10 @@
 {% extends 'base_content.html' %}
 {% block content %}
 
-<table class="table table-dark table-striped">
-  <thead>
-    <tr>
-      <th style>Term</th>
-      <th>Start Date</th>
-      <th>End Date</th>
-      <th></th>
-    </tr>
-  </thead>
-  {% if terms %}
-    {% for term in terms %}
-      <tr><form action="{% url 'term_view' %}" method="get">
-        <input type="hidden" name="term_name" value="{{ term.term_name }}"/>
-        <td>{{ term.term_name }}</td>
-        <td>{{ term.start_date }}</td>
-        <td>{{ term.end_date }}</td>
-        <td><input type="submit" value="Edit"/></td>
-      </form></tr>
-    {% endfor %}
-  {% else %}
-    <tr>
-      <td>No terms yet...</td>
-      <td></td>
-      <td></td>
-    </tr>
-  {% endif %}
-</table>
-<p><a href="{% url 'new_term_view' %}" class=" btn btn-sm btn-primary">New Term</a></p>
+<div class="container">
+    <h1>Terms</h1>
+    <p><a href="{% url 'new_term_view' %}" class="btn btn-primary">New Term</a></p>
+    {% include 'partials/terms_table.html' with terms=terms %}
+</div>
+
 {% endblock %}

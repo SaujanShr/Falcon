@@ -33,6 +33,20 @@ class SchoolTermViewDeletionConfirmation(TestCase):
         self.assertRedirects(response, response_url, status_code=302, target_status_code=200)
         self.assertTemplateUsed(response, 'student_page.html')
 
+    def test_get_school_term_deletion_confirmation(self):
+        self.form_input = {'old_term_name': 'TermOne'}
+        response = self.client.get(self.url, self.form_input, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'term_deletion_confirmation.html')
+
+    def test_get_school_term_deletion_confirmation_redirects_without_term_name(self):
+        self.form_input = ''
+        response = self.client.get(self.url, self.form_input, follow=True)
+        redirect_url = reverse('admin_term_view')
+        self.assertRedirects(response, redirect_url,
+                             status_code=302, target_status_code=200)
+        self.assertTemplateUsed(response, 'admin_term_view.html')
+
     def test_get_school_term_deletion_confirmation_redirects_when_not_logged_in(self):
         self.client.logout()
         redirect_url = reverse_with_next('log_in', self.url)
