@@ -38,6 +38,24 @@ class ChildViewForm(forms.ModelForm):
         )
         return instance_set[0]
 
+class InvoiceViewForm(forms.ModelForm):
+    class Meta:
+        model = Invoice
+        fields = ['invoice_number', 'full_amount', 'paid_amount']
+
+    student_name = forms.CharField(label="Student")
+
+    #Invoices should never be edited manually, this form is purely for display.
+    def __init__(self, *args, **kwargs):
+        super(InvoiceViewForm, self).__init__(*args, **kwargs)
+        self.fields['invoice_number'].disabled = True
+        self.fields['student_name'].disabled = True
+        self.fields['full_amount'].disabled = True
+        self.fields['paid_amount'].disabled = True
+    
+
+
+
 class NewRequestForm(forms.ModelForm):
     class Meta:
         model = Request

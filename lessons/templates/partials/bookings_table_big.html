@@ -8,12 +8,14 @@
                 <th>Teacher</th>
                 <th>Further Information</th>
                 <th>View Booking</th>
+                <th>View Invoice</th>
             {% else %}
                 <th>Start Date</th>
                 <th>Student</th>
                 <th>Teacher</th>
                 <th>Further Information</th>
                 <th>Edit Booking</th>
+                <th>View Invoice</th>
             {% endif %}
         </tr>
     </thead>
@@ -29,6 +31,9 @@
                         <td style="vertical-align: top">
                             <a href="{% url 'booking_view' %}?booking_id={{ booking.invoice_id }}" class="btn btn-primary">View</a>
                         </td>
+                        <td style="vertical-align: top">
+                            <a href="{% url 'invoice_view' %}?invoice_id={{ booking.invoice_id }}" class="btn btn-primary">Invoice</a>
+                        </td>
                     </tr>
                 {% endfor %}
             {% else %}
@@ -40,6 +45,9 @@
                         <td style="vertical-align: top">{{ booking.further_information|truncatechars:30 }}</td>
                         <td style="vertical-align: top">
                             <a href="{% url 'booking_view' %}?booking_id={{ booking.invoice_id }}" class="btn btn-primary">Edit</a>
+                        </td>
+                        <td style="vertical-align: top">
+                            <a href="{% url 'invoice_view' %}?invoice_id={{ booking.invoice_id }}" class="btn btn-primary">Invoice</a>
                         </td>
                     </tr>
                 {% endfor %}

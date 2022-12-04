@@ -51,30 +51,25 @@ def booking_list(request):
 def request_view(request):
     user = request.user
     request_id = get_request_id_from_request(request)
+    
+    
     user_request = get_request_object(request_id)
     
     # If the user is not authorised, kick them back to the student page.
     if user != user_request.user and not user.is_admin():
-        return redirect('student_page')
+        return redirect('')
     
     relation_id = user_request.relation_id
     
-    if user.is_admin():
-        redirect_page= 'admin_request_list'
-    elif is_child(relation_id):
-        redirect_page = 'child_request_list'
-    else:
-        redirect_page = 'request_list'
-    
     if request.method == 'POST':
         if request.POST.get('delete', None) and delete_request_object_from_request(request):
-            return redirect_with_queries(redirect_page, relation_id=relation_id)
+            return redirect_to_request_list(user, relation_id)
             
         elif request.POST.get('update', None) and update_request_object_from_request(request): 
-            return redirect_with_queries(redirect_page, relation_id=relation_id)
+            return redirect_to_request_list(user, relation_id)
         
         elif request.POST.get('return', None):
-            return redirect_with_queries(redirect_page, relation_id=relation_id)
+            return redirect_to_request_list(user, relation_id)
     
     full_name = get_full_name_by_relation_id(user, relation_id)
     readonly = user.is_admin() or user_request.fulfilled
@@ -88,6 +83,23 @@ def request_view(request):
                                                  'full_name':full_name, 'form':form, 'readonly':readonly})
 
 @login_required
+@allowed_groups(['Student', 'Admin', 'Director'])
+def invoice_view(request):
+    user = request.user
+    
+    #Only possible post request is the 'Return' button/
+    if request.method == 'POST':
+        return redirect_to_invoice_list(user)
+    
+    try:
+        invoice_id = get_invoice_id_from_request(request)
+        form = get_invoice_view_form(invoice_id)
+    except ObjectDoesNotExist:
+        return redirect_to_invoice_list(user)
+    
+    return render(request, 'invoice_view.html', {'form': form, 'invoice_id': invoice_id})
+
+@login_required
 @allowed_groups(['Student'])
 def new_request_view(request):
     relation_id = get_relation_id_from_request(request)
@@ -97,10 +109,7 @@ def new_request_view(request):
         form = NewRequestForm(user=user, relation_id=relation_id, data=request.POST)
         if form.is_valid():
             form.save()
-            if is_child(relation_id):
-                return redirect_with_queries('child_request_list', relation_id=relation_id)
-            else:
-                return redirect('request_list')
+            return redirect_to_request_list(user, relation_id)
                 
         
     full_name = get_full_name_by_relation_id(user, relation_id)

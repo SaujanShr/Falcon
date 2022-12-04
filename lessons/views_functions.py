@@ -2,7 +2,7 @@ import decimal
 import urllib
 from django.utils import timezone
 from .models import Request, Invoice, Student, Child, Booking, DayOfTheWeek, SchoolTerm, BankTransaction
-from .forms import RequestForm, FulfilRequestForm, EditBookingForm, ChildViewForm, TransactionSubmitForm
+from .forms import RequestForm, FulfilRequestForm, EditBookingForm, ChildViewForm, TransactionSubmitForm, InvoiceViewForm
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.contrib.auth import authenticate
@@ -14,6 +14,26 @@ def redirect_with_queries(url, **queries):
         query_string = urllib.parse.urlencode(queries)
         response['location'] += '?' + query_string
     return response
+
+def get_prev_url_from_request(request):
+    if request.method == 'GET':
+        return request.GET.get('prev_url', None)
+    elif request.method == 'POST':
+        return request.POST.get('prev_url', None)
+    return None
+
+def get_invoice_id_from_request(request):
+    if request.method == 'GET':
+        return request.GET.get('invoice_id', None)
+    elif request.method == 'POST':
+        return request.POST.get('invoice_id', None)
+    return None
+
+def get_invoice_object(invoice_id):
+    return Invoice.objects.get(invoice_number=invoice_id)
+
+def get_invoice_object_from_request(request):
+    return get_invoice_object(get_invoice_id_from_request(request))
 
 def get_request_object(request_id):
     return Request.objects.get(id=request_id)
@@ -282,6 +302,22 @@ def get_child_view_form(request_id):
     )
     return form
 
+def get_invoice_view_form(invoice_id):
+    invoice = get_invoice_object(invoice_id)
+    #['invoice_number', 'student', 'full_amount', 'paid_amount', 'fully_paid']
+    form = InvoiceViewForm(
+        initial={
+            'invoice_number':invoice.invoice_number,
+            'student_name': invoice.student.user.email,
+            'full_amount': invoice.full_amount,
+            'paid_amount': invoice.paid_amount,
+            'fully_paid': invoice.fully_paid
+        }
+    )
+
+    return form
+
+
 def get_request_view_form(request_id):
     user_request = get_request_object(request_id)
 
@@ -396,4 +432,16 @@ def get_transaction_list(request):
     except ObjectDoesNotExist:
         return BankTransaction.objects.none()
 
-    
+def redirect_to_invoice_list(user):
+    if user.is_admin():
+        return redirect('invoice_list_admin')
+    else:
+        return redirect('invoice_list_student')
+
+def redirect_to_request_list(user, relation_id):
+    if user.is_admin():
+        return redirect('admin_request_list')
+    elif is_child(relation_id):
+        return redirect_with_queries('child_request_list', relation_id=relation_id)
+    else:
+        return redirect('request_list')

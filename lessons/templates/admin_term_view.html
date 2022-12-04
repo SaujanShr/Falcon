@@ -1,7 +1,10 @@
 {% extends 'base_content.html' %}
 {% block content %}
 
-{% include 'partials/terms_table.html' with terms=terms %}
+<div class="container">
+    <h1>Terms</h1>
+    <p><a href="{% url 'new_term_view' %}" class="btn btn-primary">New Term</a></p>
+    {% include 'partials/terms_table.html' with terms=terms %}
+</div>
 
-<p><a href="{% url 'new_term_view' %}" class="btn btn-primary">New Term</a></p>
 {% endblock %}
