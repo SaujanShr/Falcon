@@ -329,7 +329,7 @@ class TransactionSubmitForm(forms.ModelForm):
 class EditBookingForm(forms.ModelForm):
     class Meta:
         model = Booking
-        fields = ['invoice_id','day_of_the_week','time_of_the_day','teacher','start_date',
+        fields = ['invoice','day_of_the_week','time_of_the_day','teacher','start_date',
                   'duration_of_lessons','interval_between_lessons','number_of_lessons',
                   'further_information']
         widgets = {'invoice_id': forms.HiddenInput()}
