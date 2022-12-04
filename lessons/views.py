@@ -394,7 +394,7 @@ def student_term_view(request):
 A view to see and edit all terms as well as create a new term.
 """
 @login_required
-@allowed_groups(["Admin"])
+@allowed_groups(["Admin", "Director"])
 def admin_term_view(request):
     terms = SchoolTerm.objects.all()
     return render(request, 'admin_term_view.html', {'terms': terms})
@@ -403,7 +403,7 @@ def admin_term_view(request):
 A view that handles a single term.
 """
 @login_required
-@allowed_groups(["Admin"])
+@allowed_groups(["Admin", "Director"])
 def term_view(request):
     # Check whether the get request contains term_name, otherwise redirect back to term view.
     if request.method == 'GET' and request.GET.__contains__('term_name'):
@@ -446,7 +446,7 @@ def term_view(request):
 This view enables the creation of a new term.
 """
 @login_required
-@allowed_groups(["Admin"])
+@allowed_groups(["Admin", "Director"])
 def new_term_view(request):
     if request.method == 'POST':
         form = TermViewForm(request.POST)
@@ -463,7 +463,7 @@ def new_term_view(request):
 This view confirms the deletion of a term.
 """
 @login_required
-@allowed_groups(["Admin"])
+@allowed_groups(["Admin", "Director"])
 def term_deletion_confirmation_view(request):
     if request.method == 'GET' and request.GET.__contains__('old_term_name'):
         old_term_name = request.GET['old_term_name']
