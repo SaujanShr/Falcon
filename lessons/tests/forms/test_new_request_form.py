@@ -95,13 +95,13 @@ class NewRequestFormTestCase(TestCase):
         form = NewRequestForm(data=self.form_input)
         self.assertFalse(form.is_valid())
 
-    def test_number_of_lessons_can_be_max_int_for_SQLite_DB(self):
-        self.form_input['number_of_lessons'] = 9223372036854775807
+    def test_number_of_lessons_can_be_1000(self):
+        self.form_input['number_of_lessons'] = 1000
         form = NewRequestForm(data=self.form_input)
         self.assertTrue(form.is_valid())
 
-    def test_number_of_lessons_cannot_be_greater_than_max_int_for_SQLite_DB(self):
-        self.form_input['number_of_lessons'] = 92233720368547758071
+    def test_number_of_lessons_cannot_be_greater_than_1000(self):
+        self.form_input['number_of_lessons'] = 1001
         form = NewRequestForm(data=self.form_input)
         self.assertFalse(form.is_valid())
 
