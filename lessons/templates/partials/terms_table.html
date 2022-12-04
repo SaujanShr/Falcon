@@ -4,7 +4,9 @@
         <th style>Term</th>
         <th>Start Date</th>
         <th>End Date</th>
+        {% if edit == True%}
         <th></th>
+        {% endif %}
       </tr>
     </thead>
     {% if terms %}
@@ -14,7 +16,9 @@
           <td>{{ term.term_name }}</td>
           <td>{{ term.start_date }}</td>
           <td>{{ term.end_date }}</td>
+          {% if edit == True%}
           <td><input type="submit" value="Edit"/></td>
+          {% endif %}
         </form></tr>
       {% endfor %}
     {% else %}

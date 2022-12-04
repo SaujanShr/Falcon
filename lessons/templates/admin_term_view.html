@@ -4,7 +4,7 @@
 <div class="container">
     <h1>Terms</h1>
     <p><a href="{% url 'new_term_view' %}" class="btn btn-primary">New Term</a></p>
-    {% include 'partials/terms_table.html' with terms=terms %}
+    {% include 'partials/terms_table.html' with terms=terms edit=True %}
 </div>
 
 {% endblock %}
