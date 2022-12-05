@@ -4,27 +4,32 @@
     <table class="table table-striped">
         <thead>
             <tr>
-            <th>Invoice no.</th>
-            <th>Student email</th>
-            <th>Full amount</th>
-            <th>Paid amount</th>
+            <th>Date and time</th>
+            <th>Student name</th>
+            <th>Teacher</th>
+            <th>Duration</th>
+            <th>Further info</th>
+            <th>View booking</th>
             </tr>
         </thead>
         {% if lessons %}
             {% for lesson in lessons %}
             <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
+                <td>{{ lesson.date_time }}</td>
+                <td>{{ lesson.student_name }}</td>
+                <td>{{ lesson.teacher }}</td>
+                <td>{{ lesson.duration }}</td>
+                <td>{{ lesson.further_info }}</td>
+                <td><a href="{% url 'booking_view' %}?booking_id={{ lesson.booking.invoice_id }}" class="btn btn-primary">Booking</a></td>
             </tr>
             {% endfor %}
         {% else %}
             <tr>
-            <td>No lessons yet...</td>
-            <td></td>
-            <td></td>
-            <td></td>
+                <td>No lessons yet...</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
             </tr>
         {% endif %}
     </table>

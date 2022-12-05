@@ -3,11 +3,12 @@ import urllib
 from django.utils import timezone
 from .models import Request, Invoice, Student, Child, Booking, DayOfTheWeek, SchoolTerm, BankTransaction
 from .forms import RequestForm, FulfilRequestForm, EditBookingForm, ChildViewForm, TransactionSubmitForm, InvoiceViewForm
+from .utils import *
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.contrib.auth import authenticate
 from django.shortcuts import redirect
-from datetime import datetime
+from datetime import *
 
 def redirect_with_queries(url, **queries):
     response = redirect(url)
@@ -460,3 +461,63 @@ def redirect_to_request_list(user, relation_id):
         return redirect_with_queries('child_request_list', relation_id=relation_id)
     else:
         return redirect('request_list')
+
+def generate_lessons_from_bookings(bookings):
+    lesson_list = []
+
+    for booking in bookings:
+        term = booking.term_id
+        date = booking.start_date
+        lesson_datetime = datetime.combine(date, booking.time_of_the_day) #perhaps do not generate lesson in list if this date is in the past
+        duration = Booking.LessonDuration.choices[
+                Booking.LessonDuration.values.index(booking.duration_of_lessons)
+            ]
+
+        for lesson_num in range(booking.number_of_lessons):
+            if lesson_datetime >= datetime.today():
+                lesson = Lesson(
+                    booking,
+                    lesson_datetime,
+                    get_full_name_by_relation_id(booking.user, booking.relation_id),
+                    booking.teacher,
+                    str(booking.duration_of_lessons) + " mins",
+                    booking.further_information
+                )
+
+                lesson_list.append(lesson)
+
+            lesson_datetime += timedelta(days=booking.interval_between_lessons)
+
+    lesson_list.sort(key=lambda x: x.date_time, reverse = True)
+
+    return lesson_list
+
+#TODO check if lesson excceeds term time and flag warning if they do
+def check_if_lessons_are_in_termtime(lessons, terms):
+    return True
+
+"""
+class Booking(models.Model):
+    class IntervalBetweenLessons(models.IntegerChoices):
+        ONE_WEEK = 7, '1 Week'
+        TWO_WEEKS = 14, '2 Weeks'
+
+    class LessonDuration(models.IntegerChoices):
+        THIRTY_MINUTES = 30, '30 Minutes'
+        FORTY_FIVE_MINUTES = 45, '45 Minutes'
+        SIXTY_MINUTES = 60, '60 Minutes'
+
+    invoice = models.OneToOneField(Invoice, blank=False, on_delete=models.CASCADE, unique=True)
+    term_id = models.ForeignKey(SchoolTerm, blank=False, on_delete=models.CASCADE)
+    day_of_the_week = models.ForeignKey(DayOfTheWeek, blank=True, on_delete=models.CASCADE)
+    time_of_the_day = models.TimeField(auto_now=False, auto_now_add=False)
+    user = models.ForeignKey(User, blank=True, on_delete=models.CASCADE)
+    relation_id = models.IntegerField(MinValueValidator(-1))
+    teacher = models.CharField(blank=False, max_length=100)
+    start_date = models.DateField(blank=False)
+    end_date = models.DateField(blank=False)
+    duration_of_lessons = models.PositiveIntegerField(blank=False, choices=LessonDuration.choices)
+    interval_between_lessons = models.PositiveIntegerField(choices=IntervalBetweenLessons.choices, blank=False)
+    number_of_lessons = models.PositiveIntegerField(blank=False, validators=[MinValueValidator(1)])
+    further_information = models.CharField(blank=False, max_length=500)
+"""

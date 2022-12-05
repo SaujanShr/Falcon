@@ -196,7 +196,9 @@ def child_booking_list(request):
     return render(request, 'child_booking_list.html', {'child':child, 'child_bookings': child_bookings})
 
 def lesson_list_admin(request):
-    return render(request, 'lesson_list.html')
+    bookings = Booking.objects.all()
+    lessons = generate_lessons_from_bookings(bookings)
+    return render(request, 'lesson_list.html', {'lessons': lessons})
 
 @login_prohibited
 def home(request):
