@@ -3,7 +3,7 @@
 
 <div class ="container">
   <h1>Requests</h1>
-  <a href="{% url 'new_request_view' %}?relation_id=-1" class=" btn btn-sm btn-primary">New Request</a>
+  <a href="{% url 'new_request_view' %}?relation_id=-1" class=" btn btn-sm btn-primary" style="width:200px">New Request</a>
   {% include 'partials/request_table_big.html' with requests=user_requests is_student=1 %}
 </div>
 

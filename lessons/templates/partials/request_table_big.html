@@ -2,17 +2,17 @@
     <thead>
         <tr>
           {% if is_student %}
-            <th style="width: 25%">Date</th>
-            <th>Further Information</th>
-            <th style="width: 5%">Fulfilled</th>
-            <th stype="width: 5%">View Request</th>
+            <th style="text-align:center; width:15%">Date</th>
+            <th style="text-align:center; width:auto">Further Information</th>
+            <th style="text-align:center; width:7%">Fulfilled</th>
+            <th style="text-align:center; width:7%">View Request</th>
           {% else %}
-            <th style="width: 25%">Date</th>
-            <th style="width: 5%">Student</th>
-            <th>Further Information</th>
-            <th style="width: 5%">View Request</th>
+            <th style="text-align:center; width:15%">Date</th>
+            <th style="text-align:center; width:15%">Student</th>
+            <th style="text-align:center; width:auto">Further Information</th>
+            <th style="text-align:center; width:7%">View Request</th>
             {% if unfulfilled %}
-              <th style="width: 5%">Fulfill Request</th>
+              <th style="text-align:center; width:7%">Fulfill Request</th>
             {% endif %}
           {% endif %}
         </tr>
@@ -21,10 +21,10 @@
       {% if is_student %}
         {% for request in requests %}
           <tr>
-              <td style="vertical-align: top">{{ request.raw_date }}</td>
-              <td style="vertical-align: top">{{ request.further_information|truncatechars:30 }}</td>
-              <td style="vertical-align: top">{{ request.fulfilled }}</td>
-              <td style="vertical-align: top">
+              <td style="text-align:center">{{ request.raw_date }}</td>
+              <td style="text-align:center">{{ request.further_information|truncatechars:100 }}</td>
+              <td style="text-align:center">{{ request.fulfilled }}</td>
+              <td style="text-align:center">
                 <a href="{% url 'request_view' %}?request_id={{ request.id }}" class="btn btn-primary">View</a>
               </td>
           </tr>
@@ -32,14 +32,14 @@
       {% else %}
         {% for request in requests %}
           <tr>
-            <td style="vertical-align: top">{{ request.raw_date }}</td>
-            <td style="vertical-align: top">{{ request.student_name }}</td>
-            <td style="vertical-align: top">{{ request.further_information|truncatechars:30 }}</td>
-            <td style="vertical-align: top">
+            <td style="text-align:center">{{ request.raw_date }}</td>
+            <td style="text-align:center">{{ request.student_name }}</td>
+            <td style="text-align:center">{{ request.further_information|truncatechars:100 }}</td>
+            <td style="text-align:center">
               <a href="{% url 'request_view' %}?request_id={{ request.id }}" class="btn btn-primary">View</a>
             </td>
             {% if unfulfilled %}
-              <td style="vertical-align: top">
+              <td style="text-align:center">
                 <a href="{% url 'fulfil_request' %}?request_id={{ request.id }}" class="btn btn-primary">Fulfill</a>
               </td>
             {% endif %}
@@ -48,10 +48,11 @@
       {% endif %}
     {% else %}
       <tr>
-        <td>No requests yet...</td>
-        <td></td>
-        <td></td>
-        <td></td>
+        {% if unfulfilled %}
+          <td colspan=5 style="text-align:left">No requests yet...</td>
+        {% else %}
+          <td colspan=4 style="text-align:left">No requests yet...</td>
+        {% endif %}
       </tr>
     {% endif %}
   </table>

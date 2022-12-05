@@ -1,11 +1,11 @@
 <table class="table table-striped">
     <thead>
       <tr>
-        <th style>Term</th>
-        <th>Start Date</th>
-        <th>End Date</th>
-        {% if edit == True%}
-        <th></th>
+        <th style="text-align:center; width:auto">Term</th>
+        <th style="text-align:center; width:30%">Start Date</th>
+        <th style="text-align:center; width:30%">End Date</th>
+        {% if edit == True %}
+        <th style="text-align:center; width:15%">Edit Term</th>
         {% endif %}
       </tr>
     </thead>
@@ -13,20 +13,21 @@
       {% for term in terms %}
         <tr><form action="{% url 'term_view' %}" method="get">
           <input type="hidden" name="term_name" value="{{ term.term_name }}"/>
-          <td>{{ term.term_name }}</td>
-          <td>{{ term.start_date }}</td>
-          <td>{{ term.end_date }}</td>
-          {% if edit == True%}
-          <td><input type="submit" value="Edit"/></td>
+          <td style="text-align:center">{{ term.term_name }}</td>
+          <td style="text-align:center">{{ term.start_date }}</td>
+          <td style="text-align:center">{{ term.end_date }}</td>
+          {% if edit == True %}
+            <td style="text-align:center"><input type="submit" value="Edit"  class="btn btn-primary"/></td>
           {% endif %}
         </form></tr>
       {% endfor %}
     {% else %}
       <tr>
-        <td>No terms yet...</td>
-        <td></td>
-        <td></td>
-        <td></td>
+        {% if edit == True %}
+          <td colspan=4 style="text-align:left">No terms yet...</td>
+        {% else %}
+          <td colspan=3 style="text-align:left">No terms yet...</td>
+        {% endif %}
       </tr>
     {% endif %}
   </table>
