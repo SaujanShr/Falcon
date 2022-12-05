@@ -364,15 +364,15 @@ def fulfil_request_view(request):
             booking_req = form.save()
 
             if not booking_req[1].fulfilled:
-                invoice_number = create_invoice(booking_req[0], booking_req[2])
-                booking_req[0].invoice_id = invoice_number
+                invoice_no = create_invoice(booking_req[0], booking_req[2])
+                booking_req[0].invoice = Invoice.objects.get(invoice_number=invoice_no)
+                booking_req[0].term_id = find_term_from_date(booking_req[0].start_date)
                 booking_req[0].full_clean()
                 booking_req[1].fulfilled = True
                 booking_req[1].save()
                 booking_req[0].save()
                 return redirect('admin_booking_list')
             else:
-                print('Booking is already fulfilled')
                 return redirect('admin_booking_list')
         elif request.POST.get('delete', None):
             delete_request_object_from_request(request)
