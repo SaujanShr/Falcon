@@ -364,7 +364,7 @@ class EditBookingForm(forms.ModelForm):
         fields = ['invoice','day_of_the_week','time_of_the_day','teacher','start_date',
                   'duration_of_lessons','interval_between_lessons','number_of_lessons',
                   'further_information']
-        widgets = {'invoice_id': forms.HiddenInput()}
+        widgets = {'invoice': forms.HiddenInput()}
 
     day_of_the_week = forms.ModelChoiceField(
         queryset=DayOfTheWeek.objects.all(),
@@ -388,6 +388,12 @@ class EditBookingForm(forms.ModelForm):
             attrs={'type': 'date'}
         )
     )
+    end_date = forms.DateField(
+        label='End date:',
+        widget=forms.DateInput(
+            attrs={'type': 'date'}
+        )
+    )
     hourly_cost = forms.CharField(
         widget=forms.TextInput(
             attrs={'type': 'number'}
@@ -406,6 +412,7 @@ class EditBookingForm(forms.ModelForm):
         self.fields['time_of_the_day'].disabled = True
         self.fields['teacher'].disabled = True
         self.fields['start_date'].disabled = True
+        self.fields['end_date'].disabled = True
         self.fields['duration_of_lessons'].disabled = True
         self.fields['interval_between_lessons'].disabled = True
         self.fields['number_of_lessons'].disabled = True

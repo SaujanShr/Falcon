@@ -224,10 +224,11 @@ def get_and_format_bookings_for_admin_display():
 def refund_booking_if_valid(booking: Booking):
     if booking.start_date >= timezone.now().date():
         return
-    
+
     invoice = get_invoice_object(booking.invoice_id)
     student = Student.objects.get(user=booking.user)
-    student.balance += invoice.paid_amount
+    paid_amount = invoice.paid_amount
+    student.balance += paid_amount
     invoice.paid_amount = 0
     invoice.full_amount = 0
     invoice.fully_paid = True
@@ -237,20 +238,21 @@ def refund_booking_if_valid(booking: Booking):
 def update_booking(request):
     data = request.POST.copy()
     booking = get_booking_object_from_request(request)
-    print(data['invoice_id'])
     booking.day_of_the_week = DayOfTheWeek.objects.get(order=(int(data['day_of_the_week'])-1))
     booking.time_of_the_day = data['time_of_the_day']
     booking.teacher = data['teacher']
     booking.start_date = data['start_date']
+    booking.end_date = data['end_date']
     booking.duration_of_lessons = data['duration_of_lessons']
     booking.interval_between_lessons = data['interval_between_lessons']
     booking.number_of_lessons = data['number_of_lessons']
     booking.further_information = data['further_information']
+    booking.term_id = find_term_from_date(data['start_date'])
     booking.full_clean()
 
     #Update invoice
     student = Student.objects.get(user=booking.user)
-    invoice = Invoice.objects.get(invoice_number=data['invoice_id'])
+    invoice = booking.invoice
     new_cost = booking.duration_of_lessons * int(data['hourly_cost']) * booking.number_of_lessons / 60
     invoice.full_amount = new_cost
 
@@ -282,11 +284,11 @@ def get_booking_form(booking_id):
     hourly_cost = int(invoice.full_amount/booking.duration_of_lessons/booking.number_of_lessons*60)
     form = EditBookingForm(
         initial={
-            'invoice_id': booking.invoice_id,
             'day_of_the_week': booking.day_of_the_week,
             'time_of_the_day': booking.time_of_the_day,
             'teacher': booking.teacher,
             'start_date': booking.start_date,
+            'end_date': booking.end_date,
             'duration_of_lessons': booking.duration_of_lessons,
             'interval_between_lessons': booking.interval_between_lessons,
             'number_of_lessons': booking.number_of_lessons,
