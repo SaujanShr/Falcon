@@ -1,0 +1,10 @@
+{% extends 'base_content.html' %}
+{% block content %}
+
+<div class="container">
+  {% include 'partials/child_menu.html' with child=child %}
+  <h1>Bookings</h1>
+  {% include 'partials/bookings_table_big.html' with bookings=child_bookings is_student=1 %}
+</div>
+
+{% endblock %}

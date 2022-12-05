@@ -1,28 +1,8 @@
 {% extends 'base_content.html' %}
 {% block content %}
 
-<table class="table table-dark table-striped">
-  <thead>
-    <tr>
-      <th style>Term</th>
-      <th>Start Date</th>
-      <th>End Date</th>
-    </tr>
-  </thead>
-  {% if terms %}
-    {% for term in terms %}
-      <tr>
-        <td>{{ term.term_name }}</td>
-        <td>{{ term.start_date }}</td>
-        <td>{{ term.end_date }}</td>
-      </tr>
-    {% endfor %}
-  {% else %}
-    <tr>
-      <td>No terms yet...</td>
-      <td></td>
-      <td></td>
-    </tr>
-  {% endif %}
-</table>
+<div class="container">
+    {% include 'partials/terms_table.html' with terms=terms %}
+</div>
+
 {% endblock %}

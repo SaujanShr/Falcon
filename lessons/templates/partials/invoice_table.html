@@ -10,7 +10,7 @@
     {% if invoices %}
       {% for invoice in invoices %}
         <tr>
-            <td>{{ invoice.invoice_number }}</td>
+            <td><a href="{% url 'invoice_view' %}?invoice_id={{ invoice.invoice_number }}">{{ invoice.invoice_number }}</a></td>
             <td>{{ invoice.student.user.email }}</td>
             <td>{{ invoice.full_amount }}</td>
             <td>{{ invoice.paid_amount }}</td>

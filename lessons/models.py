@@ -1,14 +1,11 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, Group
 from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from datetime import date, datetime
 from .user_manager import UserManager
-from django.contrib.auth.models import PermissionsMixin
-from django.contrib.auth.models import Group
 from decimal import Decimal
-from django.core.exceptions import ValidationError
 
 
 class DayOfTheWeek(models.Model):
@@ -66,17 +63,13 @@ class User(AbstractBaseUser,PermissionsMixin):
     )
 
     def is_admin(self):
-        if self.groups.exists() and self.groups.all()[0].name == "Admin":
-            return True
-        else:
-            return False
-
+        return self.groups.exists() and self.groups.all()[0].name == "Admin"
 
     def is_student(self):
-        if self.groups.exists() and self.groups.all()[0].name == "Student":
-            return True
-        else:
-            return False
+        return self.groups.exists() and self.groups.all()[0].name == "Student"
+    
+    def is_admin_or_director(self):
+        return self.is_admin() or self.is_superuser
 
     def get_group(self):
         if self.is_superuser:
@@ -106,120 +99,6 @@ class Student(models.Model):
         if (not self.user.groups.exists() or self.user.groups.all()[0].name != "Student"):
             student_group = Group.objects.get(name='Student')
             student_group.user_set.add(self.user)
-
-
-class Child(models.Model):
-    parent = models.ForeignKey(User, blank=False, on_delete=models.CASCADE)
-    full_name = models.CharField(max_length=100, blank=False)
-    
-    # Two children can't exist with the same parent, first name and last name.
-    def clean(self):
-        if Child.objects.filter(parent=self.parent, 
-                                full_name=self.full_name).exists():
-            raise ValidationError("Child with that name already exists!")
-
-
-class Request(models.Model):
-    class IntervalBetweenLessons(models.IntegerChoices):
-        ONE_WEEK = 1, '1 Week'
-        TWO_WEEKS = 2, '2 Weeks'
-
-    class LessonDuration(models.IntegerChoices):
-        THIRTY_MINUTES = 30, '30 Minutes'
-        FOURTY_FIVE_MINUTES = 45, '45 Minutes'
-        SIXTY_MINUTES = 60, '60 Minutes'
-    
-    date = models.DateTimeField(
-        blank=False,
-        unique=True,
-        validators=[
-            MaxValueValidator(
-            limit_value=timezone.now,
-            message='')]
-        )
-    user = models.ForeignKey(User, blank=False, on_delete=models.CASCADE)
-    student_name = models.CharField(max_length=100, blank=False)
-    availability = models.ManyToManyField(DayOfTheWeek, blank=False)
-    number_of_lessons = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(9223372036854775807)])
-    interval_between_lessons = models.PositiveIntegerField(choices=IntervalBetweenLessons.choices)
-    duration_of_lessons = models.PositiveIntegerField(choices=LessonDuration.choices)
-    further_information = models.CharField(blank=False, max_length=500)
-    fulfilled = models.BooleanField(blank=False, default=False)
-
-
-class Booking(models.Model):
-    class IntervalBetweenLessons(models.IntegerChoices):
-        ONE_WEEK = 1, '1 Week'
-        TWO_WEEKS = 2, '2 Weeks'
-
-    class LessonDuration(models.IntegerChoices):
-        THIRTY_MINUTES = 30, '30 Minutes'
-        FORTY_FIVE_MINUTES = 45, '45 Minutes'
-        SIXTY_MINUTES = 60, '60 Minutes'
-
-    invoice_id = models.CharField(max_length=8,
-        unique=True, #TO DO: Change to true
-        blank=False,
-        validators=[RegexValidator(
-            regex=r'^\d{4}-\d{3}$',
-            message='Invoice number must follow the format xxxx-yyy where x is the student number and y is the invoice number.'
-        )]
-    )
-
-    day_of_the_week = models.ForeignKey(DayOfTheWeek, blank=True, on_delete=models.CASCADE)
-    time_of_the_day = models.TimeField(auto_now=False, auto_now_add=False)
-    user = models.ForeignKey(User, blank=True, on_delete=models.CASCADE)
-    student_name = models.CharField(max_length=100, blank=False)
-    teacher = models.CharField(blank=False, max_length=100)
-    start_date = models.DateField(blank=False)
-    duration_of_lessons = models.PositiveIntegerField(blank=False, choices=LessonDuration.choices)
-    interval_between_lessons = models.PositiveIntegerField(choices=IntervalBetweenLessons.choices, blank=False)
-    number_of_lessons = models.PositiveIntegerField(blank=False, validators=[MinValueValidator(1)])
-    further_information = models.CharField(blank=False, max_length=500)
-
-
-class Invoice(models.Model):
-    invoice_number = models.CharField(
-        primary_key=True,
-        max_length=8,
-        unique=True,
-        blank=False,
-        validators=[RegexValidator(
-            regex=r'^\d{4}-\d{3}$',
-            message='Invoice number must follow the format xxxx-yyy where x is the student number and y is the invoice number.'
-        )]
-    )
-    student = models.ForeignKey(Student, blank=False, on_delete=models.CASCADE)
-    full_amount = models.DecimalField(max_digits=8, decimal_places=2, blank=False)
-    paid_amount = models.DecimalField(max_digits=8, decimal_places=2, blank=False, default='0.00')
-    fully_paid = models.BooleanField(default=False, blank=False)
-
-
-class BankTransaction(models.Model):
-    date = models.DateField(
-        blank=False,
-        validators=[MaxValueValidator(
-            limit_value=date.today,
-            message='')]
-    )
-    student = models.ForeignKey(Student, blank=False, on_delete=models.CASCADE)
-    amount = models.DecimalField(max_digits=6, decimal_places=2, blank=False)
-    invoice = models.ForeignKey(Invoice, blank=False, on_delete=models.CASCADE)
-
-    def save(self, *args, **kwargs):
-        super(BankTransaction, self).save(*args, **kwargs)
-        self.invoice.paid_amount = Decimal(self.invoice.paid_amount) + Decimal(self.amount)
-        overpay = Decimal(self.invoice.paid_amount) - Decimal(self.invoice.full_amount)
-
-        if overpay >= 0:
-            self.invoice.fully_paid = True
-            self.invoice.paid_amount = self.invoice.full_amount
-            self.student.balance = Decimal(self.student.balance) + overpay
-            self.invoice.save()
-            self.student.save()
-            return
-        self.invoice.save()
-
 
 class SchoolTerm(models.Model):
     term_name = models.CharField(unique=True, blank=False, max_length=18)
@@ -256,3 +135,127 @@ class SchoolTerm(models.Model):
     #     if existing_term:
     #         existing_term.delete()
     #     super().save()
+class Child(models.Model):
+    parent = models.ForeignKey(User, blank=False, on_delete=models.CASCADE)
+    first_name = models.CharField(max_length=50, blank=False)
+    last_name = models.CharField(max_length=50, blank=False)
+
+
+class Invoice(models.Model):
+
+    def clean(self, *args, **kwargs):
+
+        if self.paid_amount < 0:
+            raise ValidationError('Paid amount cannot be lower than 0')
+
+        if self.full_amount < 0:
+            raise ValidationError('Paid amount cannot be lower than 0')
+
+        if self.paid_amount > self.full_amount:
+            raise ValidationError('Paid amount is greater than full amount')
+
+        if self.paid_amount == self.full_amount and not self.fully_paid:
+            raise ValidationError('Fully paid not marked as true despite invoice being fully paid')
+
+        if self.paid_amount != self.full_amount and self.fully_paid:
+            raise ValidationError('Fully paid marked as true but paid amount != full amount')
+
+    invoice_number = models.CharField(
+        unique=True,
+        primary_key=True,
+        max_length=8,
+        blank=False,
+        validators=[RegexValidator(
+            regex=r'^\d{4}-\d{3}$',
+            message='Invoice number must follow the format xxxx-yyy where x is the student number and y is the invoice number.'
+        )]
+    )
+    student = models.ForeignKey(Student, blank=False, on_delete=models.CASCADE)
+    full_amount = models.DecimalField(max_digits=8, decimal_places=2, blank=False)
+    paid_amount = models.DecimalField(max_digits=8, decimal_places=2, blank=False, default='0.00')
+    fully_paid = models.BooleanField(default=False, blank=False)
+
+
+class Request(models.Model):
+    class IntervalBetweenLessons(models.IntegerChoices):
+        ONE_WEEK = 7, '1 Week'
+        TWO_WEEKS = 14, '2 Weeks'
+
+    class LessonDuration(models.IntegerChoices):
+        THIRTY_MINUTES = 30, '30 Minutes'
+        FOURTY_FIVE_MINUTES = 45, '45 Minutes'
+        SIXTY_MINUTES = 60, '60 Minutes'
+    
+    date = models.DateTimeField(
+        blank=False,
+        default=timezone.now,
+        validators=[
+            MaxValueValidator(
+            limit_value=timezone.now,
+            message="The request date can't be in the future.")]
+    )
+    user = models.ForeignKey(User, blank=False, on_delete=models.CASCADE)
+    relation_id = models.IntegerField(MinValueValidator(-1))
+    availability = models.ManyToManyField(DayOfTheWeek, blank=False)
+    number_of_lessons = models.PositiveIntegerField(blank=False, default=1, 
+                                                    validators=[MinValueValidator(1), MaxValueValidator(1000)])
+    interval_between_lessons = models.PositiveIntegerField(choices=IntervalBetweenLessons.choices)
+    duration_of_lessons = models.PositiveIntegerField(choices=LessonDuration.choices)
+    further_information = models.CharField(blank=False, max_length=500)
+    fulfilled = models.BooleanField(blank=False, default=False)
+
+
+class Booking(models.Model):
+    class IntervalBetweenLessons(models.IntegerChoices):
+        ONE_WEEK = 7, '1 Week'
+        TWO_WEEKS = 14, '2 Weeks'
+
+    class LessonDuration(models.IntegerChoices):
+        THIRTY_MINUTES = 30, '30 Minutes'
+        FORTY_FIVE_MINUTES = 45, '45 Minutes'
+        SIXTY_MINUTES = 60, '60 Minutes'
+
+    invoice = models.OneToOneField(Invoice, blank=False, on_delete=models.CASCADE, unique=True)
+    term_id = models.ForeignKey(SchoolTerm, blank=False, on_delete=models.CASCADE)
+    day_of_the_week = models.ForeignKey(DayOfTheWeek, blank=True, on_delete=models.CASCADE)
+    time_of_the_day = models.TimeField(auto_now=False, auto_now_add=False)
+    user = models.ForeignKey(User, blank=True, on_delete=models.CASCADE)
+    relation_id = models.IntegerField(MinValueValidator(-1))
+    teacher = models.CharField(blank=False, max_length=100)
+    start_date = models.DateField(blank=False)
+    end_date = models.DateField(blank=False)
+    duration_of_lessons = models.PositiveIntegerField(blank=False, choices=LessonDuration.choices)
+    interval_between_lessons = models.PositiveIntegerField(choices=IntervalBetweenLessons.choices, blank=False)
+    number_of_lessons = models.PositiveIntegerField(blank=False, validators=[MinValueValidator(1)])
+    further_information = models.CharField(blank=False, max_length=500)
+
+
+
+
+class BankTransaction(models.Model):
+    date = models.DateField(
+        blank=False,
+        validators=[MaxValueValidator(
+            limit_value=date.today,
+            message='')]
+    )
+    student = models.ForeignKey(Student, blank=False, on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=6, decimal_places=2, blank=False)
+    invoice = models.ForeignKey(Invoice, blank=False, on_delete=models.CASCADE)
+
+    def save(self, *args, **kwargs):
+        super(BankTransaction, self).save(*args, **kwargs)
+        self.invoice.paid_amount = Decimal(self.invoice.paid_amount) + Decimal(self.amount)
+        overpay = Decimal(self.invoice.paid_amount) - Decimal(self.invoice.full_amount)
+
+        if overpay >= 0:
+            self.invoice.fully_paid = True
+            self.invoice.paid_amount = self.invoice.full_amount
+            self.student.balance = Decimal(self.student.balance) + overpay
+            self.invoice.save()
+            self.student.save()
+            return
+        self.invoice.save()
+
+
+

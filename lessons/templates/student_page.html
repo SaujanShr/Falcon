@@ -1,27 +1,29 @@
 {% extends 'base_content.html' %}
 {% block content %}
+
 <div class="container">
+
   <div class="row mb-3">
     <div class ="col-6">
       <h2>Upcoming bookings</h2>
-      {% include 'partials/bookings_table_small.html' with bookings=bookings %}
+      {% include 'partials/bookings_table_small.html' with bookings=bookings is_student=1 %}
       </table>
     </div>
     <div class ="col-6">
       <h2>My requests</h2>
-      {% include 'partials/request_table.html' with date_user_request_pairs=date_user_request_pairs%}
-      <p><a href="{% url 'new_request_view' %}" class=" btn btn-sm btn-primary">New Request</a></p>
+      {% include 'partials/request_table_small.html' with requests=user_requests is_student=1 %}
     </div>
   </div>
   <div class ="row">
     <div class ="col-6">
       <h2>My invoices</h2>
-      {% include 'partials/invoice_table.html' with invoices=invoices %}
+      {% include 'partials/invoice_table.html' with invoices=invoices is_student=1 %}
     </div>
     <div class ="col-6">
       <h2>My transactions</h2>
-      {% include 'partials/transactions_table.html' with transactions=transactions %}
+      {% include 'partials/transactions_table.html' with transactions=transactions is_student=1 %}
     </div>
   </div>
 </div>
+
 {% endblock %}

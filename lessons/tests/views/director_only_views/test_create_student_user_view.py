@@ -56,7 +56,7 @@ class CreateUserViewTestCase(TestCase):
         response = self.client.post(self.url, self.form_input, follow=True) 
         after_count = User.objects.count()
         self.assertEqual(after_count, before_count+1)
-        response_url = reverse('admin_user_view')
+        response_url = reverse('admin_user_list')
         self.assertRedirects(response, response_url, status_code=302, target_status_code=200) 
         self.assertTemplateUsed(response, 'admin_user_list.html')
         user = User.objects.get(email='janedoe@example.org')

@@ -25,7 +25,7 @@ class RequestAdmin(admin.ModelAdmin):
     list_display = [
         'date', 
         'user',
-        'student_name',
+        'relation_id',
         'number_of_lessons', 
         'interval_between_lessons', 
         'duration_of_lessons',
@@ -40,7 +40,7 @@ class BookingAdmin(admin.ModelAdmin):
         #'day_of_the_week',
         'time_of_the_day',
         'user',
-        'student_name',
+        'relation_id',
         'teacher',
         'start_date',
         'duration_of_lessons',
