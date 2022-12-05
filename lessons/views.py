@@ -195,6 +195,9 @@ def child_booking_list(request):
     
     return render(request, 'child_booking_list.html', {'child':child, 'child_bookings': child_bookings})
 
+def lesson_list_admin(request):
+    return render(request, 'lesson_list.html')
+
 @login_prohibited
 def home(request):
     return render(request, 'home.html')
