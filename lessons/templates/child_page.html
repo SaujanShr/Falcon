@@ -3,7 +3,17 @@
 
 <div class="container">
     {% include 'partials/child_menu.html' with child=child %}
-    <h1>Timetable</h1>
+    <div class="row mb-3">
+        <div class ="col-6">
+          <h2>Upcoming bookings</h2>
+          {% include 'partials/bookings_table_small.html' with bookings=bookings is_student=1 %}
+          </table>
+        </div>
+        <div class ="col-6">
+          <h2>My requests</h2>
+          {% include 'partials/request_table_small.html' with requests=user_requests is_student=1 %}
+        </div>
+      </div>
 </div>
 
 {% endblock %}

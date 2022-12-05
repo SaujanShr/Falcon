@@ -143,7 +143,15 @@ def child_page(request):
             return redirect('children_list')
     
     child = get_child_idname(relation_id)
-    return render(request, 'child_page.html', {'child':child})
+    user_requests = get_and_format_requests_for_display(request.user, relation_id)
+    bookings = get_and_format_bookings_for_display(request.user, relation_id)
+    balance = get_student_balance(request)
+    return render(request, 'child_page.html', {
+        'child': child,
+        'user_requests': user_requests[:5],
+        'bookings': bookings[:5],
+        'balance': balance
+        })
 
 @login_required
 @allowed_groups(['Student'])
@@ -258,16 +266,17 @@ def sign_up(request):
 
 
 @login_required
-def profile(request, user_id):
+def profile(request):
     # Redirect if the requested user_id is not a valid user.
-    try:
-        user = User.objects.get(id=user_id)
-    except ObjectDoesNotExist:
-        return redirect('/profile/' + str(request.user.id))
+    user_id = request.GET.get('user_id', None)
+    if not user_id:
+        return redirect_with_queries('/profile/', user_id=request.user.id)
+    
+    user = User.objects.get(id=user_id)
 
     # Redirect if the current user is attempting to change the profile of another user.
-    if request.user.id != user_id:
-        return redirect('/profile/'+str(request.user.id))
+    if not request.user.is_superuser and request.user != user:
+        return redirect_with_queries('/profile/', user_id=request.user.id)
 
     if request.method == 'POST':
         form = UserForm(instance=user, data=request.POST)
@@ -277,7 +286,7 @@ def profile(request, user_id):
             return redirect(get_redirect_url_for_user(user))
     else:
         form = UserForm(instance=user)
-    return render(request, 'profile.html', {'form': form, 'user_id': user_id})
+    return render(request, 'profile.html', {'form': form, 'user_id': user.id})
 
 @login_required
 def change_user_password(request):
@@ -556,7 +565,7 @@ def admin_user_list(request):
     if request.method == 'POST':
         if request.POST.get('edit', None):
             id_user_to_edit = request.POST.get("edit","")
-            return redirect("profile", user_id=id_user_to_edit)
+            return redirect_with_queries("profile", user_id=id_user_to_edit)
         elif request.POST.get('delete', None):
             id_user_to_delete = request.POST.get("delete","")
             user_to_delete = User.objects.get(id=id_user_to_delete)

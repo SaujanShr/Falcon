@@ -5,26 +5,24 @@
   <table class="table table-striped">
     <thead>
       <tr>
-        <th>First name</th>
-        <th>Last name</th>
-        <th>Email</th>
-        <th>Balance</th>
+        <th style="text-align:center; width:20%">First name</th>
+        <th style="text-align:center; width:20%">Last name</th>
+        <th style="text-align:center; width:25%">Email</th>
+        <th style="text-align:center; width:30%">Balance</th>
       </tr>
     </thead>
     {% if students %}
       {% for student in students %}
         <tr>
-            <td>{{ student.user.first_name }}</td>
-            <td>{{ student.user.last_name }}</td>
-            <td>{{ student.user.email }}</td>
-            <td>{{ student.balance }}</td>
+            <td style="text-align:center">{{ student.user.first_name }}</td>
+            <td style="text-align:center">{{ student.user.last_name }}</td>
+            <td style="text-align:center">{{ student.user.email }}</td>
+            <td style="text-align:center">{{ student.balance }}</td>
         </tr>
       {% endfor %}
     {% else %}
       <tr>
-        <td>No transactions yet...</td>
-        <td></td>
-        <td></td>
+        <td colspan=4 style="vertical-align:top">No balances yet...</td>
       </tr>
     {% endif %}
   </table>

@@ -41,7 +41,7 @@ def get_request_object(request_id):
     return Request.objects.get(id=request_id)
 
 def get_booking_object(booking_id):
-    return Booking.objects.get(invoice_id=booking_id)
+    return Booking.objects.get(id=booking_id)
 
 def get_child_object(relation_id):
     return Child.objects.get(id=relation_id)
@@ -223,7 +223,7 @@ def get_and_format_bookings_for_admin_display():
 
 
 def refund_booking_if_valid(booking: Booking):
-    if booking.start_date >= timezone.now().date():
+    if booking.start_date <= timezone.now().date():
         return
     
     invoice = get_invoice_object(booking.invoice_id)
@@ -236,22 +236,19 @@ def refund_booking_if_valid(booking: Booking):
     student.save()
 
 def update_booking(request):
-    data = request.POST.copy()
-    booking = get_booking_object_from_request(request)
-    print(data['invoice_id'])
-    booking.day_of_the_week = DayOfTheWeek.objects.get(order=(int(data['day_of_the_week'])-1))
-    booking.time_of_the_day = data['time_of_the_day']
-    booking.teacher = data['teacher']
-    booking.start_date = data['start_date']
-    booking.duration_of_lessons = data['duration_of_lessons']
-    booking.interval_between_lessons = data['interval_between_lessons']
-    booking.number_of_lessons = data['number_of_lessons']
-    booking.further_information = data['further_information']
-    booking.full_clean()
-
+    data = request.POST
+    booking_id = get_booking_id_from_request(request)
+    
+    form = EditBookingForm(data=data, instance_id=booking_id)
+    if not form.is_valid():
+        return
+    form.save()
+    
+    booking = get_booking_object(booking_id)
+    
     #Update invoice
     student = Student.objects.get(user=booking.user)
-    invoice = Invoice.objects.get(invoice_number=data['invoice_id'])
+    invoice = booking.invoice
     new_cost = booking.duration_of_lessons * int(data['hourly_cost']) * booking.number_of_lessons / 60
     invoice.full_amount = new_cost
 
@@ -266,12 +263,10 @@ def update_booking(request):
         invoice.fully_paid = False
 
     invoice.save()
-    booking.save()
     
     return booking
 
 def delete_booking(request):
-    data = request.POST
     booking = get_booking_object_from_request(request)
     refund_booking_if_valid(booking)
     
@@ -283,7 +278,7 @@ def get_booking_form(booking_id):
     hourly_cost = int(invoice.full_amount/booking.duration_of_lessons/booking.number_of_lessons*60)
     form = EditBookingForm(
         initial={
-            'invoice_id': booking.invoice_id,
+            'invoice': booking.invoice,
             'day_of_the_week': booking.day_of_the_week,
             'time_of_the_day': booking.time_of_the_day,
             'teacher': booking.teacher,
@@ -350,7 +345,7 @@ def find_term_from_date(date): #Returns the term of the date
 def get_fulfil_request_form(request):
     this_request = get_request_object_from_request(request)
     next_term = get_upcoming_term()
-    print("Next term start date:",next_term.start_date)
+
     form = FulfilRequestForm(
         initial={
             'date': this_request.date,
@@ -449,13 +444,13 @@ def get_transaction_list(request):
         return BankTransaction.objects.none()
 
 def redirect_to_invoice_list(user):
-    if user.is_admin():
+    if user.is_admin_or_director():
         return redirect('invoice_list_admin')
     else:
         return redirect('invoice_list_student')
 
 def redirect_to_request_list(user, relation_id):
-    if user.is_admin():
+    if user.is_admin_or_director():
         return redirect('admin_request_list')
     elif is_child(relation_id):
         return redirect_with_queries('child_request_list', relation_id=relation_id)
