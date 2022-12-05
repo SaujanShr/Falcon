@@ -195,10 +195,32 @@ def child_booking_list(request):
     
     return render(request, 'child_booking_list.html', {'child':child, 'child_bookings': child_bookings})
 
+@login_required
+@allowed_groups(['Admin', 'Director'])
 def lesson_list_admin(request):
     bookings = Booking.objects.all()
     lessons = generate_lessons_from_bookings(bookings)
     return render(request, 'lesson_list.html', {'lessons': lessons})
+
+@login_required
+@allowed_groups(['Student'])
+def lesson_list_student(request):
+    relation_id = get_relation_id_from_request(request)
+    bookings = get_booking_objects(request.user, relation_id)
+
+    lessons = generate_lessons_from_bookings(bookings)
+    return render(request, 'lesson_list.html', {'lessons': lessons})
+
+@login_required
+@allowed_groups(['Student'])
+def lesson_list_child(request):
+    relation_id = get_relation_id_from_request(request)
+    
+    child = get_child_idname(relation_id)
+    child_bookings = get_booking_objects(request.user, relation_id)
+
+    lessons = generate_lessons_from_bookings(child_bookings)
+    return render(request, 'lesson_list.html', {'lessons': lessons, 'child': child})
 
 @login_prohibited
 def home(request):
