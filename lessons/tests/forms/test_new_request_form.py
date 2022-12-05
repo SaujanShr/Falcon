@@ -149,7 +149,6 @@ class NewRequestFormTestCase(TestCase):
 
     def test_form_must_save_correctly(self):
         form = NewRequestForm(user=self.user, relation_id=1, data=self.form_input)
-        #form = NewRequestForm(data=self.form_input)
         self.assertTrue(form.is_valid())
         form_availability = form.cleaned_data.get('availability')
         form_number_of_lessons = form.cleaned_data.get('number_of_lessons')
