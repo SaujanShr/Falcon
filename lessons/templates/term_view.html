@@ -9,6 +9,9 @@
             <form action="{% url 'term_view' %}" method="post">
                 {% csrf_token %}
                 <input type="hidden" name="old_term_name" value="{{ old_term_name }}"/>
+                <div style="color:red;">
+                    {{form.non_field_errors}}
+                </div>
                 {% include 'partials/bootstrap_form.html' with form=form %}
                 <input type="submit" value="Submit" class="btn btn-primary">
             </form><br>

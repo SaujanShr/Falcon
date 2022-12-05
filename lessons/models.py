@@ -100,11 +100,81 @@ class Student(models.Model):
             student_group = Group.objects.get(name='Student')
             student_group.user_set.add(self.user)
 
+class SchoolTerm(models.Model):
+    term_name = models.CharField(unique=True, blank=False, max_length=18)
+    start_date = models.DateField(blank=False)
+    end_date = models.DateField(blank=False)
 
+    class Meta:
+        ordering = ['start_date']
+
+    def clean(self):
+        # Clean is not invoked when you use save? I think?
+        # Only on create()?? and is_valid()
+
+        # Check valid dates
+        if not(self.start_date and self.end_date):
+            raise ValidationError("Date(s) are not in form YYYY-MM-DD")
+
+        # Error if the start date is less than the end date
+        if not(self.start_date < self.end_date):
+            raise ValidationError("Start date must be before end date")
+
+        current_school_terms = SchoolTerm.objects.exclude(term_name=self.term_name)
+
+        # Check if the new term does not overlap any existing terms.
+        for term in current_school_terms:
+            # Check if the new date is valid, compares to see if the new start date falls between one of the
+            # existing ranges, or if one of the existing start dates falls between the new range.
+            if (term.start_date <= self.start_date < term.end_date) or (self.start_date <= term.start_date < self.end_date):
+                raise ValidationError("There is a overlap with this new date range and ranges for existing terms")
+
+    # If we want to override a school term even if a term with the same name already exists.
+    # def save(self, *args, **kwargs):
+    #     existing_term = SchoolTerm.objects.filter(term_name=self.term_name).exists()
+    #     if existing_term:
+    #         existing_term.delete()
+    #     super().save()
 class Child(models.Model):
     parent = models.ForeignKey(User, blank=False, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=50, blank=False)
     last_name = models.CharField(max_length=50, blank=False)
+
+
+class Invoice(models.Model):
+
+    def clean(self, *args, **kwargs):
+
+        if self.paid_amount < 0:
+            raise ValidationError('Paid amount cannot be lower than 0')
+
+        if self.full_amount < 0:
+            raise ValidationError('Paid amount cannot be lower than 0')
+
+        if self.paid_amount > self.full_amount:
+            raise ValidationError('Paid amount is greater than full amount')
+
+        if self.paid_amount == self.full_amount and not self.fully_paid:
+            raise ValidationError('Fully paid not marked as true despite invoice being fully paid')
+
+        if self.paid_amount != self.full_amount and self.fully_paid:
+            raise ValidationError('Fully paid marked as true but paid amount != full amount')
+
+    invoice_number = models.CharField(
+        unique=True,
+        primary_key=True,
+        max_length=8,
+        blank=False,
+        validators=[RegexValidator(
+            regex=r'^\d{4}-\d{3}$',
+            message='Invoice number must follow the format xxxx-yyy where x is the student number and y is the invoice number.'
+        )]
+    )
+    student = models.ForeignKey(Student, blank=False, on_delete=models.CASCADE)
+    full_amount = models.DecimalField(max_digits=8, decimal_places=2, blank=False)
+    paid_amount = models.DecimalField(max_digits=8, decimal_places=2, blank=False, default='0.00')
+    fully_paid = models.BooleanField(default=False, blank=False)
+
 
 class Request(models.Model):
     class IntervalBetweenLessons(models.IntegerChoices):
@@ -145,42 +215,21 @@ class Booking(models.Model):
         FORTY_FIVE_MINUTES = 45, '45 Minutes'
         SIXTY_MINUTES = 60, '60 Minutes'
 
-    invoice_id = models.CharField(max_length=8,
-        unique=True, #TO DO: Change to true
-        blank=False,
-        validators=[RegexValidator(
-            regex=r'^\d{4}-\d{3}$',
-            message='Invoice number must follow the format xxxx-yyy where x is the student number and y is the invoice number.'
-        )]
-    )
-
+    invoice = models.OneToOneField(Invoice, blank=False, on_delete=models.CASCADE, unique=True)
+    term_id = models.ForeignKey(SchoolTerm, blank=False, on_delete=models.CASCADE)
     day_of_the_week = models.ForeignKey(DayOfTheWeek, blank=True, on_delete=models.CASCADE)
     time_of_the_day = models.TimeField(auto_now=False, auto_now_add=False)
     user = models.ForeignKey(User, blank=True, on_delete=models.CASCADE)
     relation_id = models.IntegerField(MinValueValidator(-1))
     teacher = models.CharField(blank=False, max_length=100)
     start_date = models.DateField(blank=False)
+    end_date = models.DateField(blank=False)
     duration_of_lessons = models.PositiveIntegerField(blank=False, choices=LessonDuration.choices)
     interval_between_lessons = models.PositiveIntegerField(choices=IntervalBetweenLessons.choices, blank=False)
     number_of_lessons = models.PositiveIntegerField(blank=False, validators=[MinValueValidator(1)])
     further_information = models.CharField(blank=False, max_length=500)
 
 
-class Invoice(models.Model):
-    invoice_number = models.CharField(
-        primary_key=True,
-        max_length=8,
-        unique=True,
-        blank=False,
-        validators=[RegexValidator(
-            regex=r'^\d{4}-\d{3}$',
-            message='Invoice number must follow the format xxxx-yyy where x is the student number and y is the invoice number.'
-        )]
-    )
-    student = models.ForeignKey(Student, blank=False, on_delete=models.CASCADE)
-    full_amount = models.DecimalField(max_digits=8, decimal_places=2, blank=False)
-    paid_amount = models.DecimalField(max_digits=8, decimal_places=2, blank=False, default='0.00')
-    fully_paid = models.BooleanField(default=False, blank=False)
 
 
 class BankTransaction(models.Model):
@@ -209,38 +258,4 @@ class BankTransaction(models.Model):
         self.invoice.save()
 
 
-class SchoolTerm(models.Model):
-    term_name = models.CharField(unique=True, blank=False, max_length=18)
-    start_date = models.DateField(blank=False)
-    end_date = models.DateField(blank=False)
 
-    class Meta:
-        ordering = ['start_date']
-
-    def clean(self):
-        # Clean is not invoked when you use save? I think?
-        # Only on create()?? and is_valid()
-
-        # Check valid dates
-        if not(self.start_date and self.end_date):
-            raise ValidationError("Date(s) are not in form YYYY-MM-DD")
-
-        # Error if the start date is less than the end date
-        if not(self.start_date < self.end_date):
-            raise ValidationError("Start date must be before end date")
-
-        current_school_terms = SchoolTerm.objects.exclude(term_name=self.term_name)
-
-        # Check if the new term does not overlap any existing terms.
-        for term in current_school_terms:
-            # Check if the new date is valid, compares to see if the new start date falls between one of the
-            # existing ranges, or if one of the existing start dates falls between the new range.
-            if (term.start_date <= self.start_date < term.end_date) or (self.start_date <= term.start_date < self.end_date):
-                raise ValidationError("There is a overlap with this new date range and ranges for existing terms")
-
-    # If we want to override a school term even if a term with the same name already exists.
-    # def save(self, *args, **kwargs):
-    #     existing_term = SchoolTerm.objects.filter(term_name=self.term_name).exists()
-    #     if existing_term:
-    #         existing_term.delete()
-    #     super().save()

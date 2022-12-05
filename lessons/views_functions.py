@@ -7,6 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.contrib.auth import authenticate
 from django.shortcuts import redirect
+from datetime import datetime
 
 def redirect_with_queries(url, **queries):
     response = redirect(url)
@@ -337,11 +338,22 @@ def get_request_view_form(request_id):
         )
     return form
 
+def get_upcoming_term(): #Returns the next term
+    return SchoolTerm.objects.all().filter(end_date__gt=datetime.today()).filter(start_date__gte=datetime.today())\
+        .order_by('start_date').first()
+
+def find_term_from_date(date): #Returns the term of the date
+    return SchoolTerm.objects.all().filter(end_date__gte=date).filter(start_date__lte=date).first()
+
 def get_fulfil_request_form(request):
     this_request = get_request_object_from_request(request)
+    next_term = get_upcoming_term()
+    print("Next term start date:",next_term.start_date)
     form = FulfilRequestForm(
         initial={
             'date': this_request.date,
+            'start_date': next_term.start_date,
+            'end_date': next_term.end_date,
             'number_of_lessons': this_request.number_of_lessons,
             'interval_between_lessons': this_request.interval_between_lessons,
             'duration_of_lessons': this_request.duration_of_lessons,

@@ -364,15 +364,15 @@ def fulfil_request_view(request):
             booking_req = form.save()
 
             if not booking_req[1].fulfilled:
-                invoice_number = create_invoice(booking_req[0], booking_req[2])
-                booking_req[0].invoice_id = invoice_number
+                invoice_no = create_invoice(booking_req[0], booking_req[2])
+                booking_req[0].invoice = Invoice.objects.get(invoice_number=invoice_no)
+                booking_req[0].term_id = find_term_from_date(booking_req[0].start_date)
                 booking_req[0].full_clean()
                 booking_req[1].fulfilled = True
                 booking_req[1].save()
                 booking_req[0].save()
                 return redirect('admin_booking_list')
             else:
-                print('Booking is already fulfilled')
                 return redirect('admin_booking_list')
         elif request.POST.get('delete', None):
             delete_request_object_from_request(request)
@@ -471,16 +471,8 @@ def term_view(request):
         # Use old term name in case the user has changed the term name.
         term = SchoolTerm.objects.get(term_name=request.POST['old_term_name'])
         old_term_name = request.POST['old_term_name']
-        new_term_name = request.POST['term_name']
         old_start_date = term.start_date
         old_end_date = term.end_date
-
-        initial_form = TermViewForm(instance=term)
-
-        # Check if there already exists a term with the same name, if there is a change in the name of the term.
-        if term_name_already_exists(old_term_name, new_term_name):
-            messages.add_message(request, messages.ERROR, "There already exists a term with this name!")
-            return render(request, "term_view.html", {'form': initial_form, 'old_term_name': old_term_name})
 
         # Create a copy of the request data, and delete term, Otherwise term name validation (Unique constraint)
         data = request.POST.copy()

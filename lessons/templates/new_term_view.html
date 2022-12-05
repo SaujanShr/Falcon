@@ -8,6 +8,9 @@
 
             <form action="{% url 'new_term_view' %}" method="post">
                 {% csrf_token %}
+                <div style="color:red;">
+                    {{form.non_field_errors}}
+                </div>
                 {% include 'partials/bootstrap_form.html' with form=form %}
                 <input type="submit" value="Submit" class="btn btn-primary">
             </form>
