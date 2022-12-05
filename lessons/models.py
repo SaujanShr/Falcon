@@ -215,7 +215,7 @@ class Booking(models.Model):
         FORTY_FIVE_MINUTES = 45, '45 Minutes'
         SIXTY_MINUTES = 60, '60 Minutes'
 
-    invoice = models.ForeignKey(Invoice, blank=False, on_delete=models.CASCADE, unique=True)
+    invoice = models.OneToOneField(Invoice, blank=False, on_delete=models.CASCADE, unique=True)
     term_id = models.ForeignKey(SchoolTerm, blank=False, on_delete=models.CASCADE)
     day_of_the_week = models.ForeignKey(DayOfTheWeek, blank=True, on_delete=models.CASCADE)
     time_of_the_day = models.TimeField(auto_now=False, auto_now_add=False)

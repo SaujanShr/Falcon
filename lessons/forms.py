@@ -2,7 +2,9 @@ from django import forms
 from django.core.validators import RegexValidator
 from django.contrib.auth.models import Group
 from .models import User, Child, DayOfTheWeek, Request, BankTransaction, Student, Invoice, SchoolTerm, Booking
-    
+from .forms_functions import create_invoice, find_term_from_date
+
+
 class DateInput(forms.DateInput):
     input_type = 'date'
 
@@ -142,6 +144,10 @@ class FulfilRequestForm(forms.ModelForm):
         fields = ['availability', 'number_of_lessons', 'interval_between_lessons',
                   'duration_of_lessons', 'further_information']
 
+    field_order = ['availability', 'interval_between_lessons', 'number_of_lessons',
+                   'duration_of_lessons', 'time_of_lesson', 'teacher', 'hourly_cost',
+                   'start_date', 'end_date', 'further_information']
+
     date = forms.CharField(
         widget=forms.HiddenInput
     )
@@ -168,6 +174,14 @@ class FulfilRequestForm(forms.ModelForm):
             attrs={'type':'date'}
         )
     )
+
+    end_date = forms.DateField(
+        label='End date (leave empty for last day of term):',
+        widget=forms.DateInput(
+            attrs={'type': 'date'}
+        )
+    )
+
     hourly_cost = forms.CharField(
         widget=forms.TextInput(
             attrs={'type':'number'}
@@ -178,18 +192,18 @@ class FulfilRequestForm(forms.ModelForm):
         super().save(commit=False)
         req = Request.objects.get(date=self.cleaned_data.get('date'))
         if not req.fulfilled:
-            booking = Booking.objects.create(
+            booking = Booking(
                 time_of_the_day=self.cleaned_data.get('time_of_lesson'),
                 day_of_the_week=self.cleaned_data.get('availability'),
                 user=req.user,
                 relation_id=req.relation_id,
                 teacher=self.cleaned_data.get('teacher'),
                 start_date=self.cleaned_data.get('start_date'),
+                end_date=self.cleaned_data.get('end_date'),
                 duration_of_lessons=self.cleaned_data.get('duration_of_lessons'),
                 interval_between_lessons=self.cleaned_data.get('interval_between_lessons'),
                 number_of_lessons=self.cleaned_data.get('number_of_lessons'),
-                further_information=self.cleaned_data.get('further_information'),
-                invoice_id="9999-999"
+                further_information=self.cleaned_data.get('further_information')
             )
 
             return [booking, req, self.cleaned_data.get('hourly_cost')]
