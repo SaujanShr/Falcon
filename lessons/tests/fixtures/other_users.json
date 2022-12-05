@@ -9,5 +9,19 @@
             "password": "pbkdf2_sha256$260000$bPg4tZyMdz6KcfXqYPodtj$r3LZAnEhDAZd5leDiezUxy6CH25JFCFQkO+3kX4ejcg=",
             "is_active": true
         }
+    },
+
+    {
+        "model": "lessons.user",
+        "pk": 3,
+        "fields": {
+            "first_name": "director",
+            "last_name": "director",
+            "email": "director@email.com",
+            "password": "pbkdf2_sha256$260000$bPg4tZyMdz6KcfXqYPodtj$r3LZAnEhDAZd5leDiezUxy6CH25JFCFQkO+3kX4ejcg=",
+            "is_active": true,
+            "is_superuser": true,
+            "is_staff": true
+        }
     }
 ]

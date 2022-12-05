@@ -77,4 +77,14 @@ class HandleGroups:
         admin_group = Group.objects.get(name='Admin')
         admin_group.user_set.add(other_user)
 
+    def set_director_groups():
+        create_user_groups()
+        user = User.objects.get(email='janedoe@email.com')
+
+        student_group = Group.objects.get(name='Student')
+        student_group.user_set.add(user)
+
+        admin_group = Group.objects.get(name='Admin')
+        admin_group.user_set.add(user)
+
 
