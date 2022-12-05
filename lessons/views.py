@@ -135,6 +135,9 @@ def child_page(request):
         
         if request.GET.get('bookings', None):
             return redirect_with_queries('child_booking_list', relation_id=relation_id)
+
+        if request.GET.get('lessons', None):
+            return redirect_with_queries('lesson_list_child', relation_id=relation_id)
         
         if request.GET.get('return', None):
             return redirect('children_list')
@@ -220,7 +223,7 @@ def lesson_list_child(request):
     child_bookings = get_booking_objects(request.user, relation_id)
 
     lessons = generate_lessons_from_bookings(child_bookings)
-    return render(request, 'lesson_list.html', {'lessons': lessons, 'child': child})
+    return render(request, 'child_lesson_list.html', {'lessons': lessons, 'child': child})
 
 @login_prohibited
 def home(request):
