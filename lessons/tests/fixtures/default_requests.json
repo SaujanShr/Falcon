@@ -1,0 +1,28 @@
+[
+    {
+        "model": "lessons.Request",
+        "pk": 1,
+        "fields": {
+            "user": 1,
+            "student_name": "John Doe",
+            "date": "2022-01-01",
+            "number_of_lessons": 1,
+            "interval_between_lessons": 1,
+            "duration_of_lessons": 30,
+            "further_information": "Lorem Ipsum."
+        }
+    },
+    {
+        "model": "lessons.Request",
+        "pk": 2,
+        "fields": {
+            "user": 2,
+            "student_name": "Jane Doe",
+            "date": "2022-03-01",
+            "number_of_lessons": 5,
+            "interval_between_lessons": 2,
+            "duration_of_lessons": 45,
+            "further_information": "Lorem Ipsum."
+        }
+    }
+]
