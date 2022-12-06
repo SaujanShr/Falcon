@@ -21,14 +21,16 @@ class BookingModelTestCase(TestCase):
         SchoolTerm(term_name="Term two", start_date=datetime.date(2022, 10, 31),
                    end_date=datetime.date(2022, 12, 16)).save()
         i1 = Invoice(invoice_number="0001-001", student=Student.objects.get(user__email="johndoe@email.com"),
-                     full_amount=300, paid_amount=0, fully_paid=False).save()
+                     full_amount=300, paid_amount=0, fully_paid=False)
         i2 = Invoice(invoice_number="0002-001", student=Student.objects.get(user__email="janedoe@email.com"),
-                     full_amount=500, paid_amount=0, fully_paid=False).save()
+                     full_amount=500, paid_amount=0, fully_paid=False)
+        i1.save()
+        i2.save()
 
         self.booking1 = Booking.objects.create(
             user=User.objects.get(email="johndoe@email.com"),
             relation_id=1,
-            invoice=Invoice.objects.get(invoice_number="0001-001"),
+            invoice=i1,
             time_of_the_day="12:00",
             teacher="Mr Smith",
             number_of_lessons=20,
@@ -44,7 +46,7 @@ class BookingModelTestCase(TestCase):
         self.booking2 = Booking.objects.create(
             user=User.objects.get(email="janedoe@email.com"),
             relation_id=2,
-            invoice=Invoice.objects.get(invoice_number="0002-001"),
+            invoice=i2,
             time_of_the_day="9:00",
             teacher="Mr Singh",
             number_of_lessons=15,

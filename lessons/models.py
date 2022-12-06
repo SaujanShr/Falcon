@@ -232,7 +232,7 @@ class Booking(models.Model):
     end_date = models.DateField(blank=False)
     duration_of_lessons = models.PositiveIntegerField(blank=False, choices=LessonDuration.choices)
     interval_between_lessons = models.PositiveIntegerField(choices=IntervalBetweenLessons.choices, blank=False)
-    number_of_lessons = models.PositiveIntegerField(blank=False, validators=[MinValueValidator(1)])
+    number_of_lessons = models.PositiveIntegerField(blank=False, validators=[MinValueValidator(1), MaxValueValidator(1000)])
     further_information = models.CharField(blank=False, max_length=500)
 
 
