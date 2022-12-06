@@ -396,7 +396,6 @@ class BookingViewForm(forms.ModelForm):
         super(BookingViewForm, self).__init__(*args, **kwargs)
     
     def set_read_only(self):
-        self.fields['invoice_id'].disabled = True
         self.fields['day_of_the_week'].disabled = True
         self.fields['time_of_the_day'].disabled = True
         self.fields['teacher'].disabled = True

@@ -18,7 +18,7 @@
       {% if is_student %}
         {% for request in requests %}
           <tr>
-              <td style="text-align:center">{{ request.raw_date }}</td>
+              <td style="text-align:center">{{ request.date }}</td>
               <td style="text-align:center">{{ request.further_information|truncatechars:30 }}</td>
               <td style="text-align:center">{{ request.fulfilled }}</td>
               <td style="text-align:center">
@@ -29,7 +29,7 @@
       {% else %}
         {% for request in requests %}
           <tr>
-            <td style="text-align:center">{{ request.raw_date }}</td>
+            <td style="text-align:center">{{ request.date }}</td>
             <td style="text-align:center">{{ request.student_name }}</td>
             <td style="text-align:center">{{ request.user.email }}</td>
             <td style="text-align:center">
