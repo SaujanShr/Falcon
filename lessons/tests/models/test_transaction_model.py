@@ -6,6 +6,7 @@ import datetime
 from lessons.tests.helpers import create_user_groups
 
 class TransactionModelTestCase(TestCase):
+    '''Unit tests for the transaction model'''
 
     fixtures = ['lessons/tests/fixtures/other_users.json', 'lessons/tests/fixtures/default_user.json']
     

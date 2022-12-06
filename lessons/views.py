@@ -71,7 +71,7 @@ def request_view(request):
         elif request.POST.get('return', None):
             return redirect_to_request_list(user, relation_id)
     
-    full_name = get_full_name_by_relation_id(user, relation_id)
+    full_name = get_full_name_by_relation_id(user_request.user, relation_id)
     readonly = user.is_admin_or_director() or user_request.fulfilled
     
     form = get_request_view_form(request_id)
@@ -421,7 +421,7 @@ def booking_view(request):
         elif request.POST.get('return', None):
             return redirect_with_queries(redirect_page, relation_id=relation_id)
     
-    full_name = get_full_name_by_relation_id(user, relation_id)
+    full_name = get_full_name_by_relation_id(booking.user, relation_id)
     readonly = not user.is_admin_or_director()
     
     form = get_booking_form(booking_id)
