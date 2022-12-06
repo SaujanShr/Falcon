@@ -8,7 +8,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.contrib.auth import authenticate
 from django.shortcuts import redirect
-from datetime import *
+import datetime
 
 def redirect_with_queries(url, **queries):
     response = redirect(url)
@@ -467,13 +467,13 @@ def generate_lessons_from_bookings(bookings):
     for booking in bookings:
         term = booking.term_id
         date = booking.start_date
-        lesson_datetime = datetime.combine(date, booking.time_of_the_day) #perhaps do not generate lesson in list if this date is in the past
+        lesson_datetime = datetime.datetime.combine(date, booking.time_of_the_day) #perhaps do not generate lesson in list if this date is in the past
         duration = Booking.LessonDuration.choices[
                 Booking.LessonDuration.values.index(booking.duration_of_lessons)
             ]
 
         for lesson_num in range(booking.number_of_lessons):
-            if lesson_datetime >= datetime.today():
+            if lesson_datetime >= datetime.datetime.today():
                 lesson = Lesson(
                     booking,
                     lesson_datetime,
@@ -485,7 +485,7 @@ def generate_lessons_from_bookings(bookings):
 
                 lesson_list.append(lesson)
 
-            lesson_datetime += timedelta(days=booking.interval_between_lessons)
+            lesson_datetime += datetime.timedelta(days=booking.interval_between_lessons)
 
     lesson_list.sort(key=lambda x: x.date_time, reverse = True)
 
