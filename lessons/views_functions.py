@@ -498,29 +498,3 @@ def check_if_lessons_not_in_termtime(lessons):
             return True
 
     return False
-
-"""
-class Booking(models.Model):
-    class IntervalBetweenLessons(models.IntegerChoices):
-        ONE_WEEK = 7, '1 Week'
-        TWO_WEEKS = 14, '2 Weeks'
-
-    class LessonDuration(models.IntegerChoices):
-        THIRTY_MINUTES = 30, '30 Minutes'
-        FORTY_FIVE_MINUTES = 45, '45 Minutes'
-        SIXTY_MINUTES = 60, '60 Minutes'
-
-    invoice = models.OneToOneField(Invoice, blank=False, on_delete=models.CASCADE, unique=True)
-    term_id = models.ForeignKey(SchoolTerm, blank=False, on_delete=models.CASCADE)
-    day_of_the_week = models.ForeignKey(DayOfTheWeek, blank=True, on_delete=models.CASCADE)
-    time_of_the_day = models.TimeField(auto_now=False, auto_now_add=False)
-    user = models.ForeignKey(User, blank=True, on_delete=models.CASCADE)
-    relation_id = models.IntegerField(MinValueValidator(-1))
-    teacher = models.CharField(blank=False, max_length=100)
-    start_date = models.DateField(blank=False)
-    end_date = models.DateField(blank=False)
-    duration_of_lessons = models.PositiveIntegerField(blank=False, choices=LessonDuration.choices)
-    interval_between_lessons = models.PositiveIntegerField(choices=IntervalBetweenLessons.choices, blank=False)
-    number_of_lessons = models.PositiveIntegerField(blank=False, validators=[MinValueValidator(1)])
-    further_information = models.CharField(blank=False, max_length=500)
-"""
