@@ -54,9 +54,6 @@ class InvoiceViewForm(forms.ModelForm):
         self.fields['student_name'].disabled = True
         self.fields['full_amount'].disabled = True
         self.fields['paid_amount'].disabled = True
-    
-
-
 
 class NewRequestForm(forms.ModelForm):
     class Meta:
@@ -129,16 +126,6 @@ class RequestViewForm(forms.ModelForm):
 
 
 class FulfilRequestForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        if 'reqe' in kwargs:
-            reqe = kwargs.pop('reqe')
-        super(FulfilRequestForm, self).__init__(*args, **kwargs)
-        if 'reqe' in locals() and isinstance(reqe, Request):
-            self.fields['availability'] = forms.ModelChoiceField(
-                queryset=reqe.availability.all(),
-                label="Day of lessons:",
-                widget=forms.Select
-            )
     class Meta:
         model = Booking
         fields = ['availability', 'number_of_lessons', 'interval_between_lessons',
@@ -148,11 +135,20 @@ class FulfilRequestForm(forms.ModelForm):
     field_order = ['availability', 'interval_between_lessons', 'number_of_lessons',
                    'duration_of_lessons', 'time_of_lesson', 'teacher', 'hourly_cost',
                    'start_date', 'end_date', 'further_information']
+    
+    def __init__(self, *args, **kwargs):
+        self.request_id = kwargs.pop('request_id', None)
 
-    date = forms.CharField(
-        widget=forms.HiddenInput
-    )
-
+        super(FulfilRequestForm, self).__init__(*args, **kwargs)
+        
+        if self.request_id:
+            user_request = Request.objects.get(id=self.request_id)
+            self.fields['availability'] = forms.ModelChoiceField(
+                queryset=user_request.availability.all(),
+                label="Day of lessons:",
+                widget=forms.Select
+            )
+            
     availability = forms.ModelChoiceField(
         queryset=DayOfTheWeek.objects.all(),
         label="Day of lessons:",
@@ -191,7 +187,7 @@ class FulfilRequestForm(forms.ModelForm):
 
     def save(self):
         super().save(commit=False)
-        req = Request.objects.get(date=self.cleaned_data.get('date'))
+        req = Request.objects.get(id=self.request_id)
         if not req.fulfilled:
             booking = Booking(
                 time_of_the_day=self.cleaned_data.get('time_of_lesson'),

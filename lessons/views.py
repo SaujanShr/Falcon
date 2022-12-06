@@ -403,10 +403,11 @@ def admin_request_list(request):
 #@login_required
 #@allowed_groups(["Admin","Director"])
 def fulfil_request_view(request):
+    request_id = get_request_id_from_request(request)
     
     if request.method == 'POST':
         if request.POST.get('fulfil', None):
-            form = FulfilRequestForm(request.POST)
+            form = FulfilRequestForm(request_id=request_id, data=request.POST)
             booking_req = form.save()
 
             if not booking_req[1].fulfilled:
@@ -426,9 +427,8 @@ def fulfil_request_view(request):
         elif request.POST.get('return', None):
             return redirect('admin_request_list')
 
-    date = str(get_request_object_from_request(request).date)
     form = get_fulfil_request_form(request)
-    return render(request, 'fulfil_view.html', {'date': date, 'form': form})
+    return render(request, 'fulfil_view.html', {'request_id': request_id, 'form': form})
 
 def booking_view(request):
     booking_id = get_booking_id_from_request(request)
@@ -650,6 +650,7 @@ def create_student_user(request):
             created_user = form.save()
             student_group = Group.objects.get(name='Student')
             student_group.user_set.add(created_user)
+            Student.objects.create(user=created_user)
             return redirect('admin_user_list')
     else:
         form = CreateUser()

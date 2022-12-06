@@ -38,6 +38,16 @@ class ChildViewFormTestCase(TestCase):
         self.assertIn('first_name', form.fields)
         self.assertIn('last_name', form.fields)
     
+    def test_form_fields_have_correct_initial_values(self):
+        form = ChildViewForm(
+            initial={
+                'first_name':self.child.first_name,
+                'last_name':self.child.last_name
+            }
+        )
+        self.assertEqual(form['first_name'].value(), 'Alice')
+        self.assertEqual(form['last_name'].value(), 'Doe')
+    
     def test_form_rejects_blank_first_name(self):
         self.form_input['first_name'] = ''
         self._assert_form_is_invalid()

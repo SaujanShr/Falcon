@@ -311,7 +311,6 @@ def get_invoice_view_form(invoice_id):
             'student_name': invoice.student.user.email,
             'full_amount': invoice.full_amount,
             'paid_amount': invoice.paid_amount,
-            'fully_paid': invoice.fully_paid
         }
     )
 
@@ -339,8 +338,17 @@ def get_upcoming_term(): #Returns the next term
     return SchoolTerm.objects.all().filter(end_date__gt=datetime.today()).filter(start_date__gte=datetime.today())\
         .order_by('start_date').first()
 
-def find_term_from_date(date): #Returns the term of the date
-    return SchoolTerm.objects.all().filter(end_date__gte=date).filter(start_date__lte=date).first()
+def find_term_from_date(self,date): #Returns the term of the date
+        term = SchoolTerm.objects.all().filter(end_date__gte=date).filter(start_date__lte=date).first()
+        if not term:
+            school_terms_starting_later = SchoolTerm.objects.filter(start_date__gte=date)
+            min_start_date = school_terms_starting_later[0].start_date
+            term = school_terms_starting_later[0]
+            for term_in_list in school_terms_starting_later:
+                if term.start_date < min_start_date:
+                    min_start_date = term_in_list.start_date
+                    term = term_in_list
+        return term
 
 #Finds term associated with date, but allows a None return when no term can be associated with the day.
 def find_term_from_date_allow_none(date): 
@@ -352,7 +360,6 @@ def get_fulfil_request_form(request):
 
     form = FulfilRequestForm(
         initial={
-            'date': this_request.date,
             'start_date': next_term.start_date,
             'end_date': next_term.end_date,
             'number_of_lessons': this_request.number_of_lessons,
@@ -360,7 +367,7 @@ def get_fulfil_request_form(request):
             'duration_of_lessons': this_request.duration_of_lessons,
             'further_information': this_request.further_information
         },
-        reqe=this_request
+        request_id=this_request.id
     )
     return form
 
