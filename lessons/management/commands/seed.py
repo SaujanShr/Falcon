@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, Permission
 from faker import Faker
-from lessons.models import User, Student, SchoolTerm, DayOfTheWeek
+from lessons.models import BankTransaction, User, Student, SchoolTerm, DayOfTheWeek, Request
 import datetime
 
 
@@ -11,6 +11,35 @@ class Command(BaseCommand):
         self.faker = Faker('en_GB')
         
     def handle(self, *args, **options):
+        if Group.objects.count() == 0:
+            GROUPS_PERMISSIONS = {
+                'Admin': {
+                    BankTransaction: ['add', 'change', 'delete', 'view'],
+                    Request: ['change', 'delete', 'view'],
+                    User: ['add', 'change', 'delete', 'view'],
+                },
+                'Student': {
+                    BankTransaction: ['add', 'change', 'delete', 'view'],
+                    Request: ['add', 'change', 'delete', 'view'],
+                    User: ['add', 'change', 'delete', 'view'],
+                },
+            }
+            for group_name in GROUPS_PERMISSIONS:
+                group, created = Group.objects.get_or_create(name=group_name)
+                for authorization in GROUPS_PERMISSIONS[group_name]:
+                    for permission_index, permission_name in enumerate(GROUPS_PERMISSIONS[group_name][authorization]):
+                        permission_codename = permission_name + "_" + authorization._meta.model_name
+                        try:
+                            permission = Permission.objects.get(codename=permission_codename)
+                            group.permissions.add(permission)
+                            print("Adding "
+                            + permission_codename
+                            + " to group "
+                            + group.__str__())
+                        except Permission.DoesNotExist:
+                            print(permission_codename + " not found")
+            
+        
         #Seed Users
         print('Seeding data...')
         student_group = Group.objects.get(name='Student')
