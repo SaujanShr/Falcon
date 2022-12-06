@@ -3,26 +3,26 @@
 
 <div class="container">
   <h1>My Children</h1>
-  <p><a href="{% url 'new_child_view' %}" class=" btn btn-sm btn-primary">Register New Child</a></p>
+  <p><a href="{% url 'new_child_view' %}" class=" btn btn-sm btn-primary" style="width:250px">Register New Child</a></p>
   <table class="table table-striped">
     <thead>
       <tr>
-        <th style=>Full Name</th>
-        <th>View Child</th>
-        <th>Edit Child Profile</th>
+        <th style="text-align:center">Full Name</th>
+        <th style="text-align:center">View Child</th>
+        <th style="text-align:center">Edit Child Profile</th>
       </tr>
     </thead>
     {% if children %}
       {% for child in children %}
         <tr><form action="{% url 'child_page' %}" method="get">
             <input type="hidden" name="relation_id" value={{ child.id }}>
-            <td>{{ child.name }}</td>
-            <td><input type="submit" name="view" value="View" class="btn btn-primary"></td>
+            <td style="text-align:center">{{ child.name }}</td>
+            <td style="text-align:center"><input type="submit" name="view" value="View" class="btn btn-primary" style="width:150px"></td>
           </form>
           <form action="{% url 'child_view' %}" method="post">
             {% csrf_token %}
             <input type="hidden" name="relation_id" value={{ child.id }}>
-            <td><input type="submit" name="edit" value="Edit" class="btn btn-primary"></td>
+            <td style="text-align:center"><input type="submit" name="edit" value="Edit" class="btn btn-primary" style="width:150px"></td>
           </form>
         </tr>
       {% endfor %}

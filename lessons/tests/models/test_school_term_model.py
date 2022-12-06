@@ -6,7 +6,7 @@ import datetime
 
 
 class SchoolTermModelTestCase(TestCase):
-    """Unit tests of the school term model"""
+    """Unit tests for the SchoolTerm model"""
 
     fixtures = ['lessons/tests/fixtures/default_terms.json']
     

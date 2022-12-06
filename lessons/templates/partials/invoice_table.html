@@ -1,27 +1,24 @@
 <table class="table table-striped">
     <thead>
       <tr>
-        <th>Invoice no.</th>
-        <th>Student email</th>
-        <th>Full amount</th>
-        <th>Paid amount</th>
+        <th style="text-align:center; width:20%">Invoice no.</th>
+        <th style="text-align:center; width:auto">Student email</th>
+        <th style="text-align:center; width:25%">Full amount</th>
+        <th style="text-align:center; width:25%">Paid amount</th>
       </tr>
     </thead>
     {% if invoices %}
       {% for invoice in invoices %}
         <tr>
-            <td><a href="{% url 'invoice_view' %}?invoice_id={{ invoice.invoice_number }}">{{ invoice.invoice_number }}</a></td>
-            <td>{{ invoice.student.user.email }}</td>
-            <td>{{ invoice.full_amount }}</td>
-            <td>{{ invoice.paid_amount }}</td>
+            <td style="text-align:center"><a href="{% url 'invoice_view' %}?invoice_id={{ invoice.invoice_number }}">{{ invoice.invoice_number }}</a></td>
+            <td style="text-align:center">{{ invoice.student.user.email }}</td>
+            <td style="text-align:center">{{ invoice.full_amount }}</td>
+            <td style="text-align:center">{{ invoice.paid_amount }}</td>
         </tr>
       {% endfor %}
     {% else %}
       <tr>
-        <td>No invoices yet...</td>
-        <td></td>
-        <td></td>
-        <td></td>
+        <td colspan=4 style="text-align:left">No invoices yet...</td>
       </tr>
     {% endif %}
   </table>

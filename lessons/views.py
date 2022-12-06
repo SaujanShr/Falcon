@@ -71,7 +71,7 @@ def request_view(request):
         elif request.POST.get('return', None):
             return redirect_to_request_list(user, relation_id)
     
-    full_name = get_full_name_by_relation_id(user, relation_id)
+    full_name = get_full_name_by_relation_id(user_request.user, relation_id)
     readonly = user.is_admin_or_director() or user_request.fulfilled
     
     form = get_request_view_form(request_id)
@@ -140,7 +140,15 @@ def child_page(request):
             return redirect('children_list')
     
     child = get_child_idname(relation_id)
-    return render(request, 'child_page.html', {'child':child})
+    user_requests = get_and_format_requests_for_display(request.user, relation_id)
+    bookings = get_and_format_bookings_for_display(request.user, relation_id)
+    balance = get_student_balance(request)
+    return render(request, 'child_page.html', {
+        'child': child,
+        'user_requests': user_requests[:5],
+        'bookings': bookings[:5],
+        'balance': balance
+        })
 
 @login_required
 @allowed_groups(['Student'])
@@ -228,16 +236,21 @@ def sign_up(request):
 
 
 @login_required
-def profile(request, user_id):
+def profile(request):
     # Redirect if the requested user_id is not a valid user.
-    try:
-        user = User.objects.get(id=user_id)
-    except ObjectDoesNotExist:
-        return redirect('/profile/' + str(request.user.id))
+    user_id = request.GET.get('user_id', None)
+    if not user_id:
+        return redirect_with_queries('/profile/', user_id=request.user.id)
+
+    # Check if there exists a user with user_id
+    if len(User.objects.filter(id=user_id)) == 0:
+        return redirect_with_queries('/profile/', user_id=request.user.id)
+
+    user = User.objects.get(id=user_id)
 
     # Redirect if the current user is attempting to change the profile of another user.
-    if request.user.id != user_id:
-        return redirect('/profile/'+str(request.user.id))
+    if not request.user.is_superuser and request.user != user:
+        return redirect_with_queries('/profile/', user_id=request.user.id)
 
     if request.method == 'POST':
         form = UserForm(instance=user, data=request.POST)
@@ -247,7 +260,7 @@ def profile(request, user_id):
             return redirect(get_redirect_url_for_user(user))
     else:
         form = UserForm(instance=user)
-    return render(request, 'profile.html', {'form': form, 'user_id': user_id})
+    return render(request, 'profile.html', {'form': form, 'user_id': user.id})
 
 @login_required
 def change_user_password(request):
@@ -357,10 +370,11 @@ def admin_request_list(request):
 #@login_required
 #@allowed_groups(["Admin","Director"])
 def fulfil_request_view(request):
+    request_id = get_request_id_from_request(request)
     
     if request.method == 'POST':
         if request.POST.get('fulfil', None):
-            form = FulfilRequestForm(request.POST)
+            form = FulfilRequestForm(request_id=request_id, data=request.POST)
             booking_req = form.save()
 
             if not booking_req[1].fulfilled:
@@ -380,9 +394,8 @@ def fulfil_request_view(request):
         elif request.POST.get('return', None):
             return redirect('admin_request_list')
 
-    date = str(get_request_object_from_request(request).date)
     form = get_fulfil_request_form(request)
-    return render(request, 'fulfil_view.html', {'date': date, 'form': form})
+    return render(request, 'fulfil_view.html', {'request_id': request_id, 'form': form})
 
 def booking_view(request):
     booking_id = get_booking_id_from_request(request)
@@ -412,7 +425,7 @@ def booking_view(request):
         elif request.POST.get('return', None):
             return redirect_with_queries(redirect_page, relation_id=relation_id)
     
-    full_name = get_full_name_by_relation_id(user, relation_id)
+    full_name = get_full_name_by_relation_id(booking.user, relation_id)
     readonly = not user.is_admin_or_director()
     
     form = get_booking_form(booking_id)
@@ -471,16 +484,8 @@ def term_view(request):
         # Use old term name in case the user has changed the term name.
         term = SchoolTerm.objects.get(term_name=request.POST['old_term_name'])
         old_term_name = request.POST['old_term_name']
-        new_term_name = request.POST['term_name']
         old_start_date = term.start_date
         old_end_date = term.end_date
-
-        initial_form = TermViewForm(instance=term)
-
-        # Check if there already exists a term with the same name, if there is a change in the name of the term.
-        if term_name_already_exists(old_term_name, new_term_name):
-            messages.add_message(request, messages.ERROR, "There already exists a term with this name!")
-            return render(request, "term_view.html", {'form': initial_form, 'old_term_name': old_term_name})
 
         # Create a copy of the request data, and delete term, Otherwise term name validation (Unique constraint)
         data = request.POST.copy()
@@ -534,7 +539,7 @@ def admin_user_list(request):
     if request.method == 'POST':
         if request.POST.get('edit', None):
             id_user_to_edit = request.POST.get("edit","")
-            return redirect("profile", user_id=id_user_to_edit)
+            return redirect_with_queries("profile", user_id=id_user_to_edit)
         elif request.POST.get('delete', None):
             id_user_to_delete = request.POST.get("delete","")
             user_to_delete = User.objects.get(id=id_user_to_delete)
@@ -612,6 +617,7 @@ def create_student_user(request):
             created_user = form.save()
             student_group = Group.objects.get(name='Student')
             student_group.user_set.add(created_user)
+            Student.objects.create(user=created_user)
             return redirect('admin_user_list')
     else:
         form = CreateUser()

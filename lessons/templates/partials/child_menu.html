@@ -1,4 +1,4 @@
-<div>
+<div style="text-align:center; border:0.5rem solid; padding:20px; margin-bottom:20px">
     <h1>{{ child.name }}</h1>
     <form action={% url 'child_page' %} method="get">
         <input type="hidden" name="relation_id" value="{{ child.id }}">

@@ -19,7 +19,7 @@ class ProfileViewTest(TestCase):
         create_user_groups()
         HandleGroups.set_default_user_to_student()
         self.user = User.objects.get(email="johndoe@email.com")
-        self.url = reverse('profile',kwargs={'user_id':self.user.id})
+        self.url = f'{reverse("profile")}?user_id={str(self.user.id)}'
         self.form_input = {
             'email': 'johndoe2@example.org',
             'first_name': 'John2',
@@ -27,7 +27,7 @@ class ProfileViewTest(TestCase):
         }
 
     def test_profile_url(self):
-        self.assertEqual(self.url, f'/profile/{self.user.id}')
+        self.assertEqual(self.url, f'/profile/?user_id={str(self.user.id)}')
 
     def test_get_profile(self):
         self.client.login(email="johndoe@email.com", password='Password123')
@@ -98,3 +98,24 @@ class ProfileViewTest(TestCase):
         redirect_url = reverse_with_next('log_in', self.url)
         response = self.client.post(self.url, self.form_input)
         self.assertRedirects(response, redirect_url, status_code=302, target_status_code=200)
+
+    def test_post_profile_redirects_when_accessing_other_user_as_student(self):
+        self.client.login(email=self.user.email, password='Password123')
+        redirect_url = self.url
+        response = self.client.post(f'{reverse("profile")}?user_id=2', follow=True)
+        self.assertRedirects(response, redirect_url, status_code=302, target_status_code=200)
+        self.assertTemplateUsed('profile.html')
+
+    def test_post_profile_redirects_when_accessing_non_existent_user(self):
+        self.client.login(email=self.user.email, password='Password123')
+        redirect_url = self.url
+        response = self.client.post(f'{reverse("profile")}?user_id=100', follow=True)
+        self.assertRedirects(response, redirect_url, status_code=302, target_status_code=200)
+        self.assertTemplateUsed('profile.html')
+
+    def test_post_profile_redirects_when_accessing_empty_user(self):
+        self.client.login(email=self.user.email, password='Password123')
+        redirect_url = self.url
+        response = self.client.post(f'{reverse("profile")}?user_id=', follow=True)
+        self.assertRedirects(response, redirect_url, status_code=302, target_status_code=200)
+        self.assertTemplateUsed('profile.html')
