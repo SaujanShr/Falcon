@@ -352,7 +352,7 @@ def get_fulfil_request_form(request):
             'start_date': next_term.start_date,
             'end_date': next_term.end_date,
             'number_of_lessons': this_request.number_of_lessons,
-            'interval_between_lessons': this_requesgt.interval_between_lessons,
+            'interval_between_lessons': this_request.interval_between_lessons,
             'duration_of_lessons': this_request.duration_of_lessons,
             'further_information': this_request.further_information
         },
