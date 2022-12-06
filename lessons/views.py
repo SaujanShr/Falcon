@@ -57,15 +57,15 @@ def request_view(request):
     
     # If the user is not authorised, kick them back to the student page.
     if user != user_request.user and not user.is_admin_or_director():
-        return redirect('')
-    
+        return redirect(get_redirect_url_for_user(user))
+
     relation_id = user_request.relation_id
     
     if request.method == 'POST':
         if request.POST.get('delete', None) and delete_request_object_from_request(request):
             return redirect_to_request_list(user, relation_id)
             
-        elif request.POST.get('update', None) and update_request_object_from_request(request): 
+        elif request.POST.get('update', None) and update_request_object_from_request(request):
             return redirect_to_request_list(user, relation_id)
         
         elif request.POST.get('return', None):
