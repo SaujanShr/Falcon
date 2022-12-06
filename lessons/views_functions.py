@@ -310,7 +310,6 @@ def get_invoice_view_form(invoice_id):
             'student_name': invoice.student.user.email,
             'full_amount': invoice.full_amount,
             'paid_amount': invoice.paid_amount,
-            'fully_paid': invoice.fully_paid
         }
     )
 
