@@ -617,6 +617,7 @@ def create_student_user(request):
             created_user = form.save()
             student_group = Group.objects.get(name='Student')
             student_group.user_set.add(created_user)
+            Student.objects.create(user=created_user)
             return redirect('admin_user_list')
     else:
         form = CreateUser()

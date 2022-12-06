@@ -43,7 +43,7 @@ class ChildViewForm(forms.ModelForm):
 class InvoiceViewForm(forms.ModelForm):
     class Meta:
         model = Invoice
-        fields = ['invoice_number', 'full_amount', 'paid_amount', 'fully_paid']
+        fields = ['invoice_number', 'full_amount', 'paid_amount']
 
     student_name = forms.CharField(label="Student")
 
@@ -54,10 +54,6 @@ class InvoiceViewForm(forms.ModelForm):
         self.fields['student_name'].disabled = True
         self.fields['full_amount'].disabled = True
         self.fields['paid_amount'].disabled = True
-        self.fields['fully_paid'].disabled = True
-    
-
-
 
 class NewRequestForm(forms.ModelForm):
     class Meta:
