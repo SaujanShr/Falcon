@@ -158,12 +158,12 @@ def update_child_object_from_request(request):
 def format_request_for_display(request: Request):
     request.interval_between_lessons = Request.IntervalBetweenLessons.choices[
         Request.IntervalBetweenLessons.values.index(request.interval_between_lessons)
-    ]
+    ][1]
     Request.IntervalBetweenLessons._member_names_
     request.duration_of_lessons = request.LessonDuration.choices[
         request.LessonDuration.values.index(request.duration_of_lessons)
-    ]
-    request.raw_date = str(request.date).split()[0]
+    ][1]
+    request.date = request.date.date()
     request.student_name = get_full_name_by_relation_id(request.user, request.relation_id)
     
     return request
@@ -194,11 +194,11 @@ def get_and_format_requests_for_admin_display():
 def format_booking_for_display(booking: Booking):
     booking.interval_between_lessons = Booking.IntervalBetweenLessons.choices[
         Booking.IntervalBetweenLessons.values.index(booking.interval_between_lessons)
-    ]
+    ][1]
     booking.duration_of_lessons = Booking.LessonDuration.choices[
         Booking.LessonDuration.values.index(booking.duration_of_lessons)
-    ]
-    booking.raw_date = str(booking.start_date).split()[0]
+    ][1]
+    print('duration:', booking.duration_of_lessons)
     booking.student_name = get_full_name_by_relation_id(booking.user, booking.relation_id)
     
     return booking
@@ -335,8 +335,8 @@ def get_request_view_form(request_id):
     return form
 
 def get_upcoming_term(): #Returns the next term
-    return SchoolTerm.objects.all().filter(end_date__gt=datetime.today()).filter(start_date__gte=datetime.today())\
-        .order_by('start_date').first()
+    return SchoolTerm.objects.all().filter(end_date__gt=datetime.date.today()) \
+        .filter(start_date__gte=datetime.date.today()).order_by('start_date').first()
 
 def find_term_from_date(self,date): #Returns the term of the date
         term = SchoolTerm.objects.all().filter(end_date__gte=date).filter(start_date__lte=date).first()

@@ -17,7 +17,7 @@
             <td style = "text-align:center">{{ lesson.teacher }}</td>
             <td style = "text-align:center">{{ lesson.duration }}</td>
             <td style = "text-align:center">{{ lesson.further_info }}</td>
-            <td style = "text-align:center"><a href="{% url 'booking_view' %}?booking_id={{ lesson.booking.invoice_id }}" class="btn btn-primary">Booking</a></td>
+            <td style = "text-align:center"><a href="{% url 'booking_view' %}?booking_id={{ lesson.booking.id }}" class="btn btn-primary">Booking</a></td>
         </tr>
         {% endfor %}
     {% else %}
