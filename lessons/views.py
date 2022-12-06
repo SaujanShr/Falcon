@@ -241,7 +241,11 @@ def profile(request):
     user_id = request.GET.get('user_id', None)
     if not user_id:
         return redirect_with_queries('/profile/', user_id=request.user.id)
-    
+
+    # Check if there exists a user with user_id
+    if len(User.objects.filter(id=user_id)) == 0:
+        return redirect_with_queries('/profile/', user_id=request.user.id)
+
     user = User.objects.get(id=user_id)
 
     # Redirect if the current user is attempting to change the profile of another user.
