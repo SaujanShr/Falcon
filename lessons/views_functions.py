@@ -342,6 +342,10 @@ def get_upcoming_term(): #Returns the next term
 def find_term_from_date(date): #Returns the term of the date
     return SchoolTerm.objects.all().filter(end_date__gte=date).filter(start_date__lte=date).first()
 
+#Finds term associated with date, but allows a None return when no term can be associated with the day.
+def find_term_from_date_allow_none(date): 
+    return SchoolTerm.objects.all().filter(end_date__gte=date).filter(start_date__lte=date).first()
+
 def get_fulfil_request_form(request):
     this_request = get_request_object_from_request(request)
     next_term = get_upcoming_term()
@@ -487,9 +491,13 @@ def generate_lessons_from_bookings(bookings):
 
     return lesson_list
 
-#TODO check if lesson excceeds term time and flag warning if they do
-def check_if_lessons_are_in_termtime(lessons, terms):
-    return True
+def check_if_lessons_not_in_termtime(lessons):
+    for lesson in lessons:
+
+        if find_term_from_date_allow_none(lesson.date_time) == None:
+            return True
+
+    return False
 
 """
 class Booking(models.Model):

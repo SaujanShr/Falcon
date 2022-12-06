@@ -211,7 +211,8 @@ def child_booking_list(request):
 def lesson_list_admin(request):
     bookings = Booking.objects.all()
     lessons = generate_lessons_from_bookings(bookings)
-    return render(request, 'lesson_list.html', {'lessons': lessons})
+    lesson_falls_in_holiday = check_if_lessons_not_in_termtime(lessons)
+    return render(request, 'lesson_list.html', {'lessons': lessons, 'lesson_falls_in_holiday': lesson_falls_in_holiday})
 
 @login_required
 @allowed_groups(['Student'])
@@ -220,7 +221,8 @@ def lesson_list_student(request):
     bookings = get_booking_objects(request.user, relation_id)
 
     lessons = generate_lessons_from_bookings(bookings)
-    return render(request, 'lesson_list.html', {'lessons': lessons})
+    lesson_falls_in_holiday = check_if_lessons_not_in_termtime(lessons)
+    return render(request, 'lesson_list.html', {'lessons': lessons, 'lesson_falls_in_holiday': lesson_falls_in_holiday})
 
 @login_required
 @allowed_groups(['Student'])
@@ -231,7 +233,8 @@ def lesson_list_child(request):
     child_bookings = get_booking_objects(request.user, relation_id)
 
     lessons = generate_lessons_from_bookings(child_bookings)
-    return render(request, 'child_lesson_list.html', {'lessons': lessons, 'child': child})
+    lesson_falls_in_holiday = check_if_lessons_not_in_termtime(lessons)
+    return render(request, 'child_lesson_list.html', {'lessons': lessons, 'child': child, 'lesson_falls_in_holiday': lesson_falls_in_holiday})
 
 @login_prohibited
 def home(request):
