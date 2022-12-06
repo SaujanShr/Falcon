@@ -34,7 +34,7 @@ class SchoolTermViewDeletionConfirmation(TestCase):
         self.assertTemplateUsed(response, 'student_page.html')
 
     def test_get_school_term_deletion_confirmation(self):
-        self.form_input = {'old_term_name': 'TermOne'}
+        self.form_input = {'term_name': 'TermOne'}
         response = self.client.get(self.url, self.form_input, follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'term_deletion_confirmation.html')
@@ -54,7 +54,7 @@ class SchoolTermViewDeletionConfirmation(TestCase):
         self.assertRedirects(response, redirect_url, status_code=302, target_status_code=200)
 
     def test_successful_deletion(self):
-        self.form_input = {'old_term_name': 'TermOne'}
+        self.form_input = {'term_name': 'TermOne'}
         before_count = SchoolTerm.objects.count()
         response = self.client.post(self.url, self.form_input,follow=True)
         after_count = SchoolTerm.objects.count()

@@ -8,7 +8,7 @@
 
             <form action="{% url 'term_view' %}" method="post">
                 {% csrf_token %}
-                <input type="hidden" name="old_term_name" value="{{ old_term_name }}"/>
+                <input type="hidden" name="term_id" value="{{ term_id }}"/>
                 <div style="color:red;">
                     {{form.non_field_errors}}
                 </div>
@@ -17,7 +17,7 @@
             </form><br>
             <form action="{% url 'term_deletion_confirmation_view' %}" method="get">
                 {% csrf_token %}
-                <input type="hidden" name="old_term_name" value="{{ old_term_name }}"/>
+                <input type="hidden" name="term_name" value="{{ term_name }}"/>
                 <input type="submit" value="Delete" class="btn btn-secondary">
             </form>
         </div>

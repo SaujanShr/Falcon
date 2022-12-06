@@ -105,6 +105,7 @@ class Student(models.Model):
             student_group = Group.objects.get(name='Student')
             student_group.user_set.add(self.user)
 
+
 class SchoolTerm(models.Model):
     term_name = models.CharField(unique=True, blank=False, max_length=18)
     start_date = models.DateField(blank=False)
@@ -114,12 +115,9 @@ class SchoolTerm(models.Model):
         ordering = ['start_date']
 
     def clean(self):
-        # Clean is not invoked when you use save? I think?
-        # Only on create()?? and is_valid()
-
         # Check valid dates
         if not(self.start_date and self.end_date):
-            raise ValidationError("Date(s) are not in form YYYY-MM-DD")
+            raise ValidationError("Date(s) are not in form DD-MM-YYYY")
 
         # Error if the start date is less than the end date
         if not(self.start_date < self.end_date):
@@ -134,13 +132,7 @@ class SchoolTerm(models.Model):
             if (term.start_date <= self.start_date < term.end_date) or (self.start_date <= term.start_date < self.end_date):
                 raise ValidationError("There is a overlap with this new date range and ranges for existing terms")
 
-    # If we want to override a school term even if a term with the same name already exists.
-    # def save(self, *args, **kwargs):
-    #     existing_term = SchoolTerm.objects.filter(term_name=self.term_name).exists()
-    #     if existing_term:
-    #         existing_term.delete()
-    #     super().save()
-    
+
 class Child(models.Model):
     parent = models.ForeignKey(User, blank=False, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=50, blank=False)

@@ -24,7 +24,7 @@ class SchoolTermStudentView(TestCase):
         self.url = reverse('term_view') + '?term_name=' + self.term1.term_name
 
         self.form_input = {
-            'old_term_name': 'TermTwo',
+            'term_id': '1',
             'term_name': 'TermThree',
             'start_date': datetime.date(2024, 1, 1),
             'end_date': datetime.date(2024, 12, 31),
@@ -77,7 +77,7 @@ class SchoolTermStudentView(TestCase):
         self.assertTrue(form.is_bound)
 
     def test_unsuccessful_term_edit_due_to_duplicate_term_name(self):
-        self.form_input['term_name'] = 'TermOne'
+        self.form_input['term_name'] = 'TermTwo'
         before_count = SchoolTerm.objects.count()
         response = self.client.post(self.url, self.form_input)
         after_count = SchoolTerm.objects.count()

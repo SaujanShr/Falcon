@@ -485,7 +485,7 @@ def admin_booking_view(request):
 A view that presents a list of all terms.
 """
 @login_required
-@allowed_groups(["Student"]) # Do Admins also need access to this page?
+@allowed_groups(["Student"])
 def student_term_view(request):
     terms = SchoolTerm.objects.all()
     return render(request, 'student_term_view.html', {'terms': terms})
@@ -505,20 +505,17 @@ A view that handles a single term.
 @login_required
 @allowed_groups(["Admin", "Director"])
 def term_view(request):
-    # Check whether the get request contains term_name, otherwise redirect back to term view.
-    if request.method == 'GET' and request.GET.__contains__('term_name'):
-        term = SchoolTerm.objects.get(term_name=request.GET['term_name'])
-        form = TermViewForm(instance=term)
-        # Use old_term_name, so we can get the term object in case the user changes the term name.
-        old_term_name = request.GET['term_name']
-        return render(request, "term_view.html", {'form': form, 'old_term_name': old_term_name})
+    if request.method == 'GET':
+        if SchoolTerm.objects.filter(term_name=request.GET['term_name']).exists():
+            term = SchoolTerm.objects.get(term_name=request.GET['term_name'])
+            form = TermViewForm(instance=term)
+            return render(request, "term_view.html", {'form': form, 'term_id': term.id, 'term_name': term.term_name})
 
     if request.method == 'POST':
-        # Use old term name in case the user has changed the term name.
-        term = SchoolTerm.objects.get(term_name=request.POST['old_term_name'])
-        old_term_name = request.POST['old_term_name']
-        old_start_date = term.start_date
-        old_end_date = term.end_date
+        if SchoolTerm.objects.filter(id=request.POST['term_id']).exists():
+            term = SchoolTerm.objects.get(id=request.POST['term_id'])
+        else:
+            return redirect('admin_term_view')
 
         # Create a copy of the request data, and delete term, Otherwise term name validation (Unique constraint)
         data = request.POST.copy()
@@ -529,8 +526,8 @@ def term_view(request):
             messages.add_message(request, messages.SUCCESS, "Term updated!")
         else:
             # If any other fields are invalid then recreate old term again, very bad!
-            SchoolTerm(term_name=old_term_name, start_date=old_start_date, end_date=old_end_date).save()
-            return render(request, 'term_view.html', {'form': form, 'old_term_name': old_term_name})
+            SchoolTerm(term_name=term.term_name, start_date=term.start_date, end_date=term.end_date).save()
+            return render(request, 'term_view.html', {'form': form, 'term_id': term.id, 'term_name': term.term_name})
 
     return redirect('admin_term_view')
 
@@ -557,11 +554,11 @@ This view confirms the deletion of a term.
 @login_required
 @allowed_groups(["Admin", "Director"])
 def term_deletion_confirmation_view(request):
-    if request.method == 'GET' and request.GET.__contains__('old_term_name'):
-        old_term_name = request.GET['old_term_name']
-        return render(request, 'term_deletion_confirmation.html', {'old_term_name': old_term_name})
+    if request.method == 'GET' and request.GET.__contains__('term_name'):
+        term_name = request.GET['term_name']
+        return render(request, 'term_deletion_confirmation.html', {'term_name': term_name})
     if request.method == 'POST':
-        term = SchoolTerm.objects.get(term_name=request.POST['old_term_name'])
+        term = SchoolTerm.objects.get(term_name=request.POST['term_name'])
         term.delete()
 
     return redirect(admin_term_view)
