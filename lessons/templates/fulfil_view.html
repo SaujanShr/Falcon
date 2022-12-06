@@ -5,7 +5,7 @@
   <form action="/fulfil_request/" method="post">
       {% csrf_token %}
       {{ form.as_p }}
-      <input type="hidden" name="date" value="{{ date }}">
+      <input type="hidden" name="request_id" value="{{ request_id }}">
       <input type="submit" name="fulfil" value="Fulfil">
       <input type="submit" formnovalidate="formnovalidate" name="delete" value="Delete">
       <input type="submit" formnovalidate="formnovalidate" name="return" value="Return">
