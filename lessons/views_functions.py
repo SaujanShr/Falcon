@@ -3,11 +3,12 @@ import urllib
 from django.utils import timezone
 from .models import Request, Invoice, Student, Child, Booking, DayOfTheWeek, SchoolTerm, BankTransaction
 from .forms import RequestViewForm, FulfilRequestForm, BookingViewForm, ChildViewForm, TransactionSubmitForm, InvoiceViewForm
+from .utils import *
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.contrib.auth import authenticate
 from django.shortcuts import redirect
-from datetime import datetime
+import datetime
 
 def redirect_with_queries(url, **queries):
     response = redirect(url)
@@ -349,6 +350,10 @@ def find_term_from_date(self,date): #Returns the term of the date
                     term = term_in_list
         return term
 
+#Finds term associated with date, but allows a None return when no term can be associated with the day.
+def find_term_from_date_allow_none(date): 
+    return SchoolTerm.objects.all().filter(end_date__gte=date).filter(start_date__lte=date).first()
+
 def get_fulfil_request_form(request):
     this_request = get_request_object_from_request(request)
     next_term = get_upcoming_term()
@@ -462,3 +467,41 @@ def redirect_to_request_list(user, relation_id):
         return redirect_with_queries('child_request_list', relation_id=relation_id)
     else:
         return redirect('request_list')
+
+def generate_lessons_from_bookings(bookings):
+    lesson_list = []
+
+    for booking in bookings:
+        term = booking.term_id
+        date = booking.start_date
+        lesson_datetime = datetime.datetime.combine(date, booking.time_of_the_day) #perhaps do not generate lesson in list if this date is in the past
+        duration = Booking.LessonDuration.choices[
+                Booking.LessonDuration.values.index(booking.duration_of_lessons)
+            ]
+
+        for lesson_num in range(booking.number_of_lessons):
+            if lesson_datetime >= datetime.datetime.today():
+                lesson = Lesson(
+                    booking,
+                    lesson_datetime,
+                    get_full_name_by_relation_id(booking.user, booking.relation_id),
+                    booking.teacher,
+                    str(booking.duration_of_lessons) + " mins",
+                    booking.further_information
+                )
+
+                lesson_list.append(lesson)
+
+            lesson_datetime += datetime.timedelta(days=booking.interval_between_lessons)
+
+    lesson_list.sort(key=lambda x: x.date_time, reverse = True)
+
+    return lesson_list
+
+def check_if_lessons_not_in_termtime(lessons):
+    for lesson in lessons:
+
+        if find_term_from_date_allow_none(lesson.date_time) == None:
+            return True
+
+    return False
