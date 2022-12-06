@@ -18,7 +18,8 @@ class DayOfTheWeek(models.Model):
         SATURDAY = 'Saturday'
         SUNDAY = 'Sunday'
 
-    order = models.PositiveIntegerField(validators=[MaxValueValidator(6)])
+    order = models.PositiveIntegerField(validators=[MinValueValidator(0), 
+                                                    MaxValueValidator(6)])
     day = models.CharField(max_length=10, editable=False)
 
     class Meta:
@@ -26,6 +27,10 @@ class DayOfTheWeek(models.Model):
 
     def __str__(self):
         return self.day
+    
+    def clean(self):
+        if DayOfTheWeek.objects.filter(day=self.day).exists():
+            raise ValidationError(message="This day already exists!")
 
 
 class User(AbstractBaseUser,PermissionsMixin):
@@ -135,6 +140,7 @@ class SchoolTerm(models.Model):
     #     if existing_term:
     #         existing_term.delete()
     #     super().save()
+    
 class Child(models.Model):
     parent = models.ForeignKey(User, blank=False, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=50, blank=False)
@@ -195,7 +201,7 @@ class Request(models.Model):
             message="The request date can't be in the future.")]
     )
     user = models.ForeignKey(User, blank=False, on_delete=models.CASCADE)
-    relation_id = models.IntegerField(MinValueValidator(-1))
+    relation_id = models.IntegerField(validators=[MinValueValidator(-1)])
     availability = models.ManyToManyField(DayOfTheWeek, blank=False)
     number_of_lessons = models.PositiveIntegerField(blank=False, default=1, 
                                                     validators=[MinValueValidator(1), MaxValueValidator(1000)])
@@ -220,7 +226,7 @@ class Booking(models.Model):
     day_of_the_week = models.ForeignKey(DayOfTheWeek, blank=True, on_delete=models.CASCADE)
     time_of_the_day = models.TimeField(auto_now=False, auto_now_add=False)
     user = models.ForeignKey(User, blank=True, on_delete=models.CASCADE)
-    relation_id = models.IntegerField(MinValueValidator(-1))
+    relation_id = models.IntegerField(validators=[MinValueValidator(-1)])
     teacher = models.CharField(blank=False, max_length=100)
     start_date = models.DateField(blank=False)
     end_date = models.DateField(blank=False)
@@ -228,8 +234,6 @@ class Booking(models.Model):
     interval_between_lessons = models.PositiveIntegerField(choices=IntervalBetweenLessons.choices, blank=False)
     number_of_lessons = models.PositiveIntegerField(blank=False, validators=[MinValueValidator(1)])
     further_information = models.CharField(blank=False, max_length=500)
-
-
 
 
 class BankTransaction(models.Model):

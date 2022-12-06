@@ -71,7 +71,7 @@ def request_view(request):
         elif request.POST.get('return', None):
             return redirect_to_request_list(user, relation_id)
     
-    full_name = get_full_name_by_relation_id(user, relation_id)
+    full_name = get_full_name_by_relation_id(user_request.user, relation_id)
     readonly = user.is_admin_or_director() or user_request.fulfilled
     
     form = get_request_view_form(request_id)
@@ -271,7 +271,11 @@ def profile(request):
     user_id = request.GET.get('user_id', None)
     if not user_id:
         return redirect_with_queries('/profile/', user_id=request.user.id)
-    
+
+    # Check if there exists a user with user_id
+    if len(User.objects.filter(id=user_id)) == 0:
+        return redirect_with_queries('/profile/', user_id=request.user.id)
+
     user = User.objects.get(id=user_id)
 
     # Redirect if the current user is attempting to change the profile of another user.
@@ -451,7 +455,7 @@ def booking_view(request):
         elif request.POST.get('return', None):
             return redirect_with_queries(redirect_page, relation_id=relation_id)
     
-    full_name = get_full_name_by_relation_id(user, relation_id)
+    full_name = get_full_name_by_relation_id(booking.user, relation_id)
     readonly = not user.is_admin_or_director()
     
     form = get_booking_form(booking_id)

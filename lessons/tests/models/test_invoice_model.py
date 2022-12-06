@@ -5,10 +5,9 @@ from lessons.models import Invoice, User, Student
 from lessons.tests.helpers import create_user_groups
 
 class InvoiceModelTestCase(TestCase):
+    '''Unit tests for the Invoice model'''
 
-    fixtures = ['lessons/tests/fixtures/default_user.json', 'lessons/tests/fixtures/other_users.json']
-    #Do we need to import other user?
-
+    fixtures = ['lessons/tests/fixtures/default_user.json']
 
     def setUp(self):
         create_user_groups()
@@ -38,7 +37,7 @@ class InvoiceModelTestCase(TestCase):
         try:
             self.invoice1.full_clean()
         except (ValidationError):
-            self.fail('Test request should be valid.')
+            self.fail('Test invoice should be valid.')
 
 
     def _assert_invoice_is_invalid(self):
