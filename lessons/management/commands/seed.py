@@ -34,7 +34,7 @@ class Command(BaseCommand):
     DAYS_OF_THE_WEEK_INSTANCES = []
 
     LESSON_DURATIONS = [30,45,60]
-    TIMES_BETWEEN_LESSONS = [1,2]
+    TIMES_BETWEEN_LESSONS = [7,14]
 
     def __init__(self):
         super().__init__()
