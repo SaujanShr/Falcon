@@ -343,8 +343,17 @@ def get_upcoming_term(): #Returns the next term
     return SchoolTerm.objects.all().filter(end_date__gt=datetime.today()).filter(start_date__gte=datetime.today())\
         .order_by('start_date').first()
 
-def find_term_from_date(date): #Returns the term of the date
-    return SchoolTerm.objects.all().filter(end_date__gte=date).filter(start_date__lte=date).first()
+def find_term_from_date(self,date): #Returns the term of the date
+        term = SchoolTerm.objects.all().filter(end_date__gte=date).filter(start_date__lte=date).first()
+        if not term:
+            school_terms_starting_later = SchoolTerm.objects.filter(start_date__gte=date)
+            min_start_date = school_terms_starting_later[0].start_date
+            term = school_terms_starting_later[0]
+            for term_in_list in school_terms_starting_later:
+                if term.start_date < min_start_date:
+                    min_start_date = term_in_list.start_date
+                    term = term_in_list
+        return term
 
 def get_fulfil_request_form(request):
     this_request = get_request_object_from_request(request)
