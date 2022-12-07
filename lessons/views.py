@@ -429,19 +429,8 @@ def fulfil_request_view(request):
     if request.method == 'POST':
         if request.POST.get('fulfil', None):
             form = FulfilRequestForm(request_id=request_id, data=request.POST)
-            booking_req = form.save()
-
-            if not booking_req[1].fulfilled:
-                invoice_no = create_invoice(booking_req[0], booking_req[2])
-                booking_req[0].invoice = Invoice.objects.get(invoice_number=invoice_no)
-                booking_req[0].term_id = find_term_from_date(booking_req[0].start_date)
-                booking_req[0].full_clean()
-                booking_req[1].fulfilled = True
-                booking_req[1].save()
-                booking_req[0].save()
-                return redirect('admin_booking_list')
-            else:
-                return redirect('admin_booking_list')
+            booking = form.save()
+            return redirect('admin_booking_list')
         elif request.POST.get('delete', None):
             delete_request_object_from_request(request)
             return redirect('admin_request_list')

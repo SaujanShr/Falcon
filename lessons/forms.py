@@ -2,6 +2,7 @@ from django import forms
 from django.core.validators import RegexValidator
 from django.contrib.auth.models import Group
 from .models import User, Child, DayOfTheWeek, Request, BankTransaction, Student, Invoice, SchoolTerm, Booking
+from .forms_functions import create_invoice, find_term_from_date
 
 
 class DateInput(forms.DateInput):
@@ -196,15 +197,22 @@ class FulfilRequestForm(forms.ModelForm):
                 teacher=self.cleaned_data.get('teacher'),
                 start_date=self.cleaned_data.get('start_date'),
                 end_date=self.cleaned_data.get('end_date'),
+                term_id=find_term_from_date(self.cleaned_data.get('start_date')),
                 duration_of_lessons=self.cleaned_data.get('duration_of_lessons'),
                 interval_between_lessons=self.cleaned_data.get('interval_between_lessons'),
                 number_of_lessons=self.cleaned_data.get('number_of_lessons'),
                 further_information=self.cleaned_data.get('further_information')
             )
 
-            return [booking, req, self.cleaned_data.get('hourly_cost')]
+            invoice_no = create_invoice(booking, self.cleaned_data.get('hourly_cost'))
+            booking.invoice = Invoice.objects.get(invoice_number=invoice_no)
+
+            req.fulfilled = True
+            req.save()
+
+            return booking.save()
         else:
-            return [None, req]
+            return None
 
 
 

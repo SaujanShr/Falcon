@@ -149,3 +149,6 @@ class FulfilRequestFormTestCase(TestCase):
         
     def test_further_information_may_contain_500_characters(self):
         self.form_input['further_information'] = 'x' * 500
+        self._assert_form_is_valid()
+
+
