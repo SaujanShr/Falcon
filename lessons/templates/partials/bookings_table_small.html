@@ -1,14 +1,21 @@
 <table class="table table-striped">
     <thead>
         <tr>
-            <th>Start Date</th>
-            <th>Teacher</th>
-            {% if not is_student %}
-                <th>Student</th>
+            {% if is_student %}
+                <th style="text-align:center; width:auto">Start Date</th>
+                <th style="text-align:center; width:25%">Teacher</th>
+                <th style="text-align:center; width:15%">Day</th>
+                <th style="text-align:center; width:15%">Time</th>
+                <th style="text-align:center; width:15%">Duration</th>
+                <th style="text-align:center; width:10%">View Booking</th>
+            {% else %}
+                <th style="text-align:center; width:auto">Start Date</th>
+                <th style="text-align:center; width:20%">Teacher</th>
+                <th style="text-align:center; width:20%">Student</th>
+                <th style="text-align:center; width:15%">Day</th>
+                <th style="text-align:center; width:15%">Time</th>
+                <th style="text-align:center; width:10%">View Booking</th>
             {% endif %}
-            <th>Day</th>
-            <th>Time</th>
-            <th>Duration</th>
         </tr>
     </thead>
     <tbody>
@@ -16,32 +23,33 @@
             {% if is_student %}
                 {% for booking in bookings %}
                     <tr>
-                        <td style="vertical-align: top">{{ booking.start_date }}</td>
-                        <td style="vertical-align: top">{{ booking.teacher }}</td>
-                        <td style="vertical-align: top">{{ booking.day_of_the_week }}</td>
-                        <td style="vertical-align: top">{{ booking.time_of_the_day}}</td>
-                        <td style="vertical-align: top">{{ booking.duration_of_lessons }}</td>
+                        <td style="text-align:center">{{ booking.start_date }}</td>
+                        <td style="text-align:center">{{ booking.teacher }}</td>
+                        <td style="text-align:center">{{ booking.day_of_the_week }}</td>
+                        <td style="text-align:center">{{ booking.time_of_the_day}}</td>
+                        <td style="text-align:center">{{ booking.duration_of_lessons }}</td>
+                        <td style="text-align:center">
+                            <a href="{% url 'booking_view' %}?booking_id={{ booking.id }}" class="btn btn-primary">View</a>
+                        </td>
                     </tr>
                 {% endfor %}
             {% else %}
                 {% for booking in bookings %}
                     <tr>
-                        <td style="vertical-align: top">{{ booking.start_date }}</td>
-                        <td style="vertical-align: top">{{ booking.teacher }}</td>
-                        <td style="vertical-align: top">{{ booking.student_name }}</td>
-                        <td style="vertical-align: top">{{ booking.day_of_the_week }}</td>
-                        <td style="vertical-align: top">{{ booking.time_of_the_day}}</td>
-                        <td style="vertical-align: top">{{ booking.duration_of_lessons }}</td>
+                        <td style="text-align:center">{{ booking.start_date }}</td>
+                        <td style="text-align:center">{{ booking.teacher }}</td>
+                        <td style="text-align:center">{{ booking.student_name }}</td>
+                        <td style="text-align:center">{{ booking.day_of_the_week }}</td>
+                        <td style="text-align:center">{{ booking.time_of_the_day}}</td>
+                        <td style="text-align:center">
+                            <a href="{% url 'booking_view' %}?booking_id={{ booking.id }}" class="btn btn-primary">View</a>
+                        </td>
                     </tr>
                 {% endfor %}
             {% endif %}
         {% else %}
             <tr>
-                <td style="text-align: left">No bookings yet...</td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
+                <td colspan=6 style="text-align:left">No bookings yet...</td>
             </tr>
         {% endif %}
     </tbody>

@@ -1,0 +1,11 @@
+{% extends 'base_content.html' %}
+{% block content %}
+<div class="container">
+    {% if lesson_falls_in_holiday %}
+    <div class="alert alert-danger" role="alert">
+        One or more of your lessons are not scheduled during term time, please contact an administrator to get this fixed!
+    </div>
+    {% endif %}
+    {% include 'partials/lesson_table.html' with lessons=lessons %}
+</div>
+{% endblock %}

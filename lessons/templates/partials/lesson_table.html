@@ -1,0 +1,33 @@
+<table class="table table-striped">
+    <thead>
+        <tr>
+        <th style = "text-align:center; width:10%">Date and time</th>
+        <th style = "text-align:center; width:10%">Student name</th>
+        <th style = "text-align:center; width:10%">Teacher</th>
+        <th style = "text-align:center; width:10%">Duration</th>
+        <th style = "text-align:center; width:auto">Further info</th>
+        <th style = "text-align:center; width:10%">View booking</th>
+        </tr>
+    </thead>
+    {% if lessons %}
+        {% for lesson in lessons %}
+        <tr>
+            <td style = "text-align:center">{{ lesson.date_time }}</td>
+            <td style = "text-align:center">{{ lesson.student_name }}</td>
+            <td style = "text-align:center">{{ lesson.teacher }}</td>
+            <td style = "text-align:center">{{ lesson.duration }}</td>
+            <td style = "text-align:center">{{ lesson.further_info }}</td>
+            <td style = "text-align:center"><a href="{% url 'booking_view' %}?booking_id={{ lesson.booking.id }}" class="btn btn-primary">Booking</a></td>
+        </tr>
+        {% endfor %}
+    {% else %}
+        <tr>
+            <td>No lessons yet...</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+    {% endif %}
+</table>
