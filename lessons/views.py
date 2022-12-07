@@ -32,9 +32,10 @@ def admin_page(request):
     transactions = BankTransaction.objects.order_by('-date')
     requests = get_and_format_requests_for_admin_display()
     bookings = get_and_format_bookings_for_admin_display()
+    terms = SchoolTerm.objects.all()
     return render(request, 'admin_page.html', {'transactions': transactions[:5],
                                                'requests': requests['unfulfilled'][:5],
-                                               'bookings': bookings[:5]})
+                                               'bookings': bookings[:5], 'terms': terms[:5]})
 
 
 @login_required
