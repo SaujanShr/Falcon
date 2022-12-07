@@ -34,7 +34,7 @@ class SchoolTermViewDeletionConfirmation(TestCase):
         self.assertTemplateUsed(response, 'student_page.html')
 
     def test_get_school_term_deletion_confirmation(self):
-        self.form_input = {'old_term_name': 'TermOne'}
+        self.form_input = {'term_name': 'TermOne'}
         response = self.client.get(self.url, self.form_input, follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'term_deletion_confirmation.html')
@@ -54,12 +54,21 @@ class SchoolTermViewDeletionConfirmation(TestCase):
         self.assertRedirects(response, redirect_url, status_code=302, target_status_code=200)
 
     def test_successful_deletion(self):
-        self.form_input = {'old_term_name': 'TermOne'}
+        self.form_input = {'term_name': 'TermOne'}
         before_count = SchoolTerm.objects.count()
-        response = self.client.post(self.url, self.form_input,follow=True)
+        response = self.client.post(self.url, self.form_input, follow=True)
         after_count = SchoolTerm.objects.count()
         self.assertEqual(after_count, before_count-1)
         response_url = reverse('admin_term_view')
         self.assertRedirects(response, response_url, status_code=302, target_status_code=200)
         self.assertTemplateUsed(response, 'admin_term_view.html')
 
+    def test_unsuccessful_deletion_due_to_non_existent_term_name(self):
+        self.form_input = {'term_name': 'NOT_A_TERM'}
+        before_count = SchoolTerm.objects.count()
+        response = self.client.post(self.url, self.form_input, follow=True)
+        after_count = SchoolTerm.objects.count()
+        self.assertEqual(after_count, before_count)
+        response_url = reverse('admin_term_view')
+        self.assertRedirects(response, response_url, status_code=302, target_status_code=200)
+        self.assertTemplateUsed(response, 'admin_term_view.html')
