@@ -1,7 +1,7 @@
 """Tests of the request view."""
 from django.test import TestCase
 from django.urls import reverse
-from lessons.forms import RequestViewForm
+from lessons.forms import RequestEditForm
 from lessons.models import Request, DayOfTheWeek
 from lessons.tests.helpers import create_user_groups, HandleGroups, create_days_of_the_week
 from django.utils import timezone
@@ -69,7 +69,7 @@ class RequestViewTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'request_view.html')
         form = response.context['form']
-        self.assertTrue(isinstance(form, RequestViewForm))
+        self.assertTrue(isinstance(form, RequestEditForm))
         self.assertFalse(form.is_bound)
 
     def test_get_request_of_another_student_redirects(self):
