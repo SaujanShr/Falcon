@@ -507,3 +507,12 @@ def check_if_lessons_not_in_termtime(lessons):
             return True
 
     return False
+
+def user_authorised_to_see_invoice(request, invoice_id):
+    if request.user.is_admin_or_director(): return True
+
+    invoice_object = get_invoice_object(invoice_id)
+    student_object = get_student(request)
+
+    if invoice_object.student == student_object: return True
+    return False

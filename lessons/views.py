@@ -102,6 +102,8 @@ def invoice_view(request):
     except ObjectDoesNotExist:
         return redirect_to_invoice_list(user)
 
+    if not user_authorised_to_see_invoice(request, invoice_id): return redirect_to_invoice_list(user)
+
     return render(request, 'invoice_view.html', {'form': form, 'invoice_id': invoice_id})
 
 
