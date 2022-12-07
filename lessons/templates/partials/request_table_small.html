@@ -2,15 +2,15 @@
     <thead>
         <tr>
           {% if is_student %}
-            <th style="width: 25%">Date</th>
-            <th>Further Information</th>
-            <th style="width: 5%">Fulfilled</th>
-            <th stype="width: 5%">View Request</th>
+            <th style="text-align:center; width:25%">Date</th>
+            <th style="text-align:center; width:auto">Further Information</th>
+            <th style="text-align:center; width:5%">Fulfilled</th>
+            <th style="text-align:center; width:10%">View Request</th>
           {% else %}
-            <th style="width: 25%">Date</th>
-            <th style="width: 5%">Student</th>
-            <th style="wifth: 65%">Email</th>
-            <th stype="width: 5%">View Request</th>
+            <th style="text-align:center; width:25%">Date</th>
+            <th style="text-align:center; width:25%">Student</th>
+            <th style="text-align:center; width:auto">Email</th>
+            <th style="text-align:center; width:10%">View Request</th>
           {% endif %}
         </tr>
     </thead>
@@ -18,32 +18,29 @@
       {% if is_student %}
         {% for request in requests %}
           <tr>
-              <td style="vertical-align: top">{{ request.raw_date }}</td>
-              <td style="vertical-align: top">{{ request.further_information|truncatechars:30 }}</td>
-              <td style="vertical-align: top">{{ request.fulfilled }}</td>
-              <td style="vertical-align: top">
-                <a href="{% url 'request_view' %}?request_id={{ request.id }}" class="btn btn-primary">View Request</a>
+              <td style="text-align:center">{{ request.date }}</td>
+              <td style="text-align:center">{{ request.further_information|truncatechars:30 }}</td>
+              <td style="text-align:center">{{ request.fulfilled }}</td>
+              <td style="text-align:center">
+                <a href="{% url 'request_view' %}?request_id={{ request.id }}" class="btn btn-primary">View</a>
               </td>
           </tr>
         {% endfor %}
       {% else %}
         {% for request in requests %}
           <tr>
-            <td style="vertical-align: top">{{ request.raw_date }}</td>
-            <td style="vertical-align: top">{{ request.student_name }}</td>
-            <td style="vertical-align: top">{{ request.user.email }}</td>
-            <td style="vertical-align: top">
-              <a href="{% url 'request_view' %}?request_id={{ request.id }}" class="btn btn-primary">View Request</a>
+            <td style="text-align:center">{{ request.date }}</td>
+            <td style="text-align:center">{{ request.student_name }}</td>
+            <td style="text-align:center">{{ request.user.email }}</td>
+            <td style="text-align:center">
+              <a href="{% url 'request_view' %}?request_id={{ request.id }}" class="btn btn-primary">View</a>
             </td>
           </tr>
         {% endfor %}
       {% endif %}
     {% else %}
       <tr>
-        <td>No requests yet...</td>
-        <td></td>
-        <td></td>
-        <td></td>
+        <td colspan=4 style="text-align:left">No requests yet...</td>
       </tr>
     {% endif %}
   </table>

@@ -5,6 +5,7 @@
         <a class="nav-item nav-link text-white" href="{% url 'booking_list' %}">My Bookings</a>
         <a class="nav-item nav-link text-white" href="{% url 'transaction_list_student' %}">My Transactions</a>
         <a class="nav-item nav-link text-white" href="{% url 'invoice_list_student' %}">My Invoices</a>
+        <a class="nav-item nav-link text-white" href="{% url 'lesson_list_student' %}">My Lessons</a>
         <a class="nav-item nav-link text-white" href="{% url 'children_list' %}">Children</a>
         <a class="nav-item nav-link text-white" href="{% url 'student_term_view' %}">Terms</a>
     </div>
@@ -19,7 +20,7 @@
                 <span class="bi-person-circle" style="color: rgb(255, 255, 255);"></span>
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
-                <li><a class="dropdown-item" href="{% url 'profile' user.id %}">Change Profile</a></li>
+                <li><a class="dropdown-item" href="{% url 'profile' %}?user_id={{ user.id }}">Change Profile</a></li>
                 <li><a class="dropdown-item" href="{% url 'change_password' %}">Change Password</a></li>
                 <li>
                     <hr class="dropdown-divider">

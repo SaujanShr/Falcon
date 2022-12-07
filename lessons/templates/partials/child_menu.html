@@ -1,10 +1,13 @@
-<div>
-    <h1>{{ child.name }}</h1>
-    <form action={% url 'child_page' %} method="get">
-        <input type="hidden" name="relation_id" value="{{ child.id }}">
-        <input type="submit" class="btn btn-primary" name='dashboard' value="Dashboard">
-        <input type="submit" class="btn btn-primary" name='requests' value="Requests">
-        <input type="submit" class="btn btn-primary" name='bookings' value="Bookings">
-        <input type="submit" class="btn btn-primary" name='return' value="Return">
-    </form>  
+<div style="text-align:center; border:0.5rem solid; padding:20px; margin-bottom:20px">
+    <div class="mb-3">
+        <h1>{{ child.name }}</h1>
+        <form action={% url 'child_page' %} method="get">
+            <input type="hidden" name="relation_id" value="{{ child.id }}">
+            <input type="submit" class="btn btn-primary" name='dashboard' value="Dashboard">
+            <input type="submit" class="btn btn-primary" name='requests' value="Requests">
+            <input type="submit" class="btn btn-primary" name='bookings' value="Bookings">
+            <input type="submit" class="btn btn-primary" name='lessons' value="Lessons">
+            <input type="submit" class="btn btn-primary" name='return' value="Return">
+        </form>
+    </div>
 </div>

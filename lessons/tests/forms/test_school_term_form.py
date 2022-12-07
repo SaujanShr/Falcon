@@ -16,7 +16,7 @@ class SignUpFormTestCase(TestCase):
             'end_date': datetime.date(2022, 12, 31)
         }
 
-    def test_valid_Term_view_form(self):
+    def test_valid_term_view_form(self):
         form = TermViewForm(data=self.form_input)
         self.assertTrue(form.is_valid())
 

@@ -1,4 +1,3 @@
-"""Unit tests of the request model"""
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 from lessons.models import User, Request, DayOfTheWeek
@@ -6,7 +5,7 @@ from django.utils import timezone
 from lessons.tests.helpers import create_days_of_the_week
 from lessons.tests.helpers import create_user_groups
 class RequestModelTestCase(TestCase):
-    """Unit tests of the request model"""
+    '''Unit tests for the Request model'''
     
     fixtures = ['lessons/tests/fixtures/other_users.json', 'lessons/tests/fixtures/default_user.json']
     
@@ -68,6 +67,22 @@ class RequestModelTestCase(TestCase):
     def test_date_cannot_be_in_the_future(self):
         self.request1.date = timezone.datetime(9999, 1, 1, 1, 1, 1, tzinfo=timezone.utc)
         self._assert_request_is_invalid()
+    
+    def test_relation_id_must_exist(self):
+        self.request1.relation_id = None
+        self._assert_request_is_invalid()
+    
+    def test_relation_id_can_be_the_same(self):
+        self.request1.relation_id = self.request2.relation_id
+        self._assert_request_is_valid()
+        
+    def test_relation_id_cannot_be_below_negative_one(self):
+        self.request1.relation_id = -2
+        self._assert_request_is_invalid()
+    
+    def test_relation_id_can_be_negative_one(self):
+        self.request1.relation_id = -1
+        self._assert_request_is_valid()
     
     def test_user_must_exist(self):
         self.request1.user.delete()

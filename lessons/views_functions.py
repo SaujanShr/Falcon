@@ -2,12 +2,13 @@ import decimal
 import urllib
 from django.utils import timezone
 from .models import Request, Invoice, Student, Child, Booking, DayOfTheWeek, SchoolTerm, BankTransaction
-from .forms import RequestForm, FulfilRequestForm, EditBookingForm, ChildViewForm, TransactionSubmitForm, InvoiceViewForm
+from .forms import RequestViewForm, FulfilRequestForm, BookingViewForm, ChildViewForm, TransactionSubmitForm, InvoiceViewForm
+from .utils import *
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.contrib.auth import authenticate
 from django.shortcuts import redirect
-from datetime import datetime
+import datetime
 
 def redirect_with_queries(url, **queries):
     response = redirect(url)
@@ -40,7 +41,7 @@ def get_request_object(request_id):
     return Request.objects.get(id=request_id)
 
 def get_booking_object(booking_id):
-    return Booking.objects.get(invoice_id=booking_id)
+    return Booking.objects.get(id=booking_id)
 
 def get_child_object(relation_id):
     return Child.objects.get(id=relation_id)
@@ -105,7 +106,7 @@ def update_request_object_from_request(request):
     user_request = get_request_object_from_request(request)
     data = request.POST
     
-    form = RequestForm(instance_id=user_request.id, data=data)
+    form = RequestViewForm(instance_id=user_request.id, data=data)
     
     if form.is_valid():
         return form.save()
@@ -157,12 +158,12 @@ def update_child_object_from_request(request):
 def format_request_for_display(request: Request):
     request.interval_between_lessons = Request.IntervalBetweenLessons.choices[
         Request.IntervalBetweenLessons.values.index(request.interval_between_lessons)
-    ]
+    ][1]
     Request.IntervalBetweenLessons._member_names_
     request.duration_of_lessons = request.LessonDuration.choices[
         request.LessonDuration.values.index(request.duration_of_lessons)
-    ]
-    request.raw_date = str(request.date).split()[0]
+    ][1]
+    request.date = request.date.date()
     request.student_name = get_full_name_by_relation_id(request.user, request.relation_id)
     
     return request
@@ -193,11 +194,11 @@ def get_and_format_requests_for_admin_display():
 def format_booking_for_display(booking: Booking):
     booking.interval_between_lessons = Booking.IntervalBetweenLessons.choices[
         Booking.IntervalBetweenLessons.values.index(booking.interval_between_lessons)
-    ]
+    ][1]
     booking.duration_of_lessons = Booking.LessonDuration.choices[
         Booking.LessonDuration.values.index(booking.duration_of_lessons)
-    ]
-    booking.raw_date = str(booking.start_date).split()[0]
+    ][1]
+    print('duration:', booking.duration_of_lessons)
     booking.student_name = get_full_name_by_relation_id(booking.user, booking.relation_id)
     
     return booking
@@ -222,7 +223,7 @@ def get_and_format_bookings_for_admin_display():
 
 
 def refund_booking_if_valid(booking: Booking):
-    if booking.start_date >= timezone.now().date():
+    if booking.start_date <= timezone.now().date():
         return
     
     invoice = get_invoice_object(booking.invoice_id)
@@ -235,22 +236,19 @@ def refund_booking_if_valid(booking: Booking):
     student.save()
 
 def update_booking(request):
-    data = request.POST.copy()
-    booking = get_booking_object_from_request(request)
-    print(data['invoice_id'])
-    booking.day_of_the_week = DayOfTheWeek.objects.get(order=(int(data['day_of_the_week'])-1))
-    booking.time_of_the_day = data['time_of_the_day']
-    booking.teacher = data['teacher']
-    booking.start_date = data['start_date']
-    booking.duration_of_lessons = data['duration_of_lessons']
-    booking.interval_between_lessons = data['interval_between_lessons']
-    booking.number_of_lessons = data['number_of_lessons']
-    booking.further_information = data['further_information']
-    booking.full_clean()
-
+    data = request.POST
+    booking_id = get_booking_id_from_request(request)
+    
+    form = BookingViewForm(data=data, instance_id=booking_id)
+    if not form.is_valid():
+        return
+    form.save()
+    
+    booking = get_booking_object(booking_id)
+    
     #Update invoice
     student = Student.objects.get(user=booking.user)
-    invoice = Invoice.objects.get(invoice_number=data['invoice_id'])
+    invoice = booking.invoice
     new_cost = booking.duration_of_lessons * int(data['hourly_cost']) * booking.number_of_lessons / 60
     invoice.full_amount = new_cost
 
@@ -265,12 +263,10 @@ def update_booking(request):
         invoice.fully_paid = False
 
     invoice.save()
-    booking.save()
     
     return booking
 
 def delete_booking(request):
-    data = request.POST
     booking = get_booking_object_from_request(request)
     refund_booking_if_valid(booking)
     
@@ -280,9 +276,9 @@ def get_booking_form(booking_id):
     booking = get_booking_object(booking_id)
     invoice = Invoice.objects.get(invoice_number=booking.invoice_id)
     hourly_cost = int(invoice.full_amount/booking.duration_of_lessons/booking.number_of_lessons*60)
-    form = EditBookingForm(
+    form = BookingViewForm(
         initial={
-            'invoice_id': booking.invoice_id,
+            'invoice': booking.invoice,
             'day_of_the_week': booking.day_of_the_week,
             'time_of_the_day': booking.time_of_the_day,
             'teacher': booking.teacher,
@@ -315,7 +311,6 @@ def get_invoice_view_form(invoice_id):
             'student_name': invoice.student.user.email,
             'full_amount': invoice.full_amount,
             'paid_amount': invoice.paid_amount,
-            'fully_paid': invoice.fully_paid
         }
     )
 
@@ -325,7 +320,7 @@ def get_invoice_view_form(invoice_id):
 def get_request_view_form(request_id):
     user_request = get_request_object(request_id)
 
-    form = RequestForm(
+    form = RequestViewForm(
         initial={
             'date':user_request.date,
             'relation_id':user_request.relation_id,
@@ -340,19 +335,31 @@ def get_request_view_form(request_id):
     return form
 
 def get_upcoming_term(): #Returns the next term
-    return SchoolTerm.objects.all().filter(end_date__gt=datetime.today()).filter(start_date__gte=datetime.today())\
-        .order_by('start_date').first()
+    return SchoolTerm.objects.all().filter(end_date__gt=datetime.date.today()) \
+        .filter(start_date__gte=datetime.date.today()).order_by('start_date').first()
 
-def find_term_from_date(date): #Returns the term of the date
+def find_term_from_date(self,date): #Returns the term of the date
+        term = SchoolTerm.objects.all().filter(end_date__gte=date).filter(start_date__lte=date).first()
+        if not term:
+            school_terms_starting_later = SchoolTerm.objects.filter(start_date__gte=date)
+            min_start_date = school_terms_starting_later[0].start_date
+            term = school_terms_starting_later[0]
+            for term_in_list in school_terms_starting_later:
+                if term.start_date < min_start_date:
+                    min_start_date = term_in_list.start_date
+                    term = term_in_list
+        return term
+
+#Finds term associated with date, but allows a None return when no term can be associated with the day.
+def find_term_from_date_allow_none(date): 
     return SchoolTerm.objects.all().filter(end_date__gte=date).filter(start_date__lte=date).first()
 
 def get_fulfil_request_form(request):
     this_request = get_request_object_from_request(request)
     next_term = get_upcoming_term()
-    print("Next term start date:",next_term.start_date)
+
     form = FulfilRequestForm(
         initial={
-            'date': this_request.date,
             'start_date': next_term.start_date,
             'end_date': next_term.end_date,
             'number_of_lessons': this_request.number_of_lessons,
@@ -360,7 +367,7 @@ def get_fulfil_request_form(request):
             'duration_of_lessons': this_request.duration_of_lessons,
             'further_information': this_request.further_information
         },
-        reqe=this_request
+        request_id=this_request.id
     )
     return form
 
@@ -448,15 +455,53 @@ def get_transaction_list(request):
         return BankTransaction.objects.none()
 
 def redirect_to_invoice_list(user):
-    if user.is_admin():
+    if user.is_admin_or_director():
         return redirect('invoice_list_admin')
     else:
         return redirect('invoice_list_student')
 
 def redirect_to_request_list(user, relation_id):
-    if user.is_admin():
+    if user.is_admin_or_director():
         return redirect('admin_request_list')
     elif is_child(relation_id):
         return redirect_with_queries('child_request_list', relation_id=relation_id)
     else:
         return redirect('request_list')
+
+def generate_lessons_from_bookings(bookings):
+    lesson_list = []
+
+    for booking in bookings:
+        term = booking.term_id
+        date = booking.start_date
+        lesson_datetime = datetime.datetime.combine(date, booking.time_of_the_day) #perhaps do not generate lesson in list if this date is in the past
+        duration = Booking.LessonDuration.choices[
+                Booking.LessonDuration.values.index(booking.duration_of_lessons)
+            ]
+
+        for lesson_num in range(booking.number_of_lessons):
+            if lesson_datetime >= datetime.datetime.today():
+                lesson = Lesson(
+                    booking,
+                    lesson_datetime,
+                    get_full_name_by_relation_id(booking.user, booking.relation_id),
+                    booking.teacher,
+                    str(booking.duration_of_lessons) + " mins",
+                    booking.further_information
+                )
+
+                lesson_list.append(lesson)
+
+            lesson_datetime += datetime.timedelta(days=booking.interval_between_lessons)
+
+    lesson_list.sort(key=lambda x: x.date_time, reverse = True)
+
+    return lesson_list
+
+def check_if_lessons_not_in_termtime(lessons):
+    for lesson in lessons:
+
+        if find_term_from_date_allow_none(lesson.date_time) == None:
+            return True
+
+    return False
