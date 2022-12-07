@@ -1,7 +1,7 @@
 """Unit tests of the request edit view"""
 from django.utils import timezone
 from django.test import TestCase
-from lessons.forms import RequestViewForm
+from lessons.forms import RequestForm
 from lessons.models import DayOfTheWeek, Request, User
 from django import forms
 from lessons.tests.helpers import create_days_of_the_week, HandleGroups
@@ -37,15 +37,15 @@ class RequestViewFormTestCase(TestCase):
         }
         
     def _assert_form_is_valid(self):
-        form = RequestViewForm(data=self.form_input)
+        form = RequestForm(data=self.form_input)
         self.assertTrue(form.is_valid())
         
     def _assert_form_is_invalid(self):
-        form = RequestViewForm(data=self.form_input)
+        form = RequestForm(data=self.form_input)
         self.assertFalse(form.is_valid())
 
     def test_form_has_necessary_fields(self):
-        form = RequestViewForm()
+        form = RequestForm()
         self.assertIn('date', form.fields)
         date_field = form.fields['date']
         self.assertTrue(isinstance(date_field, forms.DateTimeField))
@@ -135,7 +135,7 @@ class RequestViewFormTestCase(TestCase):
         self._assert_form_is_invalid()
 
     def test_form_set_read_only(self):
-        form = RequestViewForm(data=self.form_input)
+        form = RequestForm(data=self.form_input)
         form.set_read_only()
         self.assertTrue(form.fields['availability'].disabled)
         self.assertTrue(form.fields['number_of_lessons'].disabled)
@@ -163,7 +163,7 @@ class RequestViewFormTestCase(TestCase):
         self.form_input['interval_between_lessons'] = Request.IntervalBetweenLessons.TWO_WEEKS
         self.form_input['availability'] = [DayOfTheWeek.objects.get(day=DayOfTheWeek.Day.WEDNESDAY)]
         
-        form = RequestViewForm(instance_id=request.id, data=self.form_input)
+        form = RequestForm(instance_id=request.id, data=self.form_input)
         before_count = Request.objects.count()
         request = form.save()
         after_count = Request.objects.count()
