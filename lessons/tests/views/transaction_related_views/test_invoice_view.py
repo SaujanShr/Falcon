@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.urls import reverse
 from lessons.models import User, Student, Invoice
 from lessons.tests.helpers import create_user_groups
-from lessons.forms import InvoiceViewForm
+from lessons.forms import InvoiceEditForm
 from decimal import Decimal
 
 class InvoiceViewTestCase(TestCase):
@@ -48,7 +48,7 @@ class InvoiceViewTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'invoice_view.html')
         form = response.context['form']
-        self.assertTrue(isinstance(form, InvoiceViewForm))
+        self.assertTrue(isinstance(form, InvoiceEditForm))
 
     def test_invoice_form_in_view_contains_necessary_fields(self):
         response = self.client.get(self.url, {'invoice_id': self.invoice1.invoice_number})

@@ -2,7 +2,7 @@ import decimal
 import urllib
 from django.utils import timezone
 from .models import Request, Invoice, Student, Child, Booking, DayOfTheWeek, SchoolTerm, BankTransaction
-from .forms import RequestViewForm, FulfilRequestForm, BookingViewForm, ChildViewForm, TransactionSubmitForm, InvoiceViewForm
+from .forms import RequestEditForm, FulfilRequestForm, BookingEditForm, ChildEditForm, TransactionSubmitForm, InvoiceEditForm
 from .utils import *
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
@@ -106,7 +106,7 @@ def update_request_object_from_request(request):
     user_request = get_request_object_from_request(request)
     data = request.POST
     
-    form = RequestViewForm(instance_id=user_request.id, data=data)
+    form = RequestEditForm(instance_id=user_request.id, data=data)
     
     if form.is_valid():
         return form.save()
@@ -151,7 +151,7 @@ def update_child_object_from_request(request):
     child = get_child_object_from_request(request)
     data = request.POST
     
-    form = ChildViewForm(instance_id=child.id, data=data)
+    form = ChildEditForm(instance_id=child.id, data=data)
     if form.is_valid():
         return form.save()
 
@@ -225,10 +225,11 @@ def get_and_format_bookings_for_admin_display():
 def refund_booking_if_valid(booking: Booking):
     if booking.start_date <= timezone.now().date():
         return
-    
+
     invoice = get_invoice_object(booking.invoice_id)
     student = Student.objects.get(user=booking.user)
-    student.balance += invoice.paid_amount
+    paid_amount = invoice.paid_amount
+    student.balance += paid_amount
     invoice.paid_amount = 0
     invoice.full_amount = 0
     invoice.fully_paid = True
@@ -238,18 +239,18 @@ def refund_booking_if_valid(booking: Booking):
 def update_booking(request):
     data = request.POST
     booking_id = get_booking_id_from_request(request)
-    
-    form = BookingViewForm(data=data, instance_id=booking_id)
+
+    form = BookingEditForm(data=data, instance_id=booking_id)
     if not form.is_valid():
         return
     form.save()
-    
+
     booking = get_booking_object(booking_id)
-    
+
     #Update invoice
     student = Student.objects.get(user=booking.user)
     invoice = booking.invoice
-    new_cost = booking.duration_of_lessons * int(data['hourly_cost']) * booking.number_of_lessons / 60
+    new_cost = booking.duration_of_lessons * float(data['hourly_cost']) * booking.number_of_lessons / 60
     invoice.full_amount = new_cost
 
     if invoice.paid_amount > invoice.full_amount:
@@ -275,14 +276,15 @@ def delete_booking(request):
 def get_booking_form(booking_id):
     booking = get_booking_object(booking_id)
     invoice = Invoice.objects.get(invoice_number=booking.invoice_id)
-    hourly_cost = int(invoice.full_amount/booking.duration_of_lessons/booking.number_of_lessons*60)
-    form = BookingViewForm(
+    hourly_cost = float(invoice.full_amount / booking.duration_of_lessons / booking.number_of_lessons * 60)
+    form = BookingEditForm(
         initial={
             'invoice': booking.invoice,
             'day_of_the_week': booking.day_of_the_week,
             'time_of_the_day': booking.time_of_the_day,
             'teacher': booking.teacher,
             'start_date': booking.start_date,
+            'end_date': booking.end_date,
             'duration_of_lessons': booking.duration_of_lessons,
             'interval_between_lessons': booking.interval_between_lessons,
             'number_of_lessons': booking.number_of_lessons,
@@ -294,7 +296,7 @@ def get_booking_form(booking_id):
 
 def get_child_view_form(request_id):
     child = get_child_object(request_id)
-    form = ChildViewForm(
+    form = ChildEditForm(
         initial={
             'first_name':child.first_name,
             'last_name':child.last_name
@@ -305,7 +307,7 @@ def get_child_view_form(request_id):
 def get_invoice_view_form(invoice_id):
     invoice = get_invoice_object(invoice_id)
     #['invoice_number', 'student', 'full_amount', 'paid_amount', 'fully_paid']
-    form = InvoiceViewForm(
+    form = InvoiceEditForm(
         initial={
             'invoice_number':invoice.invoice_number,
             'student_name': invoice.student.user.email,
@@ -320,7 +322,7 @@ def get_invoice_view_form(invoice_id):
 def get_request_view_form(request_id):
     user_request = get_request_object(request_id)
 
-    form = RequestViewForm(
+    form = RequestEditForm(
         initial={
             'date':user_request.date,
             'relation_id':user_request.relation_id,
@@ -338,7 +340,7 @@ def get_upcoming_term(): #Returns the next term
     return SchoolTerm.objects.all().filter(end_date__gt=datetime.date.today()) \
         .filter(start_date__gte=datetime.date.today()).order_by('start_date').first()
 
-def find_term_from_date(self,date): #Returns the term of the date
+def find_term_from_date(date): #Returns the term of the date
         term = SchoolTerm.objects.all().filter(end_date__gte=date).filter(start_date__lte=date).first()
         if not term:
             school_terms_starting_later = SchoolTerm.objects.filter(start_date__gte=date)
@@ -351,7 +353,7 @@ def find_term_from_date(self,date): #Returns the term of the date
         return term
 
 #Finds term associated with date, but allows a None return when no term can be associated with the day.
-def find_term_from_date_allow_none(date): 
+def find_term_from_date_allow_none(date):
     return SchoolTerm.objects.all().filter(end_date__gte=date).filter(start_date__lte=date).first()
 
 def get_fulfil_request_form(request):

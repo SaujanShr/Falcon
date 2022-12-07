@@ -2,7 +2,6 @@ from django import forms
 from django.core.validators import RegexValidator
 from django.contrib.auth.models import Group
 from .models import User, Child, DayOfTheWeek, Request, BankTransaction, Student, Invoice, SchoolTerm, Booking
-from .forms_functions import create_invoice, find_term_from_date
 
 
 class DateInput(forms.DateInput):
@@ -22,14 +21,14 @@ class NewChildForm(forms.ModelForm):
         child.parent = self.user
         return child.save()
 
-class ChildViewForm(forms.ModelForm):
+class ChildEditForm(forms.ModelForm):
     class Meta:
         model = Child
         fields = ['first_name', 'last_name']
     
     def __init__(self, *args, **kwargs):
         self.instance_id = kwargs.pop('instance_id', None)
-        super(ChildViewForm, self).__init__(*args, **kwargs)
+        super(ChildEditForm, self).__init__(*args, **kwargs)
     
     def save(self):
         instance_set = Child.objects.filter(id=self.instance_id)
@@ -40,7 +39,7 @@ class ChildViewForm(forms.ModelForm):
         )
         return instance_set[0]
 
-class InvoiceViewForm(forms.ModelForm):
+class InvoiceEditForm(forms.ModelForm):
     class Meta:
         model = Invoice
         fields = ['invoice_number', 'full_amount', 'paid_amount']
@@ -49,7 +48,7 @@ class InvoiceViewForm(forms.ModelForm):
 
     #Invoices should never be edited manually, this form is purely for display.
     def __init__(self, *args, **kwargs):
-        super(InvoiceViewForm, self).__init__(*args, **kwargs)
+        super(InvoiceEditForm, self).__init__(*args, **kwargs)
         self.fields['invoice_number'].disabled = True
         self.fields['student_name'].disabled = True
         self.fields['full_amount'].disabled = True
@@ -83,7 +82,7 @@ class NewRequestForm(forms.ModelForm):
         
         return res 
 
-class RequestViewForm(forms.ModelForm):
+class RequestEditForm(forms.ModelForm):
     class Meta:
         model = Request
         fields = ['date', 'availability', 'number_of_lessons', 'interval_between_lessons', 
@@ -98,7 +97,7 @@ class RequestViewForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         self.instance_id = kwargs.pop('instance_id', None)
-        super(RequestViewForm, self).__init__(*args, **kwargs)
+        super(RequestEditForm, self).__init__(*args, **kwargs)
         
         self.fields['date'].disabled = True
         self.fields['fulfilled'].disabled = True
@@ -133,14 +132,14 @@ class FulfilRequestForm(forms.ModelForm):
         widgets = {'further_information':forms.Textarea(attrs={'style': "width:100%;"})}
 
     field_order = ['availability', 'interval_between_lessons', 'number_of_lessons',
-                   'duration_of_lessons', 'time_of_lesson', 'teacher', 'hourly_cost',
-                   'start_date', 'end_date', 'further_information']
-    
+                   'duration_of_lessons', 'time_of_lesson', 'teacher',
+                   'start_date', 'end_date', 'further_information', 'hourly_cost']
+
     def __init__(self, *args, **kwargs):
         self.request_id = kwargs.pop('request_id', None)
 
         super(FulfilRequestForm, self).__init__(*args, **kwargs)
-        
+
         if self.request_id:
             user_request = Request.objects.get(id=self.request_id)
             self.fields['availability'] = forms.ModelChoiceField(
@@ -148,7 +147,7 @@ class FulfilRequestForm(forms.ModelForm):
                 label="Day of lessons:",
                 widget=forms.Select
             )
-            
+
     availability = forms.ModelChoiceField(
         queryset=DayOfTheWeek.objects.all(),
         label="Day of lessons:",
@@ -173,7 +172,7 @@ class FulfilRequestForm(forms.ModelForm):
     )
 
     end_date = forms.DateField(
-        label='End date (leave empty for last day of term):',
+        label='End date:',
         widget=forms.DateInput(
             attrs={'type': 'date'}
         )
@@ -181,7 +180,7 @@ class FulfilRequestForm(forms.ModelForm):
 
     hourly_cost = forms.CharField(
         widget=forms.TextInput(
-            attrs={'type':'number'}
+            attrs={'type':'decimal'}
         )
     )
 
@@ -355,7 +354,7 @@ class TransactionSubmitForm(forms.ModelForm):
         # alter string so that it fits the form xxxx-yyy
         pass
 
-class BookingViewForm(forms.ModelForm):
+class BookingEditForm(forms.ModelForm):
     class Meta:
         model = Booking
         fields = ['day_of_the_week','time_of_the_day','teacher','start_date',
@@ -385,31 +384,38 @@ class BookingViewForm(forms.ModelForm):
             attrs={'type': 'date'}
         )
     )
+    end_date = forms.DateField(
+        label='End date:',
+        widget=forms.DateInput(
+            attrs={'type': 'date'}
+        )
+    )
     hourly_cost = forms.CharField(
         widget=forms.TextInput(
-            attrs={'type': 'number'}
+            attrs={'type': 'float'}
         )
     )
     
     def __init__(self, *args, **kwargs):
         self.instance_id = kwargs.pop('instance_id', None)
-        super(BookingViewForm, self).__init__(*args, **kwargs)
+        super(BookingEditForm, self).__init__(*args, **kwargs)
     
     def set_read_only(self):
         self.fields['day_of_the_week'].disabled = True
         self.fields['time_of_the_day'].disabled = True
         self.fields['teacher'].disabled = True
         self.fields['start_date'].disabled = True
+        self.fields['end_date'].disabled = True
         self.fields['duration_of_lessons'].disabled = True
         self.fields['interval_between_lessons'].disabled = True
         self.fields['number_of_lessons'].disabled = True
         self.fields['further_information'].disabled = True
         self.fields['hourly_cost'].disabled = True
-    
+
     def save(self):
         instance_set = Booking.objects.filter(id=self.instance_id)
         super().save(commit=False)
-        
+
         instance_set.update(
             day_of_the_week = self.cleaned_data.get('day_of_the_week'),
             time_of_the_day = self.cleaned_data.get('time_of_the_day'),
@@ -420,12 +426,12 @@ class BookingViewForm(forms.ModelForm):
             number_of_lessons = self.cleaned_data.get('number_of_lessons'),
             further_information = self.cleaned_data.get('further_information')
         )
-        
+
         return instance_set[0]
-        
 
 
-class TermViewForm(forms.ModelForm):
+
+class TermEditForm(forms.ModelForm):
     class Meta:
         model = SchoolTerm
         fields = ['term_name', 'start_date', 'end_date']
