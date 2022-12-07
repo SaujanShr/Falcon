@@ -1,12 +1,16 @@
-"""Unit tests of the lesson generation algorithm."""
+"""Unit tests of the lesson list child view."""
 from django.test import TestCase
 from lessons.models import User, DayOfTheWeek, Booking, SchoolTerm, Invoice, Student, Child
 from lessons.tests.helpers import create_user_groups, create_days_of_the_week
 from django.urls import reverse
 import datetime
 
-class LessonGenerationTestCase(TestCase):
-    fixtures = ['lessons/tests/fixtures/default_user.json','lessons/tests/fixtures/other_users.json']
+
+class LessonListChildViewTestCase(TestCase):
+    """Unit tests of the lesson list child view."""
+
+    fixtures = ['lessons/tests/fixtures/default_user.json', 'lessons/tests/fixtures/other_users.json']
+
     def setUp(self):
         create_user_groups()
         create_days_of_the_week()

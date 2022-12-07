@@ -1,15 +1,15 @@
-"""Unit tests of the lesson generation algorithm."""
+"""Unit tests of the lesson list View."""
 from django.test import TestCase
 from lessons.models import User, DayOfTheWeek, Booking, SchoolTerm, Invoice, Student
-from django.utils import timezone
 from lessons.tests.helpers import create_user_groups, create_days_of_the_week
-from lessons.views_functions import generate_lessons_from_bookings, check_if_lessons_not_in_termtime
 from django.urls import reverse
-from lessons.utils import Lesson
 import datetime
 
-class LessonGenerationTestCase(TestCase):
-    fixtures = ['lessons/tests/fixtures/default_user.json','lessons/tests/fixtures/other_users.json']
+
+class LessonListViewTestCase(TestCase):
+    """Unit tests of the lesson list View."""
+    fixtures = ['lessons/tests/fixtures/default_user.json', 'lessons/tests/fixtures/other_users.json']
+
     def setUp(self):
         create_user_groups()
         create_days_of_the_week()
@@ -24,11 +24,11 @@ class LessonGenerationTestCase(TestCase):
                    end_date=datetime.date(2029, 10, 21)).save()
         SchoolTerm(term_name="Term two", start_date=datetime.date(2029, 10, 31),
                    end_date=datetime.date(2029, 12, 16)).save()
-                   
-        i1 = Invoice(invoice_number="0001-001", student=Student.objects.get(user__email="johndoe@email.com"),
-                     full_amount=300, paid_amount=0, fully_paid=False).save()
-        i2 = Invoice(invoice_number="0002-001", student=Student.objects.get(user__email="janedoe@email.com"),
-                     full_amount=500, paid_amount=0, fully_paid=False).save()
+
+        Invoice(invoice_number="0001-001", student=Student.objects.get(user__email="johndoe@email.com"),
+                full_amount=300, paid_amount=0, fully_paid=False).save()
+        Invoice(invoice_number="0002-001", student=Student.objects.get(user__email="janedoe@email.com"),
+                full_amount=500, paid_amount=0, fully_paid=False).save()
 
         self.booking1 = Booking.objects.create(
             user=self.user1,
@@ -82,5 +82,3 @@ class LessonGenerationTestCase(TestCase):
         self.assertTemplateUsed(response, 'lesson_list.html')
         lessons = response.context['lessons']
         self.assertEqual(len(lessons), self.booking1.number_of_lessons)
-
-    

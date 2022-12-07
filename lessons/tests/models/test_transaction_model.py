@@ -1,3 +1,4 @@
+"""Unit tests for the transaction model."""
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 from lessons.models import User, BankTransaction, Student, Invoice
@@ -5,11 +6,12 @@ from decimal import Decimal
 import datetime
 from lessons.tests.helpers import create_user_groups
 
+
 class TransactionModelTestCase(TestCase):
-    '''Unit tests for the transaction model'''
+    """Unit tests for the transaction model."""
 
     fixtures = ['lessons/tests/fixtures/other_users.json', 'lessons/tests/fixtures/default_user.json']
-    
+
     def setUp(self):
         create_user_groups()
         self.user1 = User.objects.get(email='johndoe@email.com')
@@ -29,27 +31,27 @@ class TransactionModelTestCase(TestCase):
             student=self.student2,
             full_amount='100.00'
         )
-        
+
         self.transaction1 = BankTransaction.objects.create(
-            student = self.student1,
-            amount = '50.00',
-            invoice = self.invoice1,
-            date = datetime.date(2022, 2, 21)
+            student=self.student1,
+            amount='50.00',
+            invoice=self.invoice1,
+            date=datetime.date(2022, 2, 21)
         )
 
         self.transaction2 = BankTransaction.objects.create(
-            student = self.student2,
-            amount = '55.00',
-            invoice = self.invoice2,
-            date = datetime.date(2022, 2, 22)
+            student=self.student2,
+            amount='55.00',
+            invoice=self.invoice2,
+            date=datetime.date(2022, 2, 22)
         )
 
     def _assert_transaction_is_valid(self):
         try:
             self.transaction1.full_clean()
-        except (ValidationError):
+        except ValidationError:
             self.fail('Test transaction should be valid.')
-    
+
     def _assert_transaction_is_invalid(self):
         with self.assertRaises(ValidationError):
             self.transaction1.full_clean()
@@ -84,7 +86,7 @@ class TransactionModelTestCase(TestCase):
     def test_amount_must_not_contain_over_2_decimal(self):
         self.transaction1.amount = '3.142'
         self._assert_transaction_is_invalid()
-    
+
     def test_amount_must_not_contain_over_6_digits(self):
         self.transaction1.amount = '31989.59'
         self._assert_transaction_is_invalid()
@@ -100,24 +102,21 @@ class TransactionModelTestCase(TestCase):
     def test_invoice_gets_updated(self):
         self.assertEqual(Decimal(self.transaction1.amount), self.transaction1.invoice.paid_amount)
 
-    
     def test_invoice_overpay_interaction(self):
-        transactionBig = BankTransaction.objects.create(
-            student = self.student1,
-            amount = '105.00',
-            invoice = self.invoice1,
-            date = datetime.date(2022, 2, 22)
+        overpaid_transaction = BankTransaction.objects.create(
+            student=self.student1,
+            amount='105.00',
+            invoice=self.invoice1,
+            date=datetime.date(2022, 2, 22)
         )
-        self.assertEqual(transactionBig.invoice.fully_paid, True)
-        self.assertEqual(transactionBig.invoice.full_amount, transactionBig.invoice.paid_amount)
-    
-    
+        self.assertEqual(overpaid_transaction.invoice.fully_paid, True)
+        self.assertEqual(overpaid_transaction.invoice.full_amount, overpaid_transaction.invoice.paid_amount)
+
     def test_user_balance_gets_updated_if_overpay(self):
-        transactionBig = BankTransaction.objects.create(
-            student = self.student1,
-            amount = '105.00',
-            invoice = self.invoice1,
-            date = datetime.date(2022, 2, 22)
+        overpaid_transaction = BankTransaction.objects.create(
+            student=self.student1,
+            amount='105.00',
+            invoice=self.invoice1,
+            date=datetime.date(2022, 2, 22)
         )
-        self.assertEqual(transactionBig.student.balance, Decimal('55.00'))
-    
+        self.assertEqual(overpaid_transaction.student.balance, Decimal('55.00'))

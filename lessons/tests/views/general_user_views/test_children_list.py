@@ -5,7 +5,7 @@ from lessons.tests.helpers import create_user_groups, HandleGroups
 from django.urls import reverse
 
 
-class LessonGenerationTestCase(TestCase):
+class ChildrenListTestCase(TestCase):
     """Unit tests of the children list view."""
     fixtures = ['lessons/tests/fixtures/default_user.json', 'lessons/tests/fixtures/other_users.json']
 

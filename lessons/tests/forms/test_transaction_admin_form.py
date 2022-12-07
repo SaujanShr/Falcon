@@ -6,6 +6,7 @@ from lessons.forms import TransactionSubmitForm
 import datetime
 from lessons.tests.helpers import create_user_groups
 
+
 class TransactionFormTestCase(TestCase):
 
     fixtures = ['lessons/tests/fixtures/default_user.json']

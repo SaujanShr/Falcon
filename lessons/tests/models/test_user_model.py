@@ -4,6 +4,7 @@ from django.test import TestCase
 from lessons.models import User
 from lessons.tests.helpers import create_user_groups, HandleGroups
 
+
 class UserModelTestCase(TestCase):
     """Unit tests for the User model."""
 
@@ -150,7 +151,6 @@ class UserModelTestCase(TestCase):
 
     def _create_second_user(self):
         user = User.objects.create_user(
-            '@janedoe',
             first_name='Jane',
             last_name='Doe',
             email='janedoe@example.org',

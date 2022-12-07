@@ -1,3 +1,4 @@
+"""Tests of the transaction student list view."""
 from django.test import TestCase
 from django.urls import reverse
 from lessons.models import BankTransaction, User, Student, Invoice
@@ -5,7 +6,9 @@ from django.db.models.query import QuerySet
 from lessons.tests.helpers import create_user_groups
 import datetime
 
+
 class TransactionAdminListTestCase(TestCase):
+    """Tests of the transaction student list view."""
 
     fixtures = ['lessons/tests/fixtures/other_users.json', 'lessons/tests/fixtures/default_user.json']
     

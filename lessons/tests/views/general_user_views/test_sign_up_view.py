@@ -6,11 +6,11 @@ from lessons.forms import SignUpForm
 from lessons.models import User
 from lessons.tests.helpers import create_user_groups
 
+
 class SignUpViewTestCase(TestCase):
     """Tests of the sign-up view"""
 
     def setUp(self):
-        # Run the create_groups command on test database:
         create_user_groups()
 
         self.url = reverse('sign_up')

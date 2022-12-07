@@ -1,4 +1,4 @@
-"""Unit tests of the booking list view."""
+"""Unit tests of the child booking list view."""
 from django.test import TestCase
 from lessons.models import User, DayOfTheWeek, Booking, SchoolTerm, Invoice, Student, Child
 from lessons.tests.helpers import create_user_groups, create_days_of_the_week
@@ -6,8 +6,8 @@ from django.urls import reverse
 import datetime
 
 
-class LessonGenerationTestCase(TestCase):
-    """Unit tests of the booking list view."""
+class ChildBookingListTestCase(TestCase):
+    """Unit tests of the child booking list view."""
     fixtures = ['lessons/tests/fixtures/default_user.json', 'lessons/tests/fixtures/other_users.json']
 
     def setUp(self):
@@ -60,17 +60,17 @@ class LessonGenerationTestCase(TestCase):
         self.url = reverse('child_booking_list')
         self.client.login(email='johndoe@email.com', password='Password123')
 
-    def test_lesson_list_url(self):
+    def test_child_booking_list_url(self):
         self.assertEqual(self.url, '/child_booking_list/')
 
-    def test_get_booking_list(self):
+    def test_get_child_booking_list(self):
         response = self.client.get(f"{self.url}?relation_id=1")
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'child_booking_list.html')
         bookings = response.context['child_bookings']
         self.assertTrue(bookings)
 
-    def test_booking_list_displays_only_child_booking(self):
+    def test_booking_list_displays_only_child_bookings(self):
         response = self.client.get(f"{self.url}?relation_id=1")
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'child_booking_list.html')

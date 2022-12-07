@@ -1,13 +1,15 @@
+"""Tests of the transaction admin list view."""
 from django.test import TestCase
 from django.urls import reverse
 from lessons.models import BankTransaction, User, Student, Invoice
 from django.db.models.query import QuerySet
-from django.contrib.auth.models import Group
 from lessons.tests.helpers import create_user_groups
 import datetime
 
+
 class TransactionAdminListTestCase(TestCase):
-    
+    """Tests of the transaction admin list view."""
+
     fixtures = ['lessons/tests/fixtures/other_users.json', 'lessons/tests/fixtures/default_user.json']
     
     def setUp(self):
@@ -48,7 +50,6 @@ class TransactionAdminListTestCase(TestCase):
             invoice = self.invoice2,
             date = datetime.date(2022, 2, 21)
         )
-
 
     def test_transaction_admin_url(self):
         self.assertEqual(self.url, '/transactions/admin/view')

@@ -1,12 +1,13 @@
+"""Tests of the admin balance list view."""
 from django.test import TestCase
 from django.urls import reverse
-from lessons.models import BankTransaction, User, Student
+from lessons.models import User, Student
 from django.db.models.query import QuerySet
-from django.contrib.auth.models import Group
 from lessons.tests.helpers import create_user_groups
 
-class TransactionAdminListTestCase(TestCase):
 
+class AdminBalanceListTestCase(TestCase):
+    """Tests of the admin balance list view."""
     fixtures = ['lessons/tests/fixtures/other_users.json', 'lessons/tests/fixtures/default_user.json']
     
     def setUp(self):
@@ -21,7 +22,7 @@ class TransactionAdminListTestCase(TestCase):
             password='password'
         )
 
-    def test_transaction_admin_url(self):
+    def test_admin_balance_list_url(self):
         self.assertEqual(self.url, '/balance/admin')
 
     def test_get_balance_admin_view(self):

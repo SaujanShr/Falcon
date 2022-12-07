@@ -6,8 +6,12 @@ from lessons.views_functions import generate_lessons_from_bookings, check_if_les
 from lessons.utils import Lesson
 import datetime
 
+
 class LessonGenerationTestCase(TestCase):
-    fixtures = ['lessons/tests/fixtures/default_user.json','lessons/tests/fixtures/other_users.json']
+    """Unit tests of the lesson generation algorithm."""
+
+    fixtures = ['lessons/tests/fixtures/default_user.json', 'lessons/tests/fixtures/other_users.json']
+
     def setUp(self):
         create_user_groups()
         create_days_of_the_week()

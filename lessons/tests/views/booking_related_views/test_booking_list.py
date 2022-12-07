@@ -6,7 +6,7 @@ from django.urls import reverse
 import datetime
 
 
-class LessonGenerationTestCase(TestCase):
+class BookingListTestCase(TestCase):
     """Unit tests of the booking list view."""
     fixtures = ['lessons/tests/fixtures/default_user.json', 'lessons/tests/fixtures/other_users.json']
 
@@ -59,7 +59,7 @@ class LessonGenerationTestCase(TestCase):
         self.url = reverse('booking_list')
         self.client.login(email='johndoe@email.com', password='Password123')
 
-    def test_lesson_list_url(self):
+    def test_booking_list_url(self):
         self.assertEqual(self.url, '/booking_list/')
 
     def test_get_booking_list(self):

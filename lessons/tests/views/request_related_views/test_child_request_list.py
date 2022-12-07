@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 
-class LessonGenerationTestCase(TestCase):
+class ChildRequestListTestCase(TestCase):
     """Unit tests of the child request list view."""
     fixtures = ['lessons/tests/fixtures/default_user.json', 'lessons/tests/fixtures/other_users.json']
 
@@ -39,11 +39,12 @@ class LessonGenerationTestCase(TestCase):
             further_information="Further Info",
             fulfilled=True
         ).availability.add(DayOfTheWeek.objects.get(day=DayOfTheWeek.Day.TUESDAY))
+
         self.url = reverse('child_request_list')
 
         self.client.login(email='johndoe@email.com', password='Password123')
 
-    def test_lesson_list_url(self):
+    def test_child_request_list_url(self):
         self.assertEqual(self.url, '/child_request_list/')
 
     def test_get_child_request_list(self):
@@ -53,7 +54,7 @@ class LessonGenerationTestCase(TestCase):
         child_requests = response.context['child_requests']
         self.assertTrue(child_requests)
 
-    def test_booking_list_displays_only_child_request_for_current_user(self):
+    def test_child_request_list_displays_only_child_request_for_current_user(self):
         response = self.client.get(f"{self.url}?relation_id=1")
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'child_request_list.html')
@@ -65,7 +66,7 @@ class LessonGenerationTestCase(TestCase):
         child_id = 1
         self.assertQuerysetEqual(child_requests, Request.objects.filter(user_id=parent.id).filter(relation_id=child_id).order_by('-id'))
 
-    def test_booking_list_displays_no_requests_for_child_with_no_requests(self):
+    def test_child_request_list_displays_no_requests_for_child_with_no_requests(self):
         response = self.client.get(f"{self.url}?relation_id=2")
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'child_request_list.html')
@@ -73,7 +74,7 @@ class LessonGenerationTestCase(TestCase):
 
         self.assertEqual(len(child_requests), 0)
 
-    def test_booking_list_redirects_on_non_existent_child(self):
+    def test_child_request_list_redirects_on_non_existent_child(self):
         response = self.client.get(f"{self.url}?relation_id=100", follow=True)
 
         response_url = reverse('children_list')

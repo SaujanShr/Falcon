@@ -10,7 +10,11 @@ from lessons.tests.helpers import HandleGroups, reverse_with_next
 
 
 class SchoolTermStudentView(TestCase):
-    fixtures = ['lessons/tests/fixtures/default_user.json', 'lessons/tests/fixtures/other_users.json', 'lessons/tests/fixtures/default_terms.json']
+    fixtures = [
+        'lessons/tests/fixtures/default_user.json',
+        'lessons/tests/fixtures/other_users.json',
+        'lessons/tests/fixtures/default_terms.json'
+    ]
 
     def setUp(self):
         HandleGroups.set_default_user_to_student()

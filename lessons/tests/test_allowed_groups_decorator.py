@@ -1,4 +1,4 @@
-"""Unit tests of the log in form."""
+"""Unit tests of the allowed groups decorator form."""
 from django import forms
 from django.test import TestCase
 from lessons.forms import LogInForm
@@ -9,8 +9,8 @@ from lessons.tests.helpers import HandleGroups,LogInTester
 from django.conf import settings
 
 class LogInFormTestCase(TestCase,LogInTester):
-    """Unit tests of the log in form."""
-    fixtures = ['lessons/tests/fixtures/default_user.json','lessons/tests/fixtures/other_users.json']
+    """Unit tests of the allowed groups decorator form."""
+    fixtures = ['lessons/tests/fixtures/default_user.json', 'lessons/tests/fixtures/other_users.json']
 
     def setUp(self):
         HandleGroups.set_default_user_to_student()

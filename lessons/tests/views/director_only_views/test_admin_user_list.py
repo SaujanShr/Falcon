@@ -5,7 +5,9 @@ from lessons.models import User
 from lessons.tests.helpers import HandleGroups
 from django.conf import settings
 
+
 class AdminUserListTestCase(TestCase):
+    """Tests of the admin user list view."""
     fixtures = ['lessons/tests/fixtures/default_user.json', 'lessons/tests/fixtures/other_users.json']
 
     def setUp(self):
@@ -15,7 +17,7 @@ class AdminUserListTestCase(TestCase):
         self.user.is_superuser = True
         self.user.save()
 
-    def test_log_out_url(self):
+    def test_admin_user_list_url(self):
         self.assertEqual(self.url, '/admin_user_list/')
 
     def test_get_admin_user_list(self):
@@ -24,7 +26,7 @@ class AdminUserListTestCase(TestCase):
         self.assertEqual(response.status_code, 200) 
         self.assertTemplateUsed(response, 'admin_user_list.html') 
 
-    def test_edit_button_redirects_to_edit_page(self):
+    def test_edit_button_redirects_to_profile(self):
         self.client.login(email=self.user.email, password='Password123')
         payload = {'edit': self.user.id}
         response = self.client.post(self.url,payload, follow=True)
@@ -51,7 +53,7 @@ class AdminUserListTestCase(TestCase):
         other_user_after_request = User.objects.get(id=self.other_user.id)
         self.assertTrue(other_user_after_request.is_superuser)
 
-    def test_delete_button_deleted_user(self):
+    def test_delete_button_deletes_user(self):
         self.client.login(email=self.user.email, password='Password123')
         other_user_id = self.other_user.id
         payload = {'delete': other_user_id}

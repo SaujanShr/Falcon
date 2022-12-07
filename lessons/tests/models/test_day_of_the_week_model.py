@@ -1,10 +1,12 @@
+"""Unit tests for the DayOfTheWeek model"""
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 from lessons.models import DayOfTheWeek
 from lessons.tests.helpers import create_days_of_the_week
 
+
 class DayOfTheWeekModelTestCase(TestCase):
-    '''Unit tests for the DayOfTheWeek model'''
+    """Unit tests for the DayOfTheWeek model"""
     
     def setUp(self):
         create_days_of_the_week()
