@@ -4,6 +4,7 @@ from django.test import TestCase
 from lessons.forms import UserForm
 from lessons.models import User
 
+
 class UserFormTestCase(TestCase):
     """Unit tests of the user form."""
 

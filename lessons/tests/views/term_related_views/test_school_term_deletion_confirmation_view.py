@@ -1,5 +1,4 @@
 """Unit tests of the School Term deletion confirmation view."""
-import datetime
 from django.test import TestCase
 from django.urls import reverse
 from lessons.models import SchoolTerm
@@ -8,7 +7,11 @@ from lessons.tests.helpers import HandleGroups, reverse_with_next
 
 class SchoolTermViewDeletionConfirmation(TestCase):
     """Unit tests of the School Term deletion confirmation view."""
-    fixtures = ['lessons/tests/fixtures/default_user.json', 'lessons/tests/fixtures/other_users.json','lessons/tests/fixtures/default_terms.json']
+    fixtures = [
+        'lessons/tests/fixtures/default_user.json',
+        'lessons/tests/fixtures/other_users.json',
+        'lessons/tests/fixtures/default_terms.json'
+    ]
 
     def setUp(self):
         HandleGroups.set_default_user_to_student()

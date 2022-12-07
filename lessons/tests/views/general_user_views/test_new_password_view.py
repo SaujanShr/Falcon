@@ -1,4 +1,4 @@
-"""Tests for the password view."""
+"""Tests for the new password view."""
 from django.contrib.auth.hashers import check_password
 from django.test import TestCase
 from django.urls import reverse
@@ -7,8 +7,8 @@ from lessons.models import User
 from lessons.tests.helpers import reverse_with_next, HandleGroups, create_user_groups
 
 
-class PasswordViewTest(TestCase):
-    """Test suite for the password view."""
+class NewPasswordViewTest(TestCase):
+    """Test suite for the new password view."""
     fixtures = [
         'lessons/tests/fixtures/default_user.json'
     ]

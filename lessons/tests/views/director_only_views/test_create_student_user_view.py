@@ -6,7 +6,8 @@ from lessons.forms import CreateUser
 from lessons.models import User
 from lessons.tests.helpers import create_user_groups
 
-class CreateUserViewTestCase(TestCase):
+
+class CreateStudentUserViewTestCase(TestCase):
     """Tests of the student creation view"""
 
     fixtures = ['lessons/tests/fixtures/default_user.json']
@@ -25,7 +26,7 @@ class CreateUserViewTestCase(TestCase):
             'password_confirmation': 'Password123'
         }
 
-    def test_sign_up_url(self):
+    def test_student_creation_url(self):
         self.assertEqual(self.url, '/create_student_user/')
 
     def test_get_create_student_user(self):

@@ -1,15 +1,18 @@
+"""Unit test for the Child model"""
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 from lessons.models import User, Child
 
-class DayOfTheWeekModelTestCase(TestCase):
-    '''Unit test for the Child model'''
+
+class ChildModelTestCase(TestCase):
+    """Unit test for the Child model"""
     
     fixtures = ['lessons/tests/fixtures/other_users.json', 'lessons/tests/fixtures/default_user.json']
     
     def setUp(self):
         self.user1 = User.objects.all()[0]
         self.user2 = User.objects.all()[1]
+
         self.child1 = Child.objects.create(
             parent=self.user1,
             first_name='Alice',

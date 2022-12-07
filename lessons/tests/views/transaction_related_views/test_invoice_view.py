@@ -1,3 +1,4 @@
+"""Tests of the invoice view."""
 from django.test import TestCase
 from django.urls import reverse
 from lessons.models import User, Student, Invoice
@@ -5,7 +6,9 @@ from lessons.tests.helpers import create_user_groups
 from lessons.forms import InvoiceEditForm
 from decimal import Decimal
 
+
 class InvoiceViewTestCase(TestCase):
+    """Tests of the invoice view."""
     fixtures = ['lessons/tests/fixtures/other_users.json', 'lessons/tests/fixtures/default_user.json']
 
     def setUp(self):
@@ -69,7 +72,6 @@ class InvoiceViewTestCase(TestCase):
         self.assertEqual(form.initial['student_name'], self.invoice1.student.user.email)
         self.assertEqual(Decimal(form.initial['full_amount']), Decimal(self.invoice1.full_amount))
         self.assertEqual(Decimal(form.initial['paid_amount']), Decimal(self.invoice1.paid_amount))
-
 
     def test_invoice_form_fields_are_disabled_in_view(self):
         response = self.client.get(self.url, {'invoice_id': self.invoice1.invoice_number})

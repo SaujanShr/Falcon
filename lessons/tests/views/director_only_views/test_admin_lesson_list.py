@@ -1,15 +1,15 @@
-"""Unit tests of the lesson generation algorithm."""
+"""Unit tests of the Admin lesson list."""
 from django.test import TestCase
 from lessons.models import User, DayOfTheWeek, Booking, SchoolTerm, Invoice, Student
-from django.utils import timezone
 from lessons.tests.helpers import create_user_groups, create_days_of_the_week
-from lessons.views_functions import generate_lessons_from_bookings, check_if_lessons_not_in_termtime
 from django.urls import reverse
-from lessons.utils import Lesson
 import datetime
 
-class LessonGenerationTestCase(TestCase):
+
+class AdminLessonListTestCase(TestCase):
+    """Unit tests of the Admin lesson list."""
     fixtures = ['lessons/tests/fixtures/default_user.json','lessons/tests/fixtures/other_users.json']
+
     def setUp(self):
         create_user_groups()
         create_days_of_the_week()
@@ -64,10 +64,10 @@ class LessonGenerationTestCase(TestCase):
         self.url = reverse('lesson_list_admin')
         self.client.login(email='admin@email.com', password='password')
 
-    def test_lesson_list_url(self):
+    def test_admin_lesson_list_url(self):
         self.assertEqual(self.url, '/lessons/admin')
 
-    def test_get_lesson_list(self):
+    def test_get_admin_lesson_list(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'lesson_list.html')
@@ -75,8 +75,7 @@ class LessonGenerationTestCase(TestCase):
         self.assertTrue(lessons)
         self.assertTrue(isinstance(lessons, list))
 
-
-    def test_lesson_list_displays_all_users_lessons(self):
+    def test_admin_lesson_list_displays_all_users_lessons(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'lesson_list.html')

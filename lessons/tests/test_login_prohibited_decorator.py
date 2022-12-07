@@ -1,16 +1,14 @@
-"""Unit tests of the log in form."""
-from django import forms
+"""Unit tests of the prohibited decorator"""
 from django.test import TestCase
-from lessons.forms import LogInForm
 from lessons.models import User
-from django.contrib.auth.models import Group
 from django.urls import reverse
-from lessons.tests.helpers import HandleGroups,LogInTester
+from lessons.tests.helpers import HandleGroups, LogInTester
 from django.conf import settings
 
-class LogInFormTestCase(TestCase,LogInTester):
-    """Unit tests of the log in form."""
-    fixtures = ['lessons/tests/fixtures/default_user.json','lessons/tests/fixtures/other_users.json']
+
+class LogInProhibitedDecoratorTestCase(TestCase, LogInTester):
+    """Unit tests of the prohibited decorator"""
+    fixtures = ['lessons/tests/fixtures/default_user.json', 'lessons/tests/fixtures/other_users.json']
 
     def setUp(self):
         HandleGroups.set_default_user_to_student()

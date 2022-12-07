@@ -4,6 +4,7 @@ from django.urls import reverse
 from lessons.models import User
 from lessons.tests.helpers import LogInTester, HandleGroups
 
+
 class LogOutViewTestCase(TestCase, LogInTester):
     """Tests of the log out view."""
 

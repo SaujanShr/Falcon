@@ -6,7 +6,7 @@ from django.urls import reverse
 import datetime
 
 
-class LessonGenerationTestCase(TestCase):
+class AdminBookingListTestCase(TestCase):
     """Unit tests of the admin booking list view."""
     fixtures = ['lessons/tests/fixtures/default_user.json', 'lessons/tests/fixtures/other_users.json']
 
