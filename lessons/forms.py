@@ -1,3 +1,5 @@
+import decimal
+
 from django import forms
 from django.core.validators import RegexValidator
 from django.contrib.auth.models import Group
@@ -12,11 +14,11 @@ class NewChildForm(forms.ModelForm):
     class Meta:
         model = Child
         fields = ['first_name', 'last_name']
-    
+
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super(NewChildForm, self).__init__(*args, **kwargs)
-    
+
     def save(self):
         child = super().save(commit=False)
         child.parent = self.user
@@ -26,11 +28,11 @@ class ChildEditForm(forms.ModelForm):
     class Meta:
         model = Child
         fields = ['first_name', 'last_name']
-    
+
     def __init__(self, *args, **kwargs):
         self.instance_id = kwargs.pop('instance_id', None)
         super(ChildEditForm, self).__init__(*args, **kwargs)
-    
+
     def save(self):
         instance_set = Child.objects.filter(id=self.instance_id)
         super().save(commit=False)
@@ -67,26 +69,26 @@ class NewRequestForm(forms.ModelForm):
         label="Available Days",
         widget=forms.CheckboxSelectMultiple
     )
-    
+
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         self.relation_id = kwargs.pop('relation_id', None)
         super(NewRequestForm, self).__init__(*args, **kwargs)
-        
+
     def save(self):
         request = super().save(commit=False)
         request.user = self.user
         request.relation_id = self.relation_id
-        
+
         res = request.save()
         request.availability.set(self.cleaned_data.get('availability'))
-        
-        return res 
+
+        return res
 
 class RequestEditForm(forms.ModelForm):
     class Meta:
         model = Request
-        fields = ['date', 'availability', 'number_of_lessons', 'interval_between_lessons', 
+        fields = ['date', 'availability', 'number_of_lessons', 'interval_between_lessons',
                   'duration_of_lessons', 'further_information', 'fulfilled']
         widgets = {'further_information':forms.Textarea(attrs={'style': "width:100%;"})}
 
@@ -95,11 +97,11 @@ class RequestEditForm(forms.ModelForm):
         label="Available Days",
         widget=forms.CheckboxSelectMultiple
     )
-    
+
     def __init__(self, *args, **kwargs):
         self.instance_id = kwargs.pop('instance_id', None)
         super(RequestEditForm, self).__init__(*args, **kwargs)
-        
+
         self.fields['date'].disabled = True
         self.fields['fulfilled'].disabled = True
 
@@ -109,11 +111,11 @@ class RequestEditForm(forms.ModelForm):
         self.fields['interval_between_lessons'].disabled = True
         self.fields['duration_of_lessons'].disabled = True
         self.fields['further_information'].disabled = True
-    
+
     def save(self):
         instance_set = Request.objects.filter(id=self.instance_id)
         super().save(commit=False)
-        
+
         instance_set.update(
             number_of_lessons=self.cleaned_data.get('number_of_lessons'),
             interval_between_lessons=self.cleaned_data.get('interval_between_lessons'),
@@ -121,7 +123,7 @@ class RequestEditForm(forms.ModelForm):
             further_information=self.cleaned_data.get('further_information'),
         )
         instance_set[0].availability.set(self.cleaned_data.get('availability'))
-        
+
         return instance_set[0]
 
 
@@ -403,11 +405,11 @@ class BookingEditForm(forms.ModelForm):
             attrs={'type': 'float'}
         )
     )
-    
+
     def __init__(self, *args, **kwargs):
         self.instance_id = kwargs.pop('instance_id', None)
         super(BookingEditForm, self).__init__(*args, **kwargs)
-    
+
     def set_read_only(self):
         self.fields['day_of_the_week'].disabled = True
         self.fields['time_of_the_day'].disabled = True
@@ -434,6 +436,26 @@ class BookingEditForm(forms.ModelForm):
             number_of_lessons = self.cleaned_data.get('number_of_lessons'),
             further_information = self.cleaned_data.get('further_information')
         )
+
+
+        # Update invoice
+        student = Student.objects.get(user=instance_set[0].user)
+        invoice = instance_set[0].invoice
+        new_cost = instance_set[0].duration_of_lessons * float(self.cleaned_data.get('hourly_cost')) * instance_set[0].number_of_lessons / 60
+        invoice.full_amount = new_cost
+
+        if invoice.paid_amount > invoice.full_amount:
+            student.balance = student.balance + decimal.Decimal(
+                (invoice.paid_amount - decimal.Decimal(invoice.full_amount)))
+            invoice.paid_amount = invoice.full_amount
+            invoice.fully_paid = True
+            student.save()
+        elif invoice.paid_amount == invoice.full_amount:
+            invoice.fully_paid = True
+        else:
+            invoice.fully_paid = False
+
+        invoice.save()
 
         return instance_set[0]
 

@@ -246,24 +246,6 @@ def update_booking(request):
     form.save()
 
     booking = get_booking_object(booking_id)
-
-    #Update invoice
-    student = Student.objects.get(user=booking.user)
-    invoice = booking.invoice
-    new_cost = booking.duration_of_lessons * float(data['hourly_cost']) * booking.number_of_lessons / 60
-    invoice.full_amount = new_cost
-
-    if invoice.paid_amount > invoice.full_amount:
-        student.balance = student.balance + decimal.Decimal((invoice.paid_amount-decimal.Decimal(invoice.full_amount)))
-        invoice.paid_amount = invoice.full_amount
-        invoice.fully_paid = True
-        student.save()
-    elif invoice.paid_amount == invoice.full_amount:
-        invoice.fully_paid = True
-    else:
-        invoice.fully_paid = False
-
-    invoice.save()
     
     return booking
 
