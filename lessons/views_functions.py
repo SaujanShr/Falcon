@@ -340,7 +340,7 @@ def get_upcoming_term(): #Returns the next term
     return SchoolTerm.objects.all().filter(end_date__gt=datetime.date.today()) \
         .filter(start_date__gte=datetime.date.today()).order_by('start_date').first()
 
-def find_term_from_date(self,date): #Returns the term of the date
+def find_term_from_date(date): #Returns the term of the date
         term = SchoolTerm.objects.all().filter(end_date__gte=date).filter(start_date__lte=date).first()
         if not term:
             school_terms_starting_later = SchoolTerm.objects.filter(start_date__gte=date)
