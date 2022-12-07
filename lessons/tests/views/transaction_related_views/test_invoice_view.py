@@ -80,3 +80,11 @@ class InvoiceViewTestCase(TestCase):
         self.assertTrue(form.fields['student_name'].disabled)
         self.assertTrue(form.fields['full_amount'].disabled)
         self.assertTrue(form.fields['paid_amount'].disabled)
+
+    def test_unauthorised_user_cannot_see_invoice(self):
+        #self.client.logout()
+        self.client.login(email="janedoe@email.com", password="Password123")
+        response = self.client.get(self.url, {'invoice_id': '1234-123'}, follow=True)
+        response_url = reverse('invoice_list_student')
+        self.assertRedirects(response, response_url, status_code=302, target_status_code=200) 
+
