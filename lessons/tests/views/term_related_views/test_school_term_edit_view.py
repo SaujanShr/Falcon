@@ -21,17 +21,17 @@ class SchoolTermStudentView(TestCase):
 
         self.term1 = SchoolTerm.objects.get(id=1)
         self.term2 = SchoolTerm.objects.get(id=2)
-        self.url = reverse('term_view') + '?term_name=' + self.term1.term_name
+        self.url = reverse('term_view') + '?term_id=' + str(self.term1.id)
 
         self.form_input = {
-            'old_term_name': 'TermTwo',
+            'term_id': '1',
             'term_name': 'TermThree',
             'start_date': datetime.date(2024, 1, 1),
             'end_date': datetime.date(2024, 12, 31),
         }
 
     def test_school_term_edit_view_url(self):
-        self.assertEqual(self.url, '/term_view?term_name=TermOne')
+        self.assertEqual(self.url, '/term_view?term_id=1')
 
     def test_form_has_required_fields(self):
         response = self.client.get(self.url)
@@ -77,7 +77,7 @@ class SchoolTermStudentView(TestCase):
         self.assertTrue(form.is_bound)
 
     def test_unsuccessful_term_edit_due_to_duplicate_term_name(self):
-        self.form_input['term_name'] = 'TermOne'
+        self.form_input['term_name'] = 'TermTwo'
         before_count = SchoolTerm.objects.count()
         response = self.client.post(self.url, self.form_input)
         after_count = SchoolTerm.objects.count()
@@ -86,6 +86,23 @@ class SchoolTermStudentView(TestCase):
         self.assertTemplateUsed(response, 'term_view.html')
         form = response.context['form']
         self.assertTrue(isinstance(form, TermViewForm))
+
+    def test_unsuccessful_term_edit_due_to_non_existent_term_id(self):
+        self.form_input['term_id'] = '100'
+        before_count = SchoolTerm.objects.count()
+        response = self.client.post(self.url, self.form_input, follow=True)
+        after_count = SchoolTerm.objects.count()
+        self.assertEqual(after_count, before_count)
+        response_url = reverse('admin_term_view')
+        self.assertRedirects(response, response_url, status_code=302, target_status_code=200)
+        self.assertTemplateUsed(response, 'admin_term_view.html')
+
+    def test_unsuccessful_get_term_edit_due_to_non_existent_term_id(self):
+        self.url = reverse('term_view') + '?term_id=100'
+        response = self.client.get(self.url, follow=True)
+        response_url = reverse('admin_term_view')
+        self.assertRedirects(response, response_url, status_code=302, target_status_code=200)
+        self.assertTemplateUsed(response, 'admin_term_view.html')
 
     def test_unsuccessful_term_edit_due_to_empty_name(self):
         self.form_input['term_name'] = ''

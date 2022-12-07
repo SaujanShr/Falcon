@@ -115,9 +115,6 @@ class SchoolTerm(models.Model):
         ordering = ['start_date']
 
     def clean(self):
-        # Clean is not invoked when you use save? I think?
-        # Only on create()?? and is_valid()
-
         # Check valid dates
         if not(self.start_date and self.end_date):
             raise ValidationError("Date(s) are not in form DD-MM-YYYY")

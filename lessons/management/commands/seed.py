@@ -6,6 +6,7 @@ from datetime import datetime,date,timedelta
 from random import randint, sample
 from django.utils import timezone
 import pytz
+from .create_groups import Command as GroupCreator
 class Command(BaseCommand):
 
     PASSWORD_FOR_ALL = 'Password123'
@@ -40,35 +41,9 @@ class Command(BaseCommand):
         self.faker = Faker('en_GB')
         
     def handle(self, *args, **options):
-        if Group.objects.count() == 0:
-            GROUPS_PERMISSIONS = {
-                'Admin': {
-                    BankTransaction: ['add', 'change', 'delete', 'view'],
-                    Request: ['change', 'delete', 'view'],
-                    User: ['add', 'change', 'delete', 'view'],
-                },
-                'Student': {
-                    BankTransaction: ['add', 'change', 'delete', 'view'],
-                    Request: ['add', 'change', 'delete', 'view'],
-                    User: ['add', 'change', 'delete', 'view'],
-                },
-            }
-            for group_name in GROUPS_PERMISSIONS:
-                group, created = Group.objects.get_or_create(name=group_name)
-                for authorization in GROUPS_PERMISSIONS[group_name]:
-                    for permission_index, permission_name in enumerate(GROUPS_PERMISSIONS[group_name][authorization]):
-                        permission_codename = permission_name + "_" + authorization._meta.model_name
-                        try:
-                            permission = Permission.objects.get(codename=permission_codename)
-                            group.permissions.add(permission)
-                            print("Adding "
-                            + permission_codename
-                            + " to group "
-                            + group.__str__())
-                        except Permission.DoesNotExist:
-                            print(permission_codename + " not found")
-            
-        
+        #Create groups  
+        group_creator = GroupCreator()
+        group_creator.handle()
         #Seed Users
         print('Seeding data...')
         self._create_school_terms()

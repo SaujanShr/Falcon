@@ -47,3 +47,7 @@ class DayOfTheWeekModelTestCase(TestCase):
     def test_order_can_be_six(self):
         self.day.order = 6
         self._assert_day_is_valid()
+
+    def test_cannot_create_duplicate_day_of_the_week(self):
+        self.day = DayOfTheWeek(order=1, day=DayOfTheWeek.Day.TUESDAY)
+        self._assert_day_is_invalid()
