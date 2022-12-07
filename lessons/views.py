@@ -490,19 +490,6 @@ def booking_view(request):
                                                  'full_name': full_name, 'form': form, 'readonly': readonly})
 
 
-def admin_booking_view(request):
-    if request.method == 'POST':
-        if request.POST.get('update', None):
-            update_booking(request)
-        elif request.POST.get('delete', None):
-            delete_booking(request)
-        return redirect('admin_booking_list')
-
-    booking = Booking.objects.get(invoice_id=request.GET['inv_id'])
-    form = get_booking_form(request)
-    return render(request, 'edit_booking.html', {'form': form})
-
-
 """
 A view that presents a list of all terms.
 """
@@ -627,25 +614,6 @@ def admin_user_list(request):
 
     users = User.objects.all().order_by("groups")
     return render(request, 'admin_user_list.html', {'users': users})
-
-
-@login_required
-@allowed_groups(['Admin'])
-def admin_request_view(request):
-    request_id = get_request_id_from_request(request)
-    relation_id = get_request_object(request_id).relation_id
-
-    if request.method == 'GET':
-        if request.POST.get('return', None):
-            return redirect_with_queries('admin_request_list')
-
-    full_name = get_full_name_by_relation_id(request.user, relation_id)
-
-    form = get_request_view_form(request_id)
-    form.set_read_only()
-
-    return render(request, 'request_view.html', {'full_name': full_name, 'form': form})
-
 
 @login_required
 @allowed_groups("Director")
