@@ -12,7 +12,7 @@
     {% if terms %}
       {% for term in terms %}
         <tr><form action="{% url 'term_view' %}" method="get">
-          <input type="hidden" name="term_name" value="{{ term.term_name }}"/>
+          <input type="hidden" name="term_id" value="{{ term.id }}"/>
           <td style="text-align:center">{{ term.term_name }}</td>
           <td style="text-align:center">{{ term.start_date }}</td>
           <td style="text-align:center">{{ term.end_date }}</td>

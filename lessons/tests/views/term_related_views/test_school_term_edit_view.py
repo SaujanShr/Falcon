@@ -21,7 +21,7 @@ class SchoolTermStudentView(TestCase):
 
         self.term1 = SchoolTerm.objects.get(id=1)
         self.term2 = SchoolTerm.objects.get(id=2)
-        self.url = reverse('term_view') + '?term_name=' + self.term1.term_name
+        self.url = reverse('term_view') + '?term_id=' + str(self.term1.id)
 
         self.form_input = {
             'term_id': '1',
@@ -31,7 +31,7 @@ class SchoolTermStudentView(TestCase):
         }
 
     def test_school_term_edit_view_url(self):
-        self.assertEqual(self.url, '/term_view?term_name=TermOne')
+        self.assertEqual(self.url, '/term_view?term_id=1')
 
     def test_form_has_required_fields(self):
         response = self.client.get(self.url)

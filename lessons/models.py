@@ -105,7 +105,6 @@ class Student(models.Model):
             student_group = Group.objects.get(name='Student')
             student_group.user_set.add(self.user)
 
-
 class SchoolTerm(models.Model):
     term_name = models.CharField(unique=True, blank=False, max_length=18)
     start_date = models.DateField(blank=False)
@@ -131,7 +130,6 @@ class SchoolTerm(models.Model):
             # existing ranges, or if one of the existing start dates falls between the new range.
             if (term.start_date <= self.start_date < term.end_date) or (self.start_date <= term.start_date < self.end_date):
                 raise ValidationError("There is a overlap with this new date range and ranges for existing terms")
-
 
 class Child(models.Model):
     parent = models.ForeignKey(User, blank=False, on_delete=models.CASCADE)
