@@ -181,7 +181,7 @@ class FulfilRequestForm(forms.ModelForm):
 
     hourly_cost = forms.CharField(
         widget=forms.TextInput(
-            attrs={'type':'number'}
+            attrs={'type':'decimal'}
         )
     )
 
@@ -393,7 +393,7 @@ class BookingViewForm(forms.ModelForm):
     )
     hourly_cost = forms.CharField(
         widget=forms.TextInput(
-            attrs={'type': 'number'}
+            attrs={'type': 'float'}
         )
     )
     

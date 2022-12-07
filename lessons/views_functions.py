@@ -250,7 +250,7 @@ def update_booking(request):
     #Update invoice
     student = Student.objects.get(user=booking.user)
     invoice = booking.invoice
-    new_cost = booking.duration_of_lessons * int(data['hourly_cost']) * booking.number_of_lessons / 60
+    new_cost = booking.duration_of_lessons * float(data['hourly_cost']) * booking.number_of_lessons / 60
     invoice.full_amount = new_cost
 
     if invoice.paid_amount > invoice.full_amount:
@@ -276,7 +276,7 @@ def delete_booking(request):
 def get_booking_form(booking_id):
     booking = get_booking_object(booking_id)
     invoice = Invoice.objects.get(invoice_number=booking.invoice_id)
-    hourly_cost = int(invoice.full_amount/booking.duration_of_lessons/booking.number_of_lessons*60)
+    hourly_cost = float(invoice.full_amount / booking.duration_of_lessons / booking.number_of_lessons * 60)
     form = BookingViewForm(
         initial={
             'invoice': booking.invoice,
