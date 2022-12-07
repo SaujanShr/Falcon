@@ -1,6 +1,6 @@
 from django.test import TestCase
 from lessons.models import User, Child
-from lessons.forms import ChildViewForm
+from lessons.forms import ChildEditForm
 
 class ChildViewFormTestCase(TestCase):
     '''Unit tests for the ChildViewForm form'''
@@ -22,24 +22,24 @@ class ChildViewFormTestCase(TestCase):
         }
     
     def _assert_form_is_valid(self):
-        form = ChildViewForm(instance_id=self.child.id, data=self.form_input)
+        form = ChildEditForm(instance_id=self.child.id, data=self.form_input)
         self.assertTrue(form.is_valid())
         
     def _assert_form_is_invalid(self):
-        form = ChildViewForm(instance_id=self.child.id, data=self.form_input)
+        form = ChildEditForm(instance_id=self.child.id, data=self.form_input)
         self.assertFalse(form.is_valid())
     
     def test_valid_child_view_form(self):
         self._assert_form_is_valid()
         
     def test_form_contains_required_fields(self):
-        form = ChildViewForm(instance_id=self.child.id, data=self.form_input)
+        form = ChildEditForm(instance_id=self.child.id, data=self.form_input)
         self.assertNotIn('parent', form.fields)
         self.assertIn('first_name', form.fields)
         self.assertIn('last_name', form.fields)
     
     def test_form_fields_have_correct_initial_values(self):
-        form = ChildViewForm(
+        form = ChildEditForm(
             initial={
                 'first_name':self.child.first_name,
                 'last_name':self.child.last_name
@@ -89,7 +89,7 @@ class ChildViewFormTestCase(TestCase):
         self._assert_form_is_valid()
 
     def test_form_saves_correctly(self):
-        form = ChildViewForm(instance_id=self.child.id, data=self.form_input)
+        form = ChildEditForm(instance_id=self.child.id, data=self.form_input)
         
         before_count = Child.objects.count()
         form.save()

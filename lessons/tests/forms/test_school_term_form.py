@@ -2,7 +2,7 @@
 import datetime
 from django import forms
 from django.test import TestCase
-from lessons.forms import TermViewForm
+from lessons.forms import TermEditForm
 from lessons.models import SchoolTerm
 
 
@@ -17,11 +17,11 @@ class SignUpFormTestCase(TestCase):
         }
 
     def test_valid_term_view_form(self):
-        form = TermViewForm(data=self.form_input)
+        form = TermEditForm(data=self.form_input)
         self.assertTrue(form.is_valid())
 
     def test_form_has_necessary_fields(self):
-        form = TermViewForm()
+        form = TermEditForm()
         self.assertIn('term_name', form.fields)
 
         self.assertIn('start_date', form.fields)
@@ -34,52 +34,52 @@ class SignUpFormTestCase(TestCase):
 
     def test_term_name_uses_model_validation(self):
         self.form_input['term_name'] = 'a' * 18
-        form = TermViewForm(data=self.form_input)
+        form = TermEditForm(data=self.form_input)
         self.assertTrue(form.is_valid())
 
         self.form_input['term_name'] = 'a' * 19
-        form = TermViewForm(data=self.form_input)
+        form = TermEditForm(data=self.form_input)
         self.assertFalse(form.is_valid())
 
     def test_start_date_uses_model_validation(self):
         self.form_input['start_date'] = ''
-        form = TermViewForm(data=self.form_input)
+        form = TermEditForm(data=self.form_input)
         self.assertFalse(form.is_valid())
 
         self.form_input['start_date'] = 'NOT_DATE'
-        form = TermViewForm(data=self.form_input)
+        form = TermEditForm(data=self.form_input)
         self.assertFalse(form.is_valid())
 
         self.form_input['start_date'] = datetime.date(2022, 1, 1)
-        form = TermViewForm(data=self.form_input)
+        form = TermEditForm(data=self.form_input)
         self.assertTrue(form.is_valid())
 
     def test_end_date_uses_model_validation(self):
         self.form_input['end_date'] = ''
-        form = TermViewForm(data=self.form_input)
+        form = TermEditForm(data=self.form_input)
         self.assertFalse(form.is_valid())
 
         self.form_input['end_date'] = 'NOT_DATE'
-        form = TermViewForm(data=self.form_input)
+        form = TermEditForm(data=self.form_input)
         self.assertFalse(form.is_valid())
 
         self.form_input['end_date'] = datetime.date(2024, 1, 1)
-        form = TermViewForm(data=self.form_input)
+        form = TermEditForm(data=self.form_input)
         self.assertTrue(form.is_valid())
 
     def test_start_date_must_be_before_end_date(self):
         self.form_input['start_date'] = datetime.date(2022, 1, 1)
         self.form_input['end_date'] = datetime.date(2021, 1, 1)
-        form = TermViewForm(data=self.form_input)
+        form = TermEditForm(data=self.form_input)
         self.assertFalse(form.is_valid())
 
         self.form_input['start_date'] = datetime.date(2022, 1, 1)
         self.form_input['end_date'] = datetime.date(2022, 1, 1)
-        form = TermViewForm(data=self.form_input)
+        form = TermEditForm(data=self.form_input)
         self.assertFalse(form.is_valid())
 
     def test_form_must_save_correctly(self):
-        form = TermViewForm(data=self.form_input)
+        form = TermEditForm(data=self.form_input)
 
         before_count = SchoolTerm.objects.count()
         form.save()
