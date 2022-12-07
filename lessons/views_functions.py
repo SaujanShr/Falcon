@@ -516,3 +516,11 @@ def user_authorised_to_see_invoice(request, invoice_id):
 
     if invoice_object.student == student_object: return True
     return False
+
+def child_exists(relation_id):
+    return Child.objects.filter(id=relation_id).exists()
+
+def user_is_parent(request, relation_id):
+    child = get_child_object(relation_id)
+    if request.user == child.parent: return True
+    return False

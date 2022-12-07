@@ -137,6 +137,9 @@ def children_list(request):
 def child_page(request):
     relation_id = get_relation_id_from_request(request)
 
+    if not child_exists(relation_id) or not user_is_parent(request, relation_id): 
+        return redirect('children_list')
+
     if request.method == 'GET':
         if request.GET.get('requests', None):
             return redirect_with_queries('child_request_list', relation_id=relation_id)
@@ -179,6 +182,9 @@ def new_child_view(request):
 def child_view(request):
     relation_id = get_relation_id_from_request(request)
 
+    if not child_exists(relation_id) or not user_is_parent(request, relation_id): 
+        return redirect('children_list')
+
     if request.method == 'POST':
         if request.POST.get('update', None) and update_child_object_from_request(request):
             return redirect('children_list')
@@ -200,6 +206,9 @@ def child_view(request):
 def child_request_list(request):
     relation_id = get_relation_id_from_request(request)
 
+    if not child_exists(relation_id) or not user_is_parent(request, relation_id): 
+        return redirect('children_list')
+
     child = get_child_idname(relation_id)
     child_requests = get_and_format_requests_for_display(request.user, relation_id)
 
@@ -210,6 +219,9 @@ def child_request_list(request):
 @allowed_groups(['Student'])
 def child_booking_list(request):
     relation_id = get_relation_id_from_request(request)
+
+    if not child_exists(relation_id) or not user_is_parent(request, relation_id): 
+        return redirect('children_list')
 
     child = get_child_idname(relation_id)
     child_bookings = get_booking_objects(request.user, relation_id)
@@ -241,6 +253,9 @@ def lesson_list_student(request):
 @allowed_groups(['Student'])
 def lesson_list_child(request):
     relation_id = get_relation_id_from_request(request)
+
+    if not child_exists(relation_id) or not user_is_parent(request, relation_id): 
+        return redirect('children_list')
 
     child = get_child_idname(relation_id)
     child_bookings = get_booking_objects(request.user, relation_id)
