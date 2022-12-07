@@ -87,6 +87,23 @@ class SchoolTermStudentView(TestCase):
         form = response.context['form']
         self.assertTrue(isinstance(form, TermViewForm))
 
+    def test_unsuccessful_term_edit_due_to_non_existent_term_id(self):
+        self.form_input['term_id'] = '100'
+        before_count = SchoolTerm.objects.count()
+        response = self.client.post(self.url, self.form_input, follow=True)
+        after_count = SchoolTerm.objects.count()
+        self.assertEqual(after_count, before_count)
+        response_url = reverse('admin_term_view')
+        self.assertRedirects(response, response_url, status_code=302, target_status_code=200)
+        self.assertTemplateUsed(response, 'admin_term_view.html')
+
+    def test_unsuccessful_get_term_edit_due_to_non_existent_term_id(self):
+        self.url = reverse('term_view') + '?term_id=100'
+        response = self.client.get(self.url, follow=True)
+        response_url = reverse('admin_term_view')
+        self.assertRedirects(response, response_url, status_code=302, target_status_code=200)
+        self.assertTemplateUsed(response, 'admin_term_view.html')
+
     def test_unsuccessful_term_edit_due_to_empty_name(self):
         self.form_input['term_name'] = ''
         before_count = SchoolTerm.objects.count()
