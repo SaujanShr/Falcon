@@ -198,7 +198,6 @@ def format_booking_for_display(booking: Booking):
     booking.duration_of_lessons = Booking.LessonDuration.choices[
         Booking.LessonDuration.values.index(booking.duration_of_lessons)
     ][1]
-    print('duration:', booking.duration_of_lessons)
     booking.student_name = get_full_name_by_relation_id(booking.user, booking.relation_id)
     
     return booking
