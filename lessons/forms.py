@@ -83,7 +83,7 @@ class NewRequestForm(forms.ModelForm):
         
         return res 
 
-class RequestForm(forms.ModelForm):
+class RequestViewForm(forms.ModelForm):
     class Meta:
         model = Request
         fields = ['date', 'availability', 'number_of_lessons', 'interval_between_lessons', 
@@ -98,7 +98,7 @@ class RequestForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         self.instance_id = kwargs.pop('instance_id', None)
-        super(RequestForm, self).__init__(*args, **kwargs)
+        super(RequestViewForm, self).__init__(*args, **kwargs)
         
         self.fields['date'].disabled = True
         self.fields['fulfilled'].disabled = True

@@ -2,7 +2,7 @@ import decimal
 import urllib
 from django.utils import timezone
 from .models import Request, Invoice, Student, Child, Booking, DayOfTheWeek, SchoolTerm, BankTransaction
-from .forms import RequestForm, FulfilRequestForm, BookingViewForm, ChildViewForm, TransactionSubmitForm, InvoiceViewForm
+from .forms import RequestViewForm, FulfilRequestForm, BookingViewForm, ChildViewForm, TransactionSubmitForm, InvoiceViewForm
 from .utils import *
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
@@ -106,7 +106,7 @@ def update_request_object_from_request(request):
     user_request = get_request_object_from_request(request)
     data = request.POST
     
-    form = RequestForm(instance_id=user_request.id, data=data)
+    form = RequestViewForm(instance_id=user_request.id, data=data)
     
     if form.is_valid():
         return form.save()
@@ -320,7 +320,7 @@ def get_invoice_view_form(invoice_id):
 def get_request_view_form(request_id):
     user_request = get_request_object(request_id)
 
-    form = RequestForm(
+    form = RequestViewForm(
         initial={
             'date':user_request.date,
             'relation_id':user_request.relation_id,
