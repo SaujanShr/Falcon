@@ -43,16 +43,19 @@ class Command(BaseCommand):
         self.faker = Faker('en_GB')
         
     def handle(self, *args, **options):
-        #Create groups  
-        group_creator = GroupCreator()
-        group_creator.handle()
-        #Seed Users
-        print('Seeding data...')
-        self._create_school_terms()
-        self._create_days_of_the_week()
-        self._create_required_records()
-        self._create_random_students_and_their_children()
-        print("Done!")
+        if not self.database_is_empty():
+            print("WARNING: The database is currently not empty. Please unseed before attempting to seed again.")
+        else:
+            #Create groups  
+            group_creator = GroupCreator()
+            group_creator.handle()
+            #Seed Users
+            print('Seeding data...')
+            self._create_school_terms()
+            self._create_days_of_the_week()
+            self._create_required_records()
+            self._create_random_students_and_their_children()
+            print("Done!")
         
 
     def _create_school_terms(self):
@@ -273,3 +276,6 @@ class Command(BaseCommand):
                     min_start_date = term_in_list.start_date
                     term = term_in_list
         return term
+
+    def database_is_empty(self):
+        return SchoolTerm.objects.all().count() + DayOfTheWeek.objects.all().count() + Request.objects.all().count() + Student.objects.all().count() + Booking.objects.all().count() + BankTransaction.objects.all().count() + Invoice.objects.all().count() + Child.objects.all().count() == 0
