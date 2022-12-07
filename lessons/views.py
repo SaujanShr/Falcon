@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from .forms import LogInForm, TransactionSubmitForm, NewRequestForm, NewChildForm, SignUpForm, PasswordForm, UserForm, CreateUser, TermViewForm
+from .forms import LogInForm, TransactionSubmitForm, NewRequestForm, NewChildForm, SignUpForm, PasswordForm, UserForm, CreateUser, TermEditForm
 from .models import Student, Booking, BankTransaction, User
 from django.contrib import messages
 from django.contrib.auth import login, logout
@@ -535,7 +535,7 @@ def term_view(request):
         # Check to see if the term id in the get request exists.
         if SchoolTerm.objects.filter(id=term_id).exists():
             term = SchoolTerm.objects.get(id=request.GET['term_id'])
-            form = TermViewForm(instance=term)
+            form = TermEditForm(instance=term)
             return render(request, "term_view.html", {'form': form, 'term_id': term.id, 'term_name': term.term_name})
 
     if request.method == 'POST':
@@ -549,7 +549,7 @@ def term_view(request):
         # Create a copy of the request data, and delete term, Otherwise term name validation (Unique constraint)
         data = request.POST.copy()
         term.delete()
-        form = TermViewForm(data)
+        form = TermEditForm(data)
 
         if form.is_valid():
             form.save()
@@ -569,13 +569,13 @@ This view enables the creation of a new term.
 @allowed_groups(["Admin", "Director"])
 def new_term_view(request):
     if request.method == 'POST':
-        form = TermViewForm(request.POST)
+        form = TermEditForm(request.POST)
         if form.is_valid():
             form.save()
             messages.add_message(request, messages.SUCCESS, "Term created!")
             return redirect('admin_term_view')
     else:
-        form = TermViewForm()
+        form = TermEditForm()
     return render(request, 'new_term_view.html', {'form': form})
 
 

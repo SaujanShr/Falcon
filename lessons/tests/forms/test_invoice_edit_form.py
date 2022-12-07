@@ -1,6 +1,6 @@
 from django.test import TestCase
 from lessons.models import User, Booking, Invoice
-from lessons.forms import InvoiceViewForm
+from lessons.forms import InvoiceEditForm
 
 class InvoiceViewFormTestCase(TestCase):
     '''Unit tests for the InvoiceViewForm form'''
@@ -9,7 +9,7 @@ class InvoiceViewFormTestCase(TestCase):
     
     def setUp(self):
         self.user = User.objects.get(email='johndoe@email.com')
-        self.form = InvoiceViewForm(
+        self.form = InvoiceEditForm(
             initial={
                 'invoice_number':'0001-0001',
                 'student_name': 'John Doe',

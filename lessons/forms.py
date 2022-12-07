@@ -21,14 +21,14 @@ class NewChildForm(forms.ModelForm):
         child.parent = self.user
         return child.save()
 
-class ChildViewForm(forms.ModelForm):
+class ChildEditForm(forms.ModelForm):
     class Meta:
         model = Child
         fields = ['first_name', 'last_name']
     
     def __init__(self, *args, **kwargs):
         self.instance_id = kwargs.pop('instance_id', None)
-        super(ChildViewForm, self).__init__(*args, **kwargs)
+        super(ChildEditForm, self).__init__(*args, **kwargs)
     
     def save(self):
         instance_set = Child.objects.filter(id=self.instance_id)
@@ -39,7 +39,7 @@ class ChildViewForm(forms.ModelForm):
         )
         return instance_set[0]
 
-class InvoiceViewForm(forms.ModelForm):
+class InvoiceEditForm(forms.ModelForm):
     class Meta:
         model = Invoice
         fields = ['invoice_number', 'full_amount', 'paid_amount']
@@ -48,7 +48,7 @@ class InvoiceViewForm(forms.ModelForm):
 
     #Invoices should never be edited manually, this form is purely for display.
     def __init__(self, *args, **kwargs):
-        super(InvoiceViewForm, self).__init__(*args, **kwargs)
+        super(InvoiceEditForm, self).__init__(*args, **kwargs)
         self.fields['invoice_number'].disabled = True
         self.fields['student_name'].disabled = True
         self.fields['full_amount'].disabled = True
@@ -82,7 +82,7 @@ class NewRequestForm(forms.ModelForm):
         
         return res 
 
-class RequestViewForm(forms.ModelForm):
+class RequestEditForm(forms.ModelForm):
     class Meta:
         model = Request
         fields = ['date', 'availability', 'number_of_lessons', 'interval_between_lessons', 
@@ -97,7 +97,7 @@ class RequestViewForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         self.instance_id = kwargs.pop('instance_id', None)
-        super(RequestViewForm, self).__init__(*args, **kwargs)
+        super(RequestEditForm, self).__init__(*args, **kwargs)
         
         self.fields['date'].disabled = True
         self.fields['fulfilled'].disabled = True
@@ -354,7 +354,7 @@ class TransactionSubmitForm(forms.ModelForm):
         # alter string so that it fits the form xxxx-yyy
         pass
 
-class BookingViewForm(forms.ModelForm):
+class BookingEditForm(forms.ModelForm):
     class Meta:
         model = Booking
         fields = ['day_of_the_week','time_of_the_day','teacher','start_date',
@@ -398,7 +398,7 @@ class BookingViewForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         self.instance_id = kwargs.pop('instance_id', None)
-        super(BookingViewForm, self).__init__(*args, **kwargs)
+        super(BookingEditForm, self).__init__(*args, **kwargs)
     
     def set_read_only(self):
         self.fields['day_of_the_week'].disabled = True
@@ -431,7 +431,7 @@ class BookingViewForm(forms.ModelForm):
 
 
 
-class TermViewForm(forms.ModelForm):
+class TermEditForm(forms.ModelForm):
     class Meta:
         model = SchoolTerm
         fields = ['term_name', 'start_date', 'end_date']

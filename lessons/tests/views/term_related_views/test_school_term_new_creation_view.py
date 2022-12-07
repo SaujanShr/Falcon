@@ -4,7 +4,7 @@ from django.test import TestCase
 from django import forms
 from django.urls import reverse
 from django.contrib import messages
-from lessons.forms import TermViewForm
+from lessons.forms import TermEditForm
 from lessons.models import SchoolTerm
 from lessons.tests.helpers import HandleGroups, reverse_with_next
 
@@ -83,7 +83,7 @@ class NewSchoolTermView(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'new_term_view.html')
         form = response.context['form']
-        self.assertTrue(isinstance(form, TermViewForm))
+        self.assertTrue(isinstance(form, TermEditForm))
         self.assertTrue(form.is_bound)
 
     def test_unsuccessful_term_creation_due_to_invalid_end_date(self):
@@ -95,7 +95,7 @@ class NewSchoolTermView(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'new_term_view.html')
         form = response.context['form']
-        self.assertTrue(isinstance(form, TermViewForm))
+        self.assertTrue(isinstance(form, TermEditForm))
         self.assertTrue(form.is_bound)
 
     def test_unsuccessful_term_creation_due_end_date_before_start_date(self):
@@ -108,7 +108,7 @@ class NewSchoolTermView(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'new_term_view.html')
         form = response.context['form']
-        self.assertTrue(isinstance(form, TermViewForm))
+        self.assertTrue(isinstance(form, TermEditForm))
         self.assertTrue(form.is_bound)
 
     def test_unsuccessful_term_creation_due_to_duplicate_name(self):
@@ -120,7 +120,7 @@ class NewSchoolTermView(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'new_term_view.html')
         form = response.context['form']
-        self.assertTrue(isinstance(form, TermViewForm))
+        self.assertTrue(isinstance(form, TermEditForm))
         self.assertTrue(form.is_bound)
 
     def test_unsuccessful_term_creation_due_to_empty_name(self):
@@ -132,7 +132,7 @@ class NewSchoolTermView(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'new_term_view.html')
         form = response.context['form']
-        self.assertTrue(isinstance(form, TermViewForm))
+        self.assertTrue(isinstance(form, TermEditForm))
         self.assertTrue(form.is_bound)
 
     def test_unsuccessful_term_creation_due_to_new_date_clashes_with_existing_term(self):
@@ -145,7 +145,7 @@ class NewSchoolTermView(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'new_term_view.html')
         form = response.context['form']
-        self.assertTrue(isinstance(form, TermViewForm))
+        self.assertTrue(isinstance(form, TermEditForm))
         self.assertTrue(form.is_bound)
 
     def test_successful_term_creation(self):

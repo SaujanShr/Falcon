@@ -2,7 +2,7 @@ import decimal
 import urllib
 from django.utils import timezone
 from .models import Request, Invoice, Student, Child, Booking, DayOfTheWeek, SchoolTerm, BankTransaction
-from .forms import RequestViewForm, FulfilRequestForm, BookingViewForm, ChildViewForm, TransactionSubmitForm, InvoiceViewForm
+from .forms import RequestEditForm, FulfilRequestForm, BookingEditForm, ChildEditForm, TransactionSubmitForm, InvoiceEditForm
 from .utils import *
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
@@ -106,7 +106,7 @@ def update_request_object_from_request(request):
     user_request = get_request_object_from_request(request)
     data = request.POST
     
-    form = RequestViewForm(instance_id=user_request.id, data=data)
+    form = RequestEditForm(instance_id=user_request.id, data=data)
     
     if form.is_valid():
         return form.save()
@@ -151,7 +151,7 @@ def update_child_object_from_request(request):
     child = get_child_object_from_request(request)
     data = request.POST
     
-    form = ChildViewForm(instance_id=child.id, data=data)
+    form = ChildEditForm(instance_id=child.id, data=data)
     if form.is_valid():
         return form.save()
 
@@ -240,7 +240,7 @@ def update_booking(request):
     data = request.POST
     booking_id = get_booking_id_from_request(request)
 
-    form = BookingViewForm(data=data, instance_id=booking_id)
+    form = BookingEditForm(data=data, instance_id=booking_id)
     if not form.is_valid():
         return
     form.save()
@@ -277,7 +277,7 @@ def get_booking_form(booking_id):
     booking = get_booking_object(booking_id)
     invoice = Invoice.objects.get(invoice_number=booking.invoice_id)
     hourly_cost = float(invoice.full_amount / booking.duration_of_lessons / booking.number_of_lessons * 60)
-    form = BookingViewForm(
+    form = BookingEditForm(
         initial={
             'invoice': booking.invoice,
             'day_of_the_week': booking.day_of_the_week,
@@ -296,7 +296,7 @@ def get_booking_form(booking_id):
 
 def get_child_view_form(request_id):
     child = get_child_object(request_id)
-    form = ChildViewForm(
+    form = ChildEditForm(
         initial={
             'first_name':child.first_name,
             'last_name':child.last_name
@@ -307,7 +307,7 @@ def get_child_view_form(request_id):
 def get_invoice_view_form(invoice_id):
     invoice = get_invoice_object(invoice_id)
     #['invoice_number', 'student', 'full_amount', 'paid_amount', 'fully_paid']
-    form = InvoiceViewForm(
+    form = InvoiceEditForm(
         initial={
             'invoice_number':invoice.invoice_number,
             'student_name': invoice.student.user.email,
@@ -322,7 +322,7 @@ def get_invoice_view_form(invoice_id):
 def get_request_view_form(request_id):
     user_request = get_request_object(request_id)
 
-    form = RequestViewForm(
+    form = RequestEditForm(
         initial={
             'date':user_request.date,
             'relation_id':user_request.relation_id,
