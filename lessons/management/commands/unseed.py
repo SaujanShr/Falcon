@@ -3,6 +3,7 @@ from lessons.models import User,SchoolTerm,DayOfTheWeek,Request,Student,Booking,
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
+        print("Unseeding data...")
         User.objects.all().delete()
         SchoolTerm.objects.all().delete()
         DayOfTheWeek.objects.all().delete()
@@ -12,3 +13,4 @@ class Command(BaseCommand):
         BankTransaction.objects.all().delete()
         Invoice.objects.all().delete()
         Child.objects.all().delete()
+        print("Done!")
