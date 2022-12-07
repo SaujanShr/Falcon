@@ -187,6 +187,7 @@ class FulfilRequestForm(forms.ModelForm):
     def save(self):
         super().save(commit=False)
         req = Request.objects.get(id=self.request_id)
+        print("SAVE")
         if not req.fulfilled:
             booking = Booking(
                 time_of_the_day=self.cleaned_data.get('time_of_lesson'),

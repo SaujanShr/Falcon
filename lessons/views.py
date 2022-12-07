@@ -255,7 +255,6 @@ def lesson_list_child(request):
 def home(request):
     return render(request, 'home.html')
 
-
 @login_prohibited
 def log_in(request):
     if request.method == 'POST':
