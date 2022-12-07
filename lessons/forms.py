@@ -133,8 +133,8 @@ class FulfilRequestForm(forms.ModelForm):
         widgets = {'further_information':forms.Textarea(attrs={'style': "width:100%;"})}
 
     field_order = ['availability', 'interval_between_lessons', 'number_of_lessons',
-                   'duration_of_lessons', 'time_of_lesson', 'teacher', 'hourly_cost',
-                   'start_date', 'end_date', 'further_information']
+                   'duration_of_lessons', 'time_of_lesson', 'teacher',
+                   'start_date', 'end_date', 'further_information', 'hourly_cost']
 
     def __init__(self, *args, **kwargs):
         self.request_id = kwargs.pop('request_id', None)
@@ -173,7 +173,7 @@ class FulfilRequestForm(forms.ModelForm):
     )
 
     end_date = forms.DateField(
-        label='End date (leave empty for last day of term):',
+        label='End date:',
         widget=forms.DateInput(
             attrs={'type': 'date'}
         )
