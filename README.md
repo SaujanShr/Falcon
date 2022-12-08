@@ -28,11 +28,6 @@ Install all required packages:
 $ pip3 install -r requirements.txt
 ```
 
-Make the database migrations:
-```
-$ python3 manage.py makemigrations
-```
-
 Migrate the database:
 
 ```
@@ -55,11 +50,6 @@ Run all tests with:
 ```
 $ python3 manage.py test
 ```
-
-Creating user Groups to enable various levels of authorisations:
-'''
-$ python3 manage.py create_groups
-'''
 
 ## Sources
 *Packages:*
