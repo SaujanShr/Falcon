@@ -224,7 +224,7 @@ class Command(BaseCommand):
         invoice.fully_paid=True
 
     def underpay_invoice(self,invoice):
-        amount_paid = invoice.full_amount - randint(0,int(invoice.full_amount+1))
+        amount_paid = invoice.full_amount - randint(0,int(invoice.full_amount-1))
         BankTransaction.objects.create(
             date = timezone.now(),
             student = invoice.student,
