@@ -39,7 +39,7 @@ class RequestViewTestCase(TestCase):
 
         self.request.save()
 
-        self.term = SchoolTerm.objects.all()[0]
+        self.term = SchoolTerm.objects.all()[1]
 
         self.form_input = {
             'time_of_lesson': '10:20',
