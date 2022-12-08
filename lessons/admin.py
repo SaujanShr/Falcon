@@ -37,7 +37,6 @@ class RequestAdmin(admin.ModelAdmin):
 class BookingAdmin(admin.ModelAdmin):
     list_display = [
         'invoice_id',
-        #'day_of_the_week',
         'time_of_the_day',
         'user',
         'relation_id',
