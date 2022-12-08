@@ -419,7 +419,7 @@ def transaction_list_student(request):
 @login_required
 @allowed_groups(["Admin", "Director"])
 def invoice_list_admin(request):
-    invoices = Invoice.objects.all().reverse()
+    invoices = Invoice.objects.all().order_by('-invoice_number')
     return render(request, 'invoice_list.html', {'invoices': invoices})
 
 
