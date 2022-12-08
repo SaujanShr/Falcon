@@ -4,6 +4,7 @@ from django.test import TestCase
 from lessons.models import User
 from lessons.tests.helpers import create_user_groups, HandleGroups
 
+
 class UserModelTestCase(TestCase):
     """Unit tests for the User model."""
 
@@ -122,6 +123,27 @@ class UserModelTestCase(TestCase):
             self.user.full_clean()
         except (ValidationError):
             self.fail('Test user should be valid')
+        
+    def test_creating_user_without_email_should_fail(self):
+        try:
+            User.objects.create_user(first_name="test",last_name="test",password="Password123")
+            self.assertFalse(True)
+        except:
+            self.assertTrue(True)
+    
+    def test_creating_superuser_should_have_us_superuser_true(self):
+        try:
+            User.objects.create_superuser(first_name="test",last_name="test",password="Password123",is_superuser=False)
+            self.assertFalse(True)
+        except:
+            self.assertTrue(True)
+
+    def test_creating_superuser_should_have_us_staff_true(self):
+        try:
+            User.objects.create_superuser(first_name="test",last_name="test",password="Password123",is_superuser=True,is_staff=False)
+            self.assertFalse(True)
+        except:
+            self.assertTrue(True)
 
     def _assert_user_is_invalid(self):
         with self.assertRaises(ValidationError):
@@ -129,7 +151,6 @@ class UserModelTestCase(TestCase):
 
     def _create_second_user(self):
         user = User.objects.create_user(
-            '@janedoe',
             first_name='Jane',
             last_name='Doe',
             email='janedoe@example.org',

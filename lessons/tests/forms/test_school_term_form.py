@@ -84,7 +84,7 @@ class SignUpFormTestCase(TestCase):
         before_count = SchoolTerm.objects.count()
         form.save()
         after_count = SchoolTerm.objects.count()
-        self.assertEqual(after_count, before_count + 1)  # Check that the user count has increased by 1
+        self.assertEqual(after_count, before_count + 1)
 
         term = SchoolTerm.objects.get(term_name='Term one')
         self.assertEqual(term.term_name, 'Term one')

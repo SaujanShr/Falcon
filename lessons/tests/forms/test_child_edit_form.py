@@ -2,8 +2,9 @@ from django.test import TestCase
 from lessons.models import User, Child
 from lessons.forms import ChildEditForm
 
+
 class ChildViewFormTestCase(TestCase):
-    '''Unit tests for the ChildViewForm form'''
+    """Unit tests for the ChildViewForm form"""
     
     fixtures = ['lessons/tests/fixtures/default_user.json']
     

@@ -19,7 +19,7 @@ class RequestViewFormTestCase(TestCase):
         # Create form inputs
         self.user = User.objects.all()[0]
         self.currentDate = timezone.datetime.now(tz=timezone.utc)
-        availability = [DayOfTheWeek.objects.get(day=DayOfTheWeek.Day.TUESDAY), 
+        availability = [DayOfTheWeek.objects.get(day=DayOfTheWeek.Day.TUESDAY),
                         DayOfTheWeek.objects.get(day=DayOfTheWeek.Day.WEDNESDAY)]
         number_of_lessons = 1
         interval_between_lessons = Request.IntervalBetweenLessons.ONE_WEEK
@@ -35,11 +35,11 @@ class RequestViewFormTestCase(TestCase):
             'further_information': further_information,
             'fulfilled': ''
         }
-        
+
     def _assert_form_is_valid(self):
         form = RequestEditForm(data=self.form_input)
         self.assertTrue(form.is_valid())
-        
+
     def _assert_form_is_invalid(self):
         form = RequestEditForm(data=self.form_input)
         self.assertFalse(form.is_valid())
@@ -60,16 +60,12 @@ class RequestViewFormTestCase(TestCase):
         self.form_input['availability'] = None
         self._assert_form_is_invalid()
 
-
-    
     def test_availability_can_accept_multiple_choices(self):
         self.form_input['availability'] = DayOfTheWeek.objects.get(
             day=DayOfTheWeek.Day.TUESDAY), DayOfTheWeek.objects.get(
             day=DayOfTheWeek.Day.WEDNESDAY), DayOfTheWeek.objects.get(day=DayOfTheWeek.Day.THURSDAY)
         self._assert_form_is_valid()
 
-
-    
     def test_availability_can_accept_all_choices(self):
         self.form_input['availability'] = DayOfTheWeek.objects.get(
             day=DayOfTheWeek.Day.MONDAY), DayOfTheWeek.objects.get(
@@ -143,10 +139,6 @@ class RequestViewFormTestCase(TestCase):
         self.assertTrue(form.fields['duration_of_lessons'].disabled)
         self.assertTrue(form.fields['further_information'].disabled)
 
-    # Todo: add form_must_save_properly()
-
-    #This test is broken, the availability part.
-
     def test_form_must_save_properly(self):
         request = Request.objects.create(
             user=self.user,
@@ -158,18 +150,18 @@ class RequestViewFormTestCase(TestCase):
             further_information=self.form_input['further_information']
         )
         request.availability.set(self.form_input['availability'])
-        
+
         self.form_input['number_of_lessons'] = 10
         self.form_input['interval_between_lessons'] = Request.IntervalBetweenLessons.TWO_WEEKS
         self.form_input['availability'] = [DayOfTheWeek.objects.get(day=DayOfTheWeek.Day.WEDNESDAY)]
-        
+
         form = RequestEditForm(instance_id=request.id, data=self.form_input)
         before_count = Request.objects.count()
         request = form.save()
         after_count = Request.objects.count()
-        
+
         self.assertEqual(before_count, after_count)
-        
+
         self.assertEqual(request.date, self.form_input['date'])
         self.assertEqual(request.number_of_lessons, self.form_input['number_of_lessons'])
         self.assertEqual(request.interval_between_lessons, self.form_input['interval_between_lessons'])

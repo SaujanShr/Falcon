@@ -1,3 +1,4 @@
+"""Tests of the invoice view."""
 from django.test import TestCase
 from django.urls import reverse
 from lessons.models import User, Student, Invoice
@@ -5,7 +6,9 @@ from lessons.tests.helpers import create_user_groups
 from lessons.forms import InvoiceEditForm
 from decimal import Decimal
 
+
 class InvoiceViewTestCase(TestCase):
+    """Tests of the invoice view."""
     fixtures = ['lessons/tests/fixtures/other_users.json', 'lessons/tests/fixtures/default_user.json']
 
     def setUp(self):
@@ -70,7 +73,6 @@ class InvoiceViewTestCase(TestCase):
         self.assertEqual(Decimal(form.initial['full_amount']), Decimal(self.invoice1.full_amount))
         self.assertEqual(Decimal(form.initial['paid_amount']), Decimal(self.invoice1.paid_amount))
 
-
     def test_invoice_form_fields_are_disabled_in_view(self):
         response = self.client.get(self.url, {'invoice_id': self.invoice1.invoice_number})
         self.assertEqual(response.status_code, 200)
@@ -82,9 +84,13 @@ class InvoiceViewTestCase(TestCase):
         self.assertTrue(form.fields['paid_amount'].disabled)
 
     def test_unauthorised_user_cannot_see_invoice(self):
-        #self.client.logout()
+        self.client.logout()
         self.client.login(email="janedoe@email.com", password="Password123")
-        response = self.client.get(self.url, {'invoice_id': '1234-123'}, follow=True)
+        response = self.client.get(self.url, {'invoice_id': self.invoice1.invoice_number}, follow=True)
         response_url = reverse('invoice_list_student')
         self.assertRedirects(response, response_url, status_code=302, target_status_code=200) 
 
+    def test_return_button_redirects(self):
+        response_url = reverse('invoice_list_student')
+        response = self.client.post(self.url, {'invoice_id': self.invoice1.invoice_number}, follow=True)
+        self.assertRedirects(response, response_url, status_code=302, target_status_code=200) 

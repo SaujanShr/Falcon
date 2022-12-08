@@ -1,6 +1,8 @@
+"""Unit tests for the LogIn form."""
 from django import forms
 from django.test import TestCase
 from lessons.forms import LogInForm
+
 
 class LogInFormTestCase(TestCase):
     """Unit tests for the LogIn form."""

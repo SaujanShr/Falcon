@@ -190,6 +190,7 @@ class FulfilRequestForm(forms.ModelForm):
     def save(self):
         super().save(commit=False)
         req = Request.objects.get(id=self.request_id)
+
         if not req.fulfilled:
             booking = Booking(
                 time_of_the_day=self.cleaned_data.get('time_of_lesson'),
@@ -432,6 +433,7 @@ class BookingEditForm(forms.ModelForm):
             time_of_the_day = self.cleaned_data.get('time_of_the_day'),
             teacher = self.cleaned_data.get('teacher'),
             start_date = self.cleaned_data.get('start_date'),
+            end_date = self.cleaned_data.get('end_date'),
             duration_of_lessons = self.cleaned_data.get('duration_of_lessons'),
             interval_between_lessons = self.cleaned_data.get('interval_between_lessons'),
             number_of_lessons = self.cleaned_data.get('number_of_lessons'),

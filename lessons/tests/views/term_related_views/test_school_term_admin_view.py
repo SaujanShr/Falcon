@@ -9,7 +9,11 @@ from lessons.tests.helpers import HandleGroups, reverse_with_next
 class SchoolTermStudentView(TestCase):
     """Unit tests of the school term admin view"""
 
-    fixtures = ['lessons/tests/fixtures/default_user.json', 'lessons/tests/fixtures/other_users.json', 'lessons/tests/fixtures/default_terms.json']
+    fixtures = [
+        'lessons/tests/fixtures/default_user.json',
+        'lessons/tests/fixtures/other_users.json',
+        'lessons/tests/fixtures/default_terms.json'
+    ]
 
     def setUp(self):
         HandleGroups.set_default_user_to_student()
@@ -46,7 +50,7 @@ class SchoolTermStudentView(TestCase):
         self.assertRedirects(response, response_url, status_code=302, target_status_code=200)
         self.assertTemplateUsed(response, 'student_page.html')
 
-    def test_get_school_term_edit_redirects_when_not_logged_in(self):
+    def test_get_school_term_admin_view_redirects_when_not_logged_in(self):
         self.client.logout()
         redirect_url = reverse_with_next('log_in', self.url)
         response = self.client.get(self.url)

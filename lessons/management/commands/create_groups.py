@@ -27,9 +27,5 @@ class Command(BaseCommand):
                     try:
                         permission = Permission.objects.get(codename=permission_codename)
                         group.permissions.add(permission)
-                        print("Adding "
-                        + permission_codename
-                        + " to group "
-                        + group.__str__())
                     except Permission.DoesNotExist:
                         print(permission_codename + " not found")

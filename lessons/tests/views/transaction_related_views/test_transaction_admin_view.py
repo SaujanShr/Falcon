@@ -1,13 +1,15 @@
+"""Tests of the transaction admin view."""
 from django.test import TestCase
 from django.urls import reverse
 from lessons.forms import TransactionSubmitForm
 from lessons.models import BankTransaction, User, Student, Invoice
-from django.contrib.auth.models import Group
 from decimal import Decimal
 import datetime
 from lessons.tests.helpers import create_user_groups
 
+
 class TransactionAdminViewTestCase(TestCase):
+    """Tests of the transaction admin view."""
 
     fixtures = ['lessons/tests/fixtures/default_user.json']
     
@@ -57,8 +59,7 @@ class TransactionAdminViewTestCase(TestCase):
         form = response.context['form']
         self.assertTrue(isinstance(form, TransactionSubmitForm))
         self.assertTrue(form.is_bound)
-    
-    
+
     def test_valid_transaction_entered(self):
         self.client.login(email='admin@email.com', password='password')
         before_count = BankTransaction.objects.count()

@@ -1,13 +1,16 @@
+"""Unit tests for the Request model"""
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 from lessons.models import User, Request, DayOfTheWeek
 from django.utils import timezone
 from lessons.tests.helpers import create_days_of_the_week
 from lessons.tests.helpers import create_user_groups
+
+
 class RequestModelTestCase(TestCase):
-    '''Unit tests for the Request model'''
+    """Unit tests for the Request model"""
     
-    fixtures = ['lessons/tests/fixtures/other_users.json', 'lessons/tests/fixtures/default_user.json']
+    fixtures = ['lessons/tests/fixtures/default_user.json', 'lessons/tests/fixtures/other_users.json']
     
     def setUp(self):
         create_user_groups()

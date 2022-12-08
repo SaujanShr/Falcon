@@ -55,7 +55,6 @@ class NewRequestViewTestCase(TestCase):
         self.assertTemplateUsed(response, 'new_request_view.html')
         form = response.context['form']
         self.assertTrue(isinstance(form, NewRequestForm))
-        #self.assertTrue(form.is_bound)
 
     def test_successful_new_request(self):
         before_count = Request.objects.count()
@@ -67,8 +66,7 @@ class NewRequestViewTestCase(TestCase):
                              target_status_code=200)
         self.assertTemplateUsed(response, 'request_list.html')
 
-        request = Request.objects.all()[:1].get()  # Gets the first item in Requests as there is only one request object in the test database. This is kind of bad. Need to change?
-        #self.assertEqual(request.availability, DayOfTheWeek.objects.get(day=DayOfTheWeek.Day.MONDAY))  # This doesn't work
+        request = Request.objects.all()[:1].get()
         self.assertEqual(request.number_of_lessons, 1)
         self.assertEqual(request.interval_between_lessons, Request.IntervalBetweenLessons.ONE_WEEK)
         self.assertEqual(request.duration_of_lessons, Request.LessonDuration.THIRTY_MINUTES)

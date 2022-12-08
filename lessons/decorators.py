@@ -5,13 +5,13 @@ from django.http import HttpResponse
 def login_prohibited(view_function):
     def modified_view_function(request):
         if request.user.is_authenticated:
-            user_specific_redirect = ''
+            user_specific_redirect = 'log_out'
             if request.user.groups.exists():
                 if (request.user.groups.all()[0].name == 'Student'):
                         user_specific_redirect = settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_STUDENT
                 elif (request.user.groups.all()[0].name == 'Admin'):
                     user_specific_redirect = settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_ADMIN
-            elif request.user.is_staff:
+            elif request.user.is_superuser:
                 user_specific_redirect = (settings.REDIRECT_URL_WHEN_LOGGED_IN_FOR_DIRECTOR)
             return redirect(user_specific_redirect)
         else:

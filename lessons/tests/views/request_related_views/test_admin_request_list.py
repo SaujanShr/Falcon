@@ -67,6 +67,12 @@ class AdminRequestListTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'admin_request_list.html')
 
+        fulfilled_requests = response.context['fulfilled_requests']
+        self.assertEqual(len(fulfilled_requests), len(Request.objects.filter(fulfilled=True)))
+
+        unfulfilled_requests = response.context['unfulfilled_requests']
+        self.assertEqual(len(unfulfilled_requests), len(Request.objects.filter(fulfilled=False)))
+
     def test_student_cannot_access_admin_request_list(self):
         self.client.login(email="johndoe@email.com", password="Password123")
         response = self.client.get(self.url, follow=True)

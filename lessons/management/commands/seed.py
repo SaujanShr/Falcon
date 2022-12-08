@@ -3,10 +3,12 @@ from django.contrib.auth.models import Group, Permission
 from faker import Faker
 from lessons.models import User, Student, SchoolTerm, DayOfTheWeek, Request, Invoice, Booking, BankTransaction, Child
 from datetime import datetime,date,timedelta
-from random import randint, sample
 from django.utils import timezone
 import pytz
 from .create_groups import Command as GroupCreator
+import random
+from random import randint, sample
+
 class Command(BaseCommand):
 
     PASSWORD_FOR_ALL = 'Password123'
@@ -41,16 +43,19 @@ class Command(BaseCommand):
         self.faker = Faker('en_GB')
         
     def handle(self, *args, **options):
-        #Create groups  
-        group_creator = GroupCreator()
-        group_creator.handle()
-        #Seed Users
-        print('Seeding data...')
-        self._create_school_terms()
-        self._create_days_of_the_week()
-        self._create_required_records()
-        self._create_random_students_and_their_children()
-        print("Done!")
+        if not self.database_is_empty():
+            print("WARNING: The database is currently not empty. Please unseed before attempting to seed again.")
+        else:
+            #Create groups  
+            group_creator = GroupCreator()
+            group_creator.handle()
+            #Seed Users
+            print('Seeding data...')
+            self._create_school_terms()
+            self._create_days_of_the_week()
+            self._create_required_records()
+            self._create_random_students_and_their_children()
+            print("Done!")
         
 
     def _create_school_terms(self):
@@ -70,13 +75,13 @@ class Command(BaseCommand):
         john_doe_user = User.objects.get(email='john.doe@example.org')
         alice_doe = self.create_child_for_user(john_doe_user,"Alice","Doe")
         bob_doe = self.create_child_for_user(john_doe_user,"Bob","Doe")
-        alice_doe_request = Request.objects.create(user=john_doe_user,number_of_lessons=randint(1,25),interval_between_lessons=7,relation_id= alice_doe.id,duration_of_lessons=self.LESSON_DURATIONS[randint(0,len(self.LESSON_DURATIONS)-1)],fulfilled=True,further_information='Lorem ipsum.',date=timezone.now())
+        alice_doe_request = self.create_random_request_for_user(john_doe_user,alice_doe.id,True)
         alice_doe_request.availability.set(sample(self.DAYS_OF_THE_WEEK_INSTANCES, randint(1,len(self.DAYS_OF_THE_WEEK_INSTANCES)-1)))
         alice_invoice = self._create_booking_for_request_and_return_invoice(alice_doe_request)
         self.pay_invoice(alice_invoice)
-        bob_doe_request = Request.objects.create(user=john_doe_user,number_of_lessons=randint(1,25),interval_between_lessons=7,relation_id= bob_doe.id,duration_of_lessons=self.LESSON_DURATIONS[randint(0,len(self.LESSON_DURATIONS)-1)],fulfilled=True,further_information='Lorem ipsum.',date=timezone.now())
+        bob_doe_request =self.create_random_request_for_user(john_doe_user,bob_doe.id,True)
         bob_doe_request.availability.set(sample(self.DAYS_OF_THE_WEEK_INSTANCES, randint(1,len(self.DAYS_OF_THE_WEEK_INSTANCES)-1)))
-        bob_invoice = self._create_booking_for_request_and_return_invoice(alice_doe_request)
+        bob_invoice = self._create_booking_for_request_and_return_invoice(bob_doe_request)
         self.pay_invoice(bob_invoice)
 
     def _create_required_users(self):
@@ -119,7 +124,7 @@ class Command(BaseCommand):
     def decide_and_create_request_for_random_user(self,random_user,relation_id):
         # Create requests for 95% of students in average.
         if randint(0,20) <= 19:
-                user_request = self.create_random_request_for_user(random_user,relation_id)
+                user_request = self.create_random_request_for_user(random_user,relation_id,False)
                 self.decide_and_fulfill_request_for_random_user(user_request)
 
     def decide_and_fulfill_request_for_random_user(self,request):
@@ -142,23 +147,33 @@ class Command(BaseCommand):
             self.underpay_invoice(invoice)
         #NOTE: 15% of requests in average will remain unpaid
 
-    def create_random_request_for_user(self,user,relation_id):
+    def create_random_request_for_user(self,user,relation_id,is_fulfilled):
+        _interval_between_lessons=self.TIMES_BETWEEN_LESSONS[randint(0,len(self.TIMES_BETWEEN_LESSONS)-1)],
+        term_of_the_lesson = random.choice(list(self.SCHOOL_TERMS))
+        _date = pytz.timezone('UTC').localize(datetime.combine(self.faker.date_between(self.SCHOOL_TERMS[term_of_the_lesson][0],self.SCHOOL_TERMS[term_of_the_lesson][1]), datetime.min.time()))
+        term_end_date = self.SCHOOL_TERMS[term_of_the_lesson][1]
+        days_between_date_and_end_of_term = (term_end_date-_date.date()).days
+        max_number_of_lessons = days_between_date_and_end_of_term//_interval_between_lessons[0]
+        _number_of_lessons = 1
+        if max_number_of_lessons>=2:
+            _number_of_lessons = randint(1,max_number_of_lessons-1)
         request = Request.objects.create(
                     user=user,
-                    number_of_lessons=randint(1,25),
-                    interval_between_lessons=self.TIMES_BETWEEN_LESSONS[randint(0,len(self.TIMES_BETWEEN_LESSONS)-1)],
+                    number_of_lessons=_number_of_lessons,
+                    interval_between_lessons=_interval_between_lessons[0],
                     relation_id= relation_id,
                     duration_of_lessons=self.LESSON_DURATIONS[randint(0,len(self.LESSON_DURATIONS)-1)],
-                    fulfilled=False,
+                    fulfilled=is_fulfilled,
                     further_information='Lorem ipsum.',
-                    date=pytz.timezone('UTC').localize(datetime.combine(self.faker.date_between(self.SCHOOL_TERMS["Term one"][0],self.SCHOOL_TERMS["Term six"][1]), datetime.min.time()))
+                    date=_date
                     )
         request.availability.set(sample(self.DAYS_OF_THE_WEEK_INSTANCES, randint(1,len(self.DAYS_OF_THE_WEEK_INSTANCES)-1)))
         return request
+    
 
     def _create_fulfilled_and_paid_request_for_john_doe(self):
         john_doe_user =  User.objects.get(email='john.doe@example.org')
-        john_doe_request = Request.objects.create(user=john_doe_user,number_of_lessons=randint(1,25),interval_between_lessons=7,relation_id= -1,duration_of_lessons=60,fulfilled=True,further_information='Lorem ipsum.',date=timezone.now())
+        john_doe_request = self.create_random_request_for_user(john_doe_user,-1,True)
         john_doe_request.availability.set(sample(self.DAYS_OF_THE_WEEK_INSTANCES, randint(1,len(self.DAYS_OF_THE_WEEK_INSTANCES)-1)))
         invoice = self._create_booking_for_request_and_return_invoice(john_doe_request)
         self.pay_invoice(invoice)
@@ -166,13 +181,8 @@ class Command(BaseCommand):
     def create_child_for_user(self,user,child_first_name, child_last_name):
         return Child.objects.create(parent=user,first_name=child_first_name,last_name=child_last_name)
 
-    def create_request_for_user(self,user,relation_id):
-        request = Request.objects.create(user=user,number_of_lessons=randint(1,25),interval_between_lessons=7,relation_id= -1,duration_of_lessons=60,fulfilled=True,further_information='Lorem ipsum.',date=timezone.now())
-        request.availability.set(sample(self.DAYS_OF_THE_WEEK_INSTANCES, randint(1,len(self.DAYS_OF_THE_WEEK_INSTANCES)-1)))
-
     def _create_booking_for_request_and_return_invoice(self,request):
         price_per_hour=randint(10,20)
-        nb_of_days = randint(0,20)
         _invoice = self.create_invoice(request,price_per_hour)
         Booking.objects.create(
             invoice= _invoice,
@@ -183,10 +193,10 @@ class Command(BaseCommand):
             relation_id= request.relation_id,
             teacher= self.faker.name(),
             start_date= request.date,
-            end_date= request.date + timedelta(days=nb_of_days),
+            end_date= request.date + timedelta(days=request.number_of_lessons*request.interval_between_lessons),
             duration_of_lessons= self.LESSON_DURATIONS[randint(0,len(self.LESSON_DURATIONS)-1)],
-            interval_between_lessons=self.TIMES_BETWEEN_LESSONS[randint(0,len(self.TIMES_BETWEEN_LESSONS)-1)],
-            number_of_lessons= nb_of_days,
+            interval_between_lessons=request.interval_between_lessons,
+            number_of_lessons= request.number_of_lessons,
             further_information= request.further_information
         )
         return _invoice
@@ -266,3 +276,6 @@ class Command(BaseCommand):
                     min_start_date = term_in_list.start_date
                     term = term_in_list
         return term
+
+    def database_is_empty(self):
+        return SchoolTerm.objects.all().count() + DayOfTheWeek.objects.all().count() + Request.objects.all().count() + Student.objects.all().count() + Booking.objects.all().count() + BankTransaction.objects.all().count() + Invoice.objects.all().count() + Child.objects.all().count() == 0

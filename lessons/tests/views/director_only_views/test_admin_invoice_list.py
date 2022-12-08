@@ -2,10 +2,10 @@ from django.test import TestCase
 from django.urls import reverse
 from lessons.models import Invoice, User, Student
 from django.db.models.query import QuerySet
-from django.contrib.auth.models import Group
 from lessons.tests.helpers import create_user_groups
 
-class InvoiceAdminListTestCase(TestCase):
+
+class AdminInvoiceListTestCase(TestCase):
 
     fixtures = ['lessons/tests/fixtures/other_users.json', 'lessons/tests/fixtures/default_user.json']
     
@@ -42,7 +42,7 @@ class InvoiceAdminListTestCase(TestCase):
         invoices = response.context['invoices']
         self.assertTrue(isinstance(invoices, QuerySet))
 
-    def test_balance_view_displays_all_invoices(self):
+    def test_admin_invoice_view_displays_all_invoices(self):
         self.client.login(email='admin@email.com', password='password')
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
