@@ -118,7 +118,7 @@ def is_child(relation_id):
 def get_client_from_relation_id(user, relation_id) -> Child|User|None:
     '''Get the object that matches the given user and relation id'''
     if is_child(relation_id):
-        return get_child_object(id=relation_id)
+        return get_child_object(relation_id=relation_id)
     else:
         return user
 
@@ -314,6 +314,9 @@ def delete_booking(request):
 
 def get_booking_form(booking_id):
     booking = get_booking_object(booking_id)
+    if not booking:
+        return
+    
     invoice = Invoice.objects.get(invoice_number=booking.invoice_id)
     hourly_cost = float(invoice.full_amount / booking.duration_of_lessons / booking.number_of_lessons * 60)
     form = BookingEditForm(
@@ -335,6 +338,9 @@ def get_booking_form(booking_id):
 
 def get_child_view_form(request_id):
     child = get_child_object(request_id)
+    if not child:
+        return
+    
     form = ChildEditForm(
         initial={
             'first_name':child.first_name,
@@ -345,7 +351,9 @@ def get_child_view_form(request_id):
 
 def get_invoice_view_form(invoice_id):
     invoice = get_invoice_object(invoice_id)
-    #['invoice_number', 'student', 'full_amount', 'paid_amount', 'fully_paid']
+    if not invoice:
+        return
+    
     form = InvoiceEditForm(
         initial={
             'invoice_number':invoice.invoice_number,
@@ -360,6 +368,8 @@ def get_invoice_view_form(invoice_id):
 
 def get_request_view_form(request_id):
     user_request = get_request_object(request_id)
+    if not user_request:
+        return
 
     form = RequestEditForm(
         initial={

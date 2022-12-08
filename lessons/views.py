@@ -80,6 +80,8 @@ def request_view(request):
     readonly = user.is_admin_or_director() or user_request.fulfilled
 
     form = get_request_view_form(request_id)
+    if not form:
+        return redirect_to_request_list(user, relation_id)
 
     if readonly:
         form.set_read_only()
@@ -96,11 +98,11 @@ def invoice_view(request):
     # Only possible post request is the 'Return' button/
     if request.method == 'POST':
         return redirect_to_invoice_list(user)
-
-    try:
-        invoice_id = get_invoice_id_from_request(request)
-        form = get_invoice_view_form(invoice_id)
-    except ObjectDoesNotExist:
+    
+    invoice_id = get_invoice_id_from_request(request)
+    form = get_invoice_view_form(invoice_id)
+    
+    if not form:
         return redirect_to_invoice_list(user)
 
     if not user_authorised_to_see_invoice(request, invoice_id): return redirect_to_invoice_list(user)
@@ -199,6 +201,9 @@ def child_view(request):
             return redirect('children_list')
 
     form = get_child_view_form(relation_id)
+    
+    if not form:
+        return redirect('children_list')
 
     return render(request, 'child_view.html', {'relation_id': relation_id, 'form': form})
 
