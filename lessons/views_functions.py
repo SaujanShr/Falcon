@@ -363,25 +363,6 @@ def update_booking(request):
     form.save()
 
     booking = get_booking_object(booking_id)
-
-    #Update invoice
-    student = Student.objects.get(user=booking.user)
-    invoice = booking.invoice
-    new_cost = booking.duration_of_lessons * float(data['hourly_cost']) * booking.number_of_lessons / 60
-    invoice.full_amount = new_cost
-
-    #Refund student if invoice full amount falls below paid amount
-    if invoice.paid_amount > invoice.full_amount:
-        student.balance = student.balance + decimal.Decimal((invoice.paid_amount-decimal.Decimal(invoice.full_amount)))
-        invoice.paid_amount = invoice.full_amount
-        invoice.fully_paid = True
-        student.save()
-    elif invoice.paid_amount == invoice.full_amount:
-        invoice.fully_paid = True
-    else:
-        invoice.fully_paid = False
-
-    invoice.save()
     
     return booking
 
@@ -391,7 +372,6 @@ def delete_booking(request):
     '''
     booking = get_booking_object_from_request(request)
     refund_booking_if_valid(booking)
-    
     return booking.delete()
 
 def get_booking_form(booking_id):
@@ -486,23 +466,7 @@ def get_upcoming_term():
     return SchoolTerm.objects.all().filter(end_date__gt=datetime.date.today()) \
         .filter(start_date__gte=datetime.date.today()).order_by('start_date').first()
 
-def find_term_from_date(date):
-    '''
-    Finds term associated with date, if date is not associated with a term, return the next term
-    '''
-    term = SchoolTerm.objects.all().filter(end_date__gte=date).filter(start_date__lte=date).first()
-    if not term:
-        school_terms_starting_later = SchoolTerm.objects.filter(start_date__gte=date)
-        min_start_date = school_terms_starting_later[0].start_date
-        term = school_terms_starting_later[0]
-
-        for term_in_list in school_terms_starting_later:
-            if term.start_date < min_start_date:
-                min_start_date = term_in_list.start_date
-                term = term_in_list
-
-    return term
-
+#Finds term associated with date, but allows a None return when no term can be associated with the day.
 def find_term_from_date_allow_none(date):
     '''
     Finds term associated with date, but allows a None return when no term can be associated with the day.
@@ -534,46 +498,6 @@ def get_student(request):
     Get the student object for the requesting user
     '''
     return Student.objects.get(user=request.user)
-
-def create_invoice(booking, hourly_cost):
-    '''
-    Create invoice from newly created booking
-    '''
-
-    user = Student.objects.get(user__email=booking.user)
-
-    invoice_number = generate_invoice_number(user)
-
-    #Calculate amount to pay
-    total_required = (float(hourly_cost) * booking.number_of_lessons * booking.duration_of_lessons / 60)
-
-    #Create invoice
-    invoice = Invoice.objects.create(
-        invoice_number=invoice_number,
-        student=user,
-        full_amount=total_required,
-        paid_amount=0,
-        fully_paid=False
-    )
-    invoice.full_clean()
-    invoice.save()
-
-    return invoice_number
-
-def generate_invoice_number(user):
-    '''
-    Generates the next invoice number for the user
-    '''
-    invoice_number = ""
-    user_id = user.id
-    number_of_invoices_for_user = Invoice.objects.all().filter(student=user).count() + 1
-    for i in range(4-len(str(user_id))):
-        invoice_number += "0"
-    invoice_number = invoice_number + str(user_id) + "-"
-    for i in range(3-len(str(number_of_invoices_for_user))):
-        invoice_number += "0"
-    invoice_number += str(number_of_invoices_for_user)
-    return invoice_number
 
 def get_user(form):
     '''
@@ -664,7 +588,7 @@ def generate_lessons_from_bookings(bookings):
     for booking in bookings:
         term = booking.term_id
         date = booking.start_date
-        lesson_datetime = datetime.datetime.combine(date, booking.time_of_the_day) 
+        lesson_datetime = datetime.datetime.combine(date, booking.time_of_the_day)
         duration = Booking.LessonDuration.choices[
                 Booking.LessonDuration.values.index(booking.duration_of_lessons)
             ]

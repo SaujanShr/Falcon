@@ -1,7 +1,9 @@
+import datetime
+
 from django.test import TestCase
-from lessons.models import User, Booking, Request, SchoolTerm, DayOfTheWeek
+from lessons.models import User, Request, SchoolTerm, DayOfTheWeek, Student, Booking
 from lessons.forms import FulfilRequestForm
-from lessons.tests.helpers import create_days_of_the_week
+from lessons.tests.helpers import create_days_of_the_week, create_user_groups
 from django.utils import timezone
 
 
@@ -12,6 +14,12 @@ class FulfilRequestFormTestCase(TestCase):
 
     def setUp(self):
         create_days_of_the_week()
+        create_user_groups()
+
+        student = Student.objects.create(
+            user=User.objects.all()[0],
+            balance=100
+        )
 
         self.request = Request.objects.create(
             user=User.objects.all()[0],
@@ -60,6 +68,7 @@ class FulfilRequestFormTestCase(TestCase):
 
         self.assertIn('availability', form.fields)
         self.assertIn('time_of_lesson', form.fields)
+        self.assertIn('interval_between_lessons', form.fields)
         self.assertIn('teacher', form.fields)
         self.assertIn('start_date', form.fields)
         self.assertIn('end_date', form.fields)
@@ -151,10 +160,71 @@ class FulfilRequestFormTestCase(TestCase):
 
     def test_further_information_may_contain_500_characters(self):
         self.form_input['further_information'] = 'x' * 500
-    
+
     def test_form_saves_correctly(self):
         form = FulfilRequestForm(request_id=self.request.id, data=self.form_input)
-        
+
         form.save()
         self.request = Request.objects.get(id=self.request.id)
         self.assertTrue(self.request.fulfilled)
+        self._assert_form_is_valid()
+
+    def test_form_marks_request_as_fulfilled_on_save(self):
+        form = FulfilRequestForm(request_id=self.request.id, data=self.form_input)
+        form.save()
+        self.assertTrue(Request.objects.get(id=self.request.id))
+
+    def test_booking_cannot_be_fulfilled_twice(self):
+        form = FulfilRequestForm(request_id=self.request.id, data=self.form_input)
+        form.save()
+
+        form2_input = {
+            'time_of_lesson': '10:10',
+            'availability': DayOfTheWeek.objects.get(day=DayOfTheWeek.Day.TUESDAY),
+            'user': self.request.user,
+            'relation_id': self.request.relation_id,
+            'teacher': 'Amy Jones',
+            'start_date': self.term.start_date,
+            'end_date': self.term.end_date,
+            'duration_of_lessons': self.request.duration_of_lessons,
+            'interval_between_lessons': self.request.interval_between_lessons,
+            'number_of_lessons': self.request.number_of_lessons,
+            'further_information': self.request.further_information,
+            'hourly_cost': 15
+        }
+        form2 = FulfilRequestForm(request_id=self.request.id, data=form2_input)
+        form2.save()
+
+        self.assertEqual(Booking.objects.get(user=self.request.user).teacher, 'Joe Swinden')
+
+    def test_booking_does_not_get_double_fulfilled_when_form_submitted_twice(self):
+        form = FulfilRequestForm(request_id=self.request.id, data=self.form_input)
+        form.save()
+        form.save()
+
+        self.assertEqual(Booking.objects.count(), 1)
+
+    def test_term_is_calculated_correctly_when_lessons_start_outside_of_term(self):
+        form_input = {
+            'time_of_lesson': '10:10',
+            'availability': DayOfTheWeek.objects.get(day=DayOfTheWeek.Day.TUESDAY),
+            'user': self.request.user,
+            'relation_id': self.request.relation_id,
+            'teacher': 'Amy Jones',
+            'start_date': (self.term.end_date + datetime.timedelta(days=1)),
+            'end_date': self.term.end_date,
+            'duration_of_lessons': self.request.duration_of_lessons,
+            'interval_between_lessons': self.request.interval_between_lessons,
+            'number_of_lessons': self.request.number_of_lessons,
+            'further_information': self.request.further_information,
+            'hourly_cost': 15
+        }
+
+        form = FulfilRequestForm(request_id=self.request.id, data=form_input)
+        form.save()
+
+        self.assertEqual(Booking.objects.all()[0].term_id, SchoolTerm.objects.all()[1])
+
+
+
+

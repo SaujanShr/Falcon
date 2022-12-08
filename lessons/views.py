@@ -99,10 +99,10 @@ def invoice_view(request):
     # Only possible post request is the 'Return' button/
     if request.method == 'POST':
         return redirect_to_invoice_list(user)
-    
+
     invoice_id = get_invoice_id_from_request(request)
     form = get_invoice_view_form(invoice_id)
-    
+
     if not form:
         return redirect_to_invoice_list(user)
 
@@ -143,7 +143,7 @@ def children_list(request):
 def child_page(request):
     relation_id = get_relation_id_from_request(request)
 
-    if not child_exists(relation_id) or not user_is_parent(request, relation_id): 
+    if not child_exists(relation_id) or not user_is_parent(request, relation_id):
         return redirect('children_list')
 
     if request.method == 'GET':
@@ -189,10 +189,10 @@ def new_child_view(request):
 @allowed_groups(['Student'])
 def child_view(request):
     relation_id = get_relation_id_from_request(request)
-    
-    if not child_exists(relation_id) or not user_is_parent(request, relation_id): 
+
+    if not child_exists(relation_id) or not user_is_parent(request, relation_id):
         return redirect('children_list')
-    
+
     if request.method == 'POST':
         if request.POST.get('update', None) and update_child_object_from_request(request):
             return redirect('children_list')
@@ -205,7 +205,7 @@ def child_view(request):
             return redirect('children_list')
 
     form = get_child_view_form(relation_id)
-    
+
     if not form:
         return redirect('children_list')
 
@@ -218,7 +218,7 @@ def child_view(request):
 def child_request_list(request):
     relation_id = get_relation_id_from_request(request)
 
-    if not child_exists(relation_id) or not user_is_parent(request, relation_id): 
+    if not child_exists(relation_id) or not user_is_parent(request, relation_id):
         return redirect('children_list')
 
     child = get_child_idname(relation_id)
@@ -233,7 +233,7 @@ def child_request_list(request):
 def child_booking_list(request):
     relation_id = get_relation_id_from_request(request)
 
-    if not child_exists(relation_id) or not user_is_parent(request, relation_id): 
+    if not child_exists(relation_id) or not user_is_parent(request, relation_id):
         return redirect('children_list')
 
     child = get_child_idname(relation_id)
@@ -269,7 +269,7 @@ def lesson_list_student(request):
 def lesson_list_child(request):
     relation_id = get_relation_id_from_request(request)
 
-    if not child_exists(relation_id) or not user_is_parent(request, relation_id): 
+    if not child_exists(relation_id) or not user_is_parent(request, relation_id):
         return redirect('children_list')
 
     child = get_child_idname(relation_id)
@@ -454,31 +454,22 @@ def admin_request_list(request):
                                                        'unfulfilled_requests': requests['unfulfilled']})
 
 
-# @login_required
-# @allowed_groups(["Admin","Director"])
+@login_required
+@allowed_groups(["Admin","Director"])
 def fulfil_request_view(request):
     request_id = get_request_id_from_request(request)
 
     if request.method == 'POST':
         if request.POST.get('fulfil', None):
             form = FulfilRequestForm(request_id=request_id, data=request.POST)
-            booking_req = form.save()
-
-            if booking_req[0]:
-                invoice_no = create_invoice(booking_req[0], booking_req[1])
-                booking_req[0].invoice = Invoice.objects.get(invoice_number=invoice_no)
-                booking_req[0].term_id = find_term_from_date(booking_req[0].start_date)
-                booking_req[0].full_clean()
-                booking_req[0].save()
-                return redirect('admin_booking_list')
-            else:
-                return redirect('admin_booking_list')
+            if form.is_valid():
+                booking = form.save()
+            return redirect('admin_booking_list')
         elif request.POST.get('delete', None):
             delete_request_object_from_request(request)
             return redirect('admin_request_list')
         elif request.POST.get('return', None):
             return redirect('admin_request_list')
-
     form = get_fulfil_request_form(request)
     return render(request, 'fulfil_view.html', {'request_id': request_id, 'form': form})
 
