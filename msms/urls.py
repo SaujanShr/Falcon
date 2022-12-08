@@ -61,6 +61,5 @@ urlpatterns = [
     path('change_password/', views.change_user_password, name='change_password'),
     path('log_out/', views.log_out, name='log_out'),
     path('create_admin_user/', views.create_admin_user,name='create_admin_user'),
-    path('create_student_user/', views.create_student_user,name='create_student_user'),
     path('create_director_user/', views.create_director_user,name='create_director_user')
 ]

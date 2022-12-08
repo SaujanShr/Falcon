@@ -60,15 +60,7 @@ class AdminUserListTestCase(TestCase):
         response = self.client.post(self.url, payload)
         self.assertTemplateUsed(response, 'admin_user_list.html')
         self.assertEqual(User.objects.filter(id = other_user_id).count(),0)
-
-    def test_create_student_button_redirects(self):
-        self.client.login(email=self.user.email, password='Password123')
-        response = self.client.post(self.url,{'create_student':''}, follow=True)
-        redirect_url = reverse('create_student_user')
-        self.assertRedirects(response, redirect_url,
-                             status_code=302, target_status_code=200)
-        self.assertTemplateUsed(response, 'create_user.html')
-
+        
     def test_create_director_button_redirects(self):
         self.client.login(email=self.user.email, password='Password123')
         response = self.client.post(self.url,{'create_director':''}, follow=True)

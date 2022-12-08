@@ -628,8 +628,6 @@ def admin_user_list(request):
             user_to_promote.save()
         elif request.POST.get('create_director') == '':
             return redirect("create_director_user")
-        elif request.POST.get('create_student') == '':
-            return redirect("create_student_user")
         elif request.POST.get('create_administrator') == '':
             return redirect("create_admin_user")
 
@@ -669,19 +667,3 @@ def create_admin_user(request):
     else:
         form = CreateUser()
     return render(request, 'create_user.html', {'form': form, 'user_type': "Administrator"})
-
-
-@login_required
-@allowed_groups("Director")
-def create_student_user(request):
-    if request.method == 'POST':
-        form = CreateUser(request.POST)
-        if form.is_valid():
-            created_user = form.save()
-            student_group = Group.objects.get(name='Student')
-            student_group.user_set.add(created_user)
-            Student.objects.create(user=created_user)
-            return redirect('admin_user_list')
-    else:
-        form = CreateUser()
-    return render(request, 'create_user.html', {'form': form, 'user_type': "Student"})

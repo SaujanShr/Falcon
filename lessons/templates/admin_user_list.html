@@ -3,12 +3,10 @@
 <div class="container h-50 card rounded-3">
     <div class="card-body p-4">
         <div class="row">
-            <form class="offset-md-7" action="" method="post">
+            <form class="offset-md-9" action="" method="post">
                 {% csrf_token %}
                 <button type="create_administrator" name='create_administrator' class="btn btn-secondary">Create
                     Administrator</button>
-                <button type="create_student" name='create_student' class="btn btn-secondary">Create
-                    Student</button>
                 <button type="create_director" name='create_director' class="btn btn-primary">Create
                     Director</button>
             </form>
