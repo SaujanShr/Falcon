@@ -102,7 +102,7 @@ class Command(BaseCommand):
             _first_name = self.faker.first_name()
             _last_name = self.faker.last_name()
             created_user = User.objects.create_user(
-                email=f"{_first_name.lower()}.{_last_name.lower()}@test.com", 
+                email=f"{_first_name.lower()}.{_last_name.lower()}@example.org", 
                 password=self.PASSWORD_FOR_ALL, 
                 first_name=_first_name, 
                 last_name=_last_name)
