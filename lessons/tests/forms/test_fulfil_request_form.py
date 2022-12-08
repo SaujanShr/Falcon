@@ -1,5 +1,5 @@
 from django.test import TestCase
-from lessons.models import User, Request, SchoolTerm, DayOfTheWeek
+from lessons.models import User, Booking, Request, SchoolTerm, DayOfTheWeek
 from lessons.forms import FulfilRequestForm
 from lessons.tests.helpers import create_days_of_the_week
 from django.utils import timezone
@@ -20,6 +20,7 @@ class FulfilRequestFormTestCase(TestCase):
             interval_between_lessons=Request.IntervalBetweenLessons.ONE_WEEK,
             duration_of_lessons=Request.LessonDuration.THIRTY_MINUTES,
             further_information='Some information',
+            fulfilled=False
         )
         self.term = SchoolTerm.objects.all()[0]
 
@@ -150,3 +151,10 @@ class FulfilRequestFormTestCase(TestCase):
 
     def test_further_information_may_contain_500_characters(self):
         self.form_input['further_information'] = 'x' * 500
+    
+    def test_form_saves_correctly(self):
+        form = FulfilRequestForm(request_id=self.request.id, data=self.form_input)
+        
+        form.save()
+        self.request = Request.objects.get(id=self.request.id)
+        self.assertTrue(self.request.fulfilled)

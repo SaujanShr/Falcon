@@ -171,8 +171,9 @@ def child_page(request):
 def new_child_view(request):
     if request.method == 'POST':
         form = NewChildForm(user=request.user, data=request.POST)
-        form.save()
-        return redirect('children_list')
+        if form.is_valid():
+            form.save()
+            return redirect('children_list')
 
     form = NewChildForm()
     return render(request, 'new_child_view.html', {'form': form})
@@ -182,10 +183,10 @@ def new_child_view(request):
 @allowed_groups(['Student'])
 def child_view(request):
     relation_id = get_relation_id_from_request(request)
-
+    
     if not child_exists(relation_id) or not user_is_parent(request, relation_id): 
         return redirect('children_list')
-
+    
     if request.method == 'POST':
         if request.POST.get('update', None) and update_child_object_from_request(request):
             return redirect('children_list')
@@ -446,13 +447,11 @@ def fulfil_request_view(request):
             form = FulfilRequestForm(request_id=request_id, data=request.POST)
             booking_req = form.save()
 
-            if not booking_req[1].fulfilled:
-                invoice_no = create_invoice(booking_req[0], booking_req[2])
+            if booking_req[0]:
+                invoice_no = create_invoice(booking_req[0], booking_req[1])
                 booking_req[0].invoice = Invoice.objects.get(invoice_number=invoice_no)
                 booking_req[0].term_id = find_term_from_date(booking_req[0].start_date)
                 booking_req[0].full_clean()
-                booking_req[1].fulfilled = True
-                booking_req[1].save()
                 booking_req[0].save()
                 return redirect('admin_booking_list')
             else:
