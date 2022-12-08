@@ -1,15 +1,16 @@
 from .models import Student, Invoice, SchoolTerm
 
 def create_invoice(booking, hourly_cost):
+    '''Creates invoice for the user contained in Booking with hourly cost hourly_cost'''
 
     user = Student.objects.get(user__email=booking.user)
 
     invoice_number = generate_invoice_number(user)
 
-    #Calculate amount to pay
+    # Calculate amount to pay
     total_required = (float(hourly_cost) * booking.number_of_lessons * booking.duration_of_lessons / 60)
 
-    #Create invoice
+    # Create invoice
     invoice = Invoice.objects.create(
         invoice_number=invoice_number,
         student=user,
@@ -22,7 +23,9 @@ def create_invoice(booking, hourly_cost):
 
     return invoice_number
 
+
 def generate_invoice_number(user):
+    '''Generates and returns a new unique invoice number for user'''
     invoice_number = ""
     user_id = user.id
     number_of_invoices_for_user = Invoice.objects.all().filter(student=user).count() + 1
@@ -35,7 +38,8 @@ def generate_invoice_number(user):
     return invoice_number
 
 
-def find_term_from_date(date):  # Returns the term of the date
+def find_term_from_date(date):
+    '''Returns the term of the date'''
     term = SchoolTerm.objects.all().filter(end_date__gte=date).filter(start_date__lte=date).first()
     if not term:
         school_terms_starting_later = SchoolTerm.objects.filter(start_date__gte=date)
