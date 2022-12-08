@@ -1,6 +1,5 @@
-from django.shortcuts import render, redirect
-from .forms import LogInForm, TransactionSubmitForm, NewRequestForm, NewChildForm, SignUpForm, PasswordForm, UserForm, CreateUser, TermEditForm
-from .models import Student, Booking, BankTransaction, User
+from django.shortcuts import render
+from .forms import LogInForm, NewRequestForm, NewChildForm, SignUpForm, PasswordForm, UserForm, CreateUser, TermEditForm
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
@@ -8,7 +7,6 @@ from .decorators import login_prohibited, allowed_groups
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import Group
 from .views_functions import *
-from django.core.exceptions import ObjectDoesNotExist
 
 
 @login_required
@@ -42,14 +40,16 @@ def admin_page(request):
 @allowed_groups(['Student'])
 def request_list(request):
     user_requests = get_and_format_requests_for_display(request.user)
-    return render(request, 'request_list.html', {'user_requests': user_requests, 'is_student': True})
+    balance = get_student_balance(request)
+    return render(request, 'request_list.html', {'user_requests': user_requests, 'is_student': True, 'balance': balance})
 
 
 @login_required
 @allowed_groups(['Student'])
 def booking_list(request):
+    balance = get_student_balance(request)
     user_bookings = get_and_format_bookings_for_display(request.user)
-    return render(request, 'booking_list.html', {'user_bookings': user_bookings, 'is_student': True})
+    return render(request, 'booking_list.html', {'user_bookings': user_bookings, 'is_student': True, 'balance': balance})
 
 
 @login_required
@@ -86,8 +86,9 @@ def request_view(request):
     if readonly:
         form.set_read_only()
 
+    balance = get_student_balance(request)
     return render(request, 'request_view.html', {'request_id': request_id, 'relation_id': relation_id,
-                                                 'full_name': full_name, 'form': form, 'readonly': readonly})
+                                                 'full_name': full_name, 'form': form, 'readonly': readonly, 'balance': balance})
 
 
 @login_required
@@ -98,16 +99,16 @@ def invoice_view(request):
     # Only possible post request is the 'Return' button/
     if request.method == 'POST':
         return redirect_to_invoice_list(user)
-    
+
     invoice_id = get_invoice_id_from_request(request)
     form = get_invoice_view_form(invoice_id)
-    
+
     if not form:
         return redirect_to_invoice_list(user)
 
     if not user_authorised_to_see_invoice(request, invoice_id): return redirect_to_invoice_list(user)
-
-    return render(request, 'invoice_view.html', {'form': form, 'invoice_id': invoice_id})
+    balance = get_student_balance(request)
+    return render(request, 'invoice_view.html', {'form': form, 'invoice_id': invoice_id, 'balance': balance})
 
 
 @login_required
@@ -125,14 +126,16 @@ def new_request_view(request):
     full_name = get_full_name_by_relation_id(user, relation_id)
     form = NewRequestForm()
 
-    return render(request, 'new_request_view.html', {'relation_id': relation_id, 'full_name': full_name, 'form': form})
+    balance = get_student_balance(request)
+    return render(request, 'new_request_view.html', {'relation_id': relation_id, 'full_name': full_name, 'form': form, 'balance': balance})
 
 
 @login_required
 @allowed_groups(['Student'])
 def children_list(request):
     children = get_children_idname(request.user)
-    return render(request, 'children_list.html', {'children': children})
+    balance = get_student_balance(request)
+    return render(request, 'children_list.html', {'children': children, 'balance':balance})
 
 
 @login_required
@@ -140,7 +143,7 @@ def children_list(request):
 def child_page(request):
     relation_id = get_relation_id_from_request(request)
 
-    if not child_exists(relation_id) or not user_is_parent(request, relation_id): 
+    if not child_exists(relation_id) or not user_is_parent(request, relation_id):
         return redirect('children_list')
 
     if request.method == 'GET':
@@ -178,17 +181,18 @@ def new_child_view(request):
             return redirect('children_list')
 
     form = NewChildForm()
-    return render(request, 'new_child_view.html', {'form': form})
+    balance = get_student_balance(request)
+    return render(request, 'new_child_view.html', {'form': form, 'balance': balance})
 
 
 @login_required
 @allowed_groups(['Student'])
 def child_view(request):
     relation_id = get_relation_id_from_request(request)
-    
-    if not child_exists(relation_id) or not user_is_parent(request, relation_id): 
+
+    if not child_exists(relation_id) or not user_is_parent(request, relation_id):
         return redirect('children_list')
-    
+
     if request.method == 'POST':
         if request.POST.get('update', None) and update_child_object_from_request(request):
             return redirect('children_list')
@@ -201,11 +205,12 @@ def child_view(request):
             return redirect('children_list')
 
     form = get_child_view_form(relation_id)
-    
+
     if not form:
         return redirect('children_list')
 
-    return render(request, 'child_view.html', {'relation_id': relation_id, 'form': form})
+    balance = get_student_balance(request)
+    return render(request, 'child_view.html', {'relation_id': relation_id, 'form': form, 'balance': balance})
 
 
 @login_required
@@ -213,13 +218,14 @@ def child_view(request):
 def child_request_list(request):
     relation_id = get_relation_id_from_request(request)
 
-    if not child_exists(relation_id) or not user_is_parent(request, relation_id): 
+    if not child_exists(relation_id) or not user_is_parent(request, relation_id):
         return redirect('children_list')
 
     child = get_child_idname(relation_id)
     child_requests = get_and_format_requests_for_display(request.user, relation_id)
 
-    return render(request, 'child_request_list.html', {'child': child, 'child_requests': child_requests})
+    balance = get_student_balance(request)
+    return render(request, 'child_request_list.html', {'child': child, 'child_requests': child_requests, 'balance': balance})
 
 
 @login_required
@@ -227,13 +233,14 @@ def child_request_list(request):
 def child_booking_list(request):
     relation_id = get_relation_id_from_request(request)
 
-    if not child_exists(relation_id) or not user_is_parent(request, relation_id): 
+    if not child_exists(relation_id) or not user_is_parent(request, relation_id):
         return redirect('children_list')
 
     child = get_child_idname(relation_id)
     child_bookings = get_booking_objects(request.user, relation_id)
 
-    return render(request, 'child_booking_list.html', {'child': child, 'child_bookings': child_bookings})
+    balance = get_student_balance(request)
+    return render(request, 'child_booking_list.html', {'child': child, 'child_bookings': child_bookings, 'balance':balance})
 
 
 @login_required
@@ -253,7 +260,8 @@ def lesson_list_student(request):
 
     lessons = generate_lessons_from_bookings(bookings)
     lesson_falls_in_holiday = check_if_lessons_not_in_termtime(lessons)
-    return render(request, 'lesson_list.html', {'lessons': lessons, 'lesson_falls_in_holiday': lesson_falls_in_holiday})
+    balance = get_student_balance(request)
+    return render(request, 'lesson_list.html', {'lessons': lessons, 'lesson_falls_in_holiday': lesson_falls_in_holiday, 'balance': balance})
 
 
 @login_required
@@ -261,7 +269,7 @@ def lesson_list_student(request):
 def lesson_list_child(request):
     relation_id = get_relation_id_from_request(request)
 
-    if not child_exists(relation_id) or not user_is_parent(request, relation_id): 
+    if not child_exists(relation_id) or not user_is_parent(request, relation_id):
         return redirect('children_list')
 
     child = get_child_idname(relation_id)
@@ -269,8 +277,10 @@ def lesson_list_child(request):
 
     lessons = generate_lessons_from_bookings(child_bookings)
     lesson_falls_in_holiday = check_if_lessons_not_in_termtime(lessons)
+
+    balance = get_student_balance(request)
     return render(request, 'child_lesson_list.html',
-                  {'lessons': lessons, 'child': child, 'lesson_falls_in_holiday': lesson_falls_in_holiday})
+                  {'lessons': lessons, 'child': child, 'lesson_falls_in_holiday': lesson_falls_in_holiday, 'balance': balance})
 
 
 @login_prohibited
@@ -402,13 +412,14 @@ def transaction_list_admin(request):
 @allowed_groups(["Student"])
 def transaction_list_student(request):
     transactions = get_transaction_list(request)
-    return render(request, 'transaction_list.html', {'transactions': transactions})
+    balance = get_student_balance(request)
+    return render(request, 'transaction_list.html', {'transactions': transactions, 'balance': balance})
 
 
 @login_required
 @allowed_groups(["Admin", "Director"])
 def invoice_list_admin(request):
-    invoices = Invoice.objects.all().reverse()
+    invoices = Invoice.objects.all().order_by('-invoice_number')
     return render(request, 'invoice_list.html', {'invoices': invoices})
 
 
@@ -416,7 +427,8 @@ def invoice_list_admin(request):
 @allowed_groups(["Student"])
 def invoice_list_student(request):
     invoices = get_invoice_list(request)
-    return render(request, 'invoice_list.html', {'invoices': invoices})
+    balance = get_student_balance(request)
+    return render(request, 'invoice_list.html', {'invoices': invoices, 'balance':balance})
 
 
 @login_required
@@ -442,31 +454,22 @@ def admin_request_list(request):
                                                        'unfulfilled_requests': requests['unfulfilled']})
 
 
-# @login_required
-# @allowed_groups(["Admin","Director"])
+@login_required
+@allowed_groups(["Admin","Director"])
 def fulfil_request_view(request):
     request_id = get_request_id_from_request(request)
 
     if request.method == 'POST':
         if request.POST.get('fulfil', None):
             form = FulfilRequestForm(request_id=request_id, data=request.POST)
-            booking_req = form.save()
-
-            if booking_req[0]:
-                invoice_no = create_invoice(booking_req[0], booking_req[1])
-                booking_req[0].invoice = Invoice.objects.get(invoice_number=invoice_no)
-                booking_req[0].term_id = find_term_from_date(booking_req[0].start_date)
-                booking_req[0].full_clean()
-                booking_req[0].save()
-                return redirect('admin_booking_list')
-            else:
-                return redirect('admin_booking_list')
+            if form.is_valid():
+                booking = form.save()
+            return redirect('admin_booking_list')
         elif request.POST.get('delete', None):
             delete_request_object_from_request(request)
             return redirect('admin_request_list')
         elif request.POST.get('return', None):
             return redirect('admin_request_list')
-
     form = get_fulfil_request_form(request)
     return render(request, 'fulfil_view.html', {'request_id': request_id, 'form': form})
 
@@ -507,23 +510,20 @@ def booking_view(request):
     if readonly:
         form.set_read_only()
 
+    balance = get_student_balance(request)
     return render(request, 'booking_view.html', {'booking_id': booking_id, 'relation_id': relation_id,
-                                                 'full_name': full_name, 'form': form, 'readonly': readonly})
+                                                 'full_name': full_name, 'form': form, 'readonly': readonly, 'balance':balance})
 
 
-"""
-A view that presents a list of all terms.
-"""
 @login_required
-@allowed_groups(["Student"])  # Do Admins also need access to this page?
+@allowed_groups(["Student"])
 def student_term_view(request):
     terms = SchoolTerm.objects.all()
-    return render(request, 'student_term_view.html', {'terms': terms})
+    balance = get_student_balance(request)
+    return render(request, 'student_term_view.html', {'terms': terms, 'balance':balance})
 
 
-"""
-A view to see and edit all terms as well as create a new term.
-"""
+
 @login_required
 @allowed_groups(["Admin", "Director"])
 def admin_term_view(request):
@@ -531,9 +531,6 @@ def admin_term_view(request):
     return render(request, 'admin_term_view.html', {'terms': terms})
 
 
-"""
-A view that handles a single term.
-"""
 @login_required
 @allowed_groups(["Admin", "Director"])
 def term_view(request):
@@ -563,16 +560,12 @@ def term_view(request):
             form.save()
             messages.add_message(request, messages.SUCCESS, "Term updated!")
         else:
-            # If any other fields are invalid then recreate old term again, very bad!
             SchoolTerm(term_name=term.term_name, start_date=term.start_date, end_date=term.end_date).save()
             new_term = SchoolTerm.objects.get(term_name=term.term_name)
             return render(request, 'term_view.html', {'form': form, 'term_id': new_term.id, 'term_name': term.term_name})
 
     return redirect('admin_term_view')
 
-"""
-This view enables the creation of a new term.
-"""
 @login_required
 @allowed_groups(["Admin", "Director"])
 def new_term_view(request):
@@ -587,9 +580,6 @@ def new_term_view(request):
     return render(request, 'new_term_view.html', {'form': form})
 
 
-"""
-This view confirms the deletion of a term.
-"""
 @login_required
 @allowed_groups(["Admin", "Director"])
 def term_deletion_confirmation_view(request):

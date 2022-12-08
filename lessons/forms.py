@@ -1,7 +1,10 @@
+import decimal
+
 from django import forms
-from django.core.validators import RegexValidator
+from django.core.validators import RegexValidator, MinValueValidator
 from django.contrib.auth.models import Group
 from .models import User, Child, DayOfTheWeek, Request, BankTransaction, Student, Invoice, SchoolTerm, Booking
+from .forms_functions import create_invoice, find_term_from_date
 
 
 class DateInput(forms.DateInput):
@@ -11,11 +14,11 @@ class NewChildForm(forms.ModelForm):
     class Meta:
         model = Child
         fields = ['first_name', 'last_name']
-    
+
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super(NewChildForm, self).__init__(*args, **kwargs)
-    
+
     def save(self):
         child = super().save(commit=False)
         child.parent = self.user
@@ -25,11 +28,11 @@ class ChildEditForm(forms.ModelForm):
     class Meta:
         model = Child
         fields = ['first_name', 'last_name']
-    
+
     def __init__(self, *args, **kwargs):
         self.instance_id = kwargs.pop('instance_id', None)
         super(ChildEditForm, self).__init__(*args, **kwargs)
-    
+
     def save(self):
         instance_set = Child.objects.filter(id=self.instance_id)
         super().save(commit=False)
@@ -66,26 +69,26 @@ class NewRequestForm(forms.ModelForm):
         label="Available Days",
         widget=forms.CheckboxSelectMultiple
     )
-    
+
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         self.relation_id = kwargs.pop('relation_id', None)
         super(NewRequestForm, self).__init__(*args, **kwargs)
-        
+
     def save(self):
         request = super().save(commit=False)
         request.user = self.user
         request.relation_id = self.relation_id
-        
+
         res = request.save()
         request.availability.set(self.cleaned_data.get('availability'))
-        
-        return res 
+
+        return res
 
 class RequestEditForm(forms.ModelForm):
     class Meta:
         model = Request
-        fields = ['date', 'availability', 'number_of_lessons', 'interval_between_lessons', 
+        fields = ['date', 'availability', 'number_of_lessons', 'interval_between_lessons',
                   'duration_of_lessons', 'further_information', 'fulfilled']
         widgets = {'further_information':forms.Textarea(attrs={'style': "width:100%;"})}
 
@@ -94,11 +97,11 @@ class RequestEditForm(forms.ModelForm):
         label="Available Days",
         widget=forms.CheckboxSelectMultiple
     )
-    
+
     def __init__(self, *args, **kwargs):
         self.instance_id = kwargs.pop('instance_id', None)
         super(RequestEditForm, self).__init__(*args, **kwargs)
-        
+
         self.fields['date'].disabled = True
         self.fields['fulfilled'].disabled = True
 
@@ -108,11 +111,11 @@ class RequestEditForm(forms.ModelForm):
         self.fields['interval_between_lessons'].disabled = True
         self.fields['duration_of_lessons'].disabled = True
         self.fields['further_information'].disabled = True
-    
+
     def save(self):
         instance_set = Request.objects.filter(id=self.instance_id)
         super().save(commit=False)
-        
+
         instance_set.update(
             number_of_lessons=self.cleaned_data.get('number_of_lessons'),
             interval_between_lessons=self.cleaned_data.get('interval_between_lessons'),
@@ -120,7 +123,7 @@ class RequestEditForm(forms.ModelForm):
             further_information=self.cleaned_data.get('further_information'),
         )
         instance_set[0].availability.set(self.cleaned_data.get('availability'))
-        
+
         return instance_set[0]
 
 
@@ -187,7 +190,7 @@ class FulfilRequestForm(forms.ModelForm):
     def save(self):
         super().save(commit=False)
         req = Request.objects.get(id=self.request_id)
-        
+
         if not req.fulfilled:
             booking = Booking(
                 time_of_the_day=self.cleaned_data.get('time_of_lesson'),
@@ -197,16 +200,22 @@ class FulfilRequestForm(forms.ModelForm):
                 teacher=self.cleaned_data.get('teacher'),
                 start_date=self.cleaned_data.get('start_date'),
                 end_date=self.cleaned_data.get('end_date'),
+                term_id=find_term_from_date(self.cleaned_data.get('start_date')),
                 duration_of_lessons=self.cleaned_data.get('duration_of_lessons'),
                 interval_between_lessons=self.cleaned_data.get('interval_between_lessons'),
                 number_of_lessons=self.cleaned_data.get('number_of_lessons'),
                 further_information=self.cleaned_data.get('further_information')
             )
+
+            invoice_no = create_invoice(booking, self.cleaned_data.get('hourly_cost'))
+            booking.invoice = Invoice.objects.get(invoice_number=invoice_no)
+
             req.fulfilled = True
             req.save()
-            return [booking, self.cleaned_data.get('hourly_cost')]
+
+            return booking.save()
         else:
-            return [None]
+            return None
 
 
 
@@ -238,7 +247,7 @@ class SignUpForm(forms.ModelForm):
             self.add_error('password_confirmation', 'Confirmation does not match password.')
 
     def save(self):
-        super().save(commit=False)  # Do everything the save function would normally do except for storing the record in the database.
+        super().save(commit=False)
         user = User.objects.create_user(
             first_name=self.cleaned_data.get('first_name'),
             last_name=self.cleaned_data.get('last_name'),
@@ -249,8 +258,6 @@ class SignUpForm(forms.ModelForm):
         student_group.user_set.add(user) # Add user as a Student
         student = Student.objects.create(user=user)
         return student
-    #email = forms.EmailField(label='Email')
-    #password = forms.CharField(label='Password', widget=forms.PasswordInput())
 
 class CreateUser(forms.ModelForm):
     class Meta:
@@ -275,7 +282,7 @@ class CreateUser(forms.ModelForm):
             self.add_error('password_confirmation', 'Confirmation does not match password.')
 
     def save(self):
-        super().save(commit=False)  # Do everything the save function would normally do except for storing the record in the database.
+        super().save(commit=False)
         user = User.objects.create_user(
             first_name=self.cleaned_data.get('first_name'),
             last_name=self.cleaned_data.get('last_name'),
@@ -356,6 +363,7 @@ class TransactionSubmitForm(forms.ModelForm):
         # alter string so that it fits the form xxxx-yyy
         pass
 
+
 class BookingEditForm(forms.ModelForm):
     class Meta:
         model = Booking
@@ -363,6 +371,10 @@ class BookingEditForm(forms.ModelForm):
                   'duration_of_lessons','interval_between_lessons','number_of_lessons',
                   'further_information']
         widgets = {'further_information':forms.Textarea(attrs={'style': "width:100%;"})}
+
+    field_order = ['day_of_the_week', 'time_of_the_day', 'start_date', 'end_date',
+                   'duration_of_lessons', 'interval_between_lessons', 'number_of_lessons',
+                   'teacher', 'further_information', 'hourly_cost']
 
     day_of_the_week = forms.ModelChoiceField(
         queryset=DayOfTheWeek.objects.all(),
@@ -374,7 +386,7 @@ class BookingEditForm(forms.ModelForm):
         label='Lesson time:',
         widget=forms.TimeInput(
             attrs={'type': 'time'}
-        )
+        ),
     )
     teacher = forms.CharField(
         label='Teacher:',
@@ -394,14 +406,15 @@ class BookingEditForm(forms.ModelForm):
     )
     hourly_cost = forms.CharField(
         widget=forms.TextInput(
-            attrs={'type': 'float'}
-        )
+            attrs={'type': 'decimal'},
+        ),
+        validators=[MinValueValidator('0.01')]
     )
-    
+
     def __init__(self, *args, **kwargs):
         self.instance_id = kwargs.pop('instance_id', None)
         super(BookingEditForm, self).__init__(*args, **kwargs)
-    
+
     def set_read_only(self):
         self.fields['day_of_the_week'].disabled = True
         self.fields['time_of_the_day'].disabled = True
@@ -429,6 +442,26 @@ class BookingEditForm(forms.ModelForm):
             number_of_lessons = self.cleaned_data.get('number_of_lessons'),
             further_information = self.cleaned_data.get('further_information')
         )
+
+
+        # Update invoice
+        student = Student.objects.get(user=instance_set[0].user)
+        invoice = instance_set[0].invoice
+        new_cost = instance_set[0].duration_of_lessons * float(self.cleaned_data.get('hourly_cost')) * instance_set[0].number_of_lessons / 60
+        invoice.full_amount = new_cost
+
+        if invoice.paid_amount > invoice.full_amount:
+            student.balance = student.balance + decimal.Decimal(
+                (invoice.paid_amount - decimal.Decimal(invoice.full_amount)))
+            invoice.paid_amount = invoice.full_amount
+            invoice.fully_paid = True
+            student.save()
+        elif invoice.paid_amount == invoice.full_amount:
+            invoice.fully_paid = True
+        else:
+            invoice.fully_paid = False
+
+        invoice.save()
 
         return instance_set[0]
 

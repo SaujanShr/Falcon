@@ -13,8 +13,7 @@
             <td style="text-align:center">{{ transaction.date }}</td>
             <td style="text-align:center">{{ transaction.student.user.email }}</td>
             <td style="text-align:center">{{ transaction.amount }}</td>
-            <td style="text-align:center">{{ transaction.invoice.invoice_number }}</td>
-        </tr>
+            <td style="text-align:center"><a href="{% url 'invoice_view' %}?invoice_id={{ transaction.invoice.invoice_number }}">{{ transaction.invoice.invoice_number }}</a></td>
       {% endfor %}
     {% else %}
       <tr>

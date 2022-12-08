@@ -86,12 +86,12 @@ class SignUpFormTestCase(TestCase):
         before_count = User.objects.count()
         form.save()
         after_count = User.objects.count()
-        self.assertEqual(after_count, before_count + 1)  # Check that the user count has increased by 1
+        self.assertEqual(after_count, before_count + 1)
 
         user = User.objects.get(email='johndoe@example.org')
         self.assertEqual(user.first_name, 'John')
         self.assertEqual(user.last_name, 'Doe')
         self.assertEqual(user.email, 'johndoe@example.org')
         is_password_correct = check_password('Password123',
-                                             user.password)  # Uses check_password as the password stored is a hash, using this will allow us to compare whether the given password is the same as the one stored as a hash.
+                                             user.password)
         self.assertTrue(is_password_correct)

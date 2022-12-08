@@ -1,3 +1,5 @@
+import datetime
+
 from django.test import TestCase
 from django import forms
 from lessons.models import User, Student, DayOfTheWeek, SchoolTerm, Booking, Invoice
@@ -27,6 +29,31 @@ class BookingEditFormTestCase(TestCase):
             'further_information':'Some informations',
             'hourly_cost':5.0
         }
+
+        i1 = Invoice(
+            invoice_number="0001-002",
+            student=Student.objects.get(user__email="johndoe@email.com"),
+            full_amount=300,
+            paid_amount=299,
+            fully_paid=False
+        )
+        i1.save()
+
+        self.booking1 = Booking.objects.create(
+            user=User.objects.get(email="johndoe@email.com"),
+            relation_id=1,
+            invoice=i1,
+            time_of_the_day="12:00",
+            teacher="Mr Smith",
+            number_of_lessons=20,
+            start_date="2022-11-21",
+            end_date="2023-11-21",
+            term_id=SchoolTerm.objects.all()[0],
+            duration_of_lessons=Booking.LessonDuration.FORTY_FIVE_MINUTES,
+            interval_between_lessons=Booking.IntervalBetweenLessons.TWO_WEEKS,
+            day_of_the_week=DayOfTheWeek.objects.get(order=1),
+            further_information="Extra Information"
+        )
         
     def _assert_form_is_valid(self):
         form = BookingEditForm(data=self.form_input)
@@ -185,7 +212,7 @@ class BookingEditFormTestCase(TestCase):
             paid_amount=0
         )
         booking = Booking.objects.create(
-            invoice = Invoice.objects.all()[0],
+            invoice = Invoice.objects.get(invoice_number='0000-000'),
             term_id = SchoolTerm.objects.all()[0],
             day_of_the_week = DayOfTheWeek.objects.get(day=DayOfTheWeek.Day.SATURDAY),
             time_of_the_day = '00:11',
@@ -216,3 +243,63 @@ class BookingEditFormTestCase(TestCase):
         self.assertEqual(booking.interval_between_lessons, self.form_input['interval_between_lessons'])
         self.assertEqual(booking.number_of_lessons, self.form_input['number_of_lessons'])
         self.assertEqual(booking.further_information, self.form_input['further_information'])
+
+    def test_invoice_gets_updated_when_hourly_cost_changed(self):
+        form_input2 = {
+            'time_of_the_day': self.booking1.time_of_the_day,
+            'day_of_the_week': self.booking1.day_of_the_week,
+            'user': self.booking1.user,
+            'relation_id': self.booking1.relation_id,
+            'teacher': self.booking1.teacher,
+            'start_date': self.booking1.start_date,
+            'end_date': self.booking1.end_date,
+            'duration_of_lessons': self.booking1.duration_of_lessons,
+            'interval_between_lessons': self.booking1.interval_between_lessons,
+            'number_of_lessons': self.booking1.number_of_lessons,
+            'further_information': self.booking1.further_information,
+            'hourly_cost': 30
+        }
+        form = BookingEditForm(instance_id=self.booking1.id, data=form_input2)
+        form.save()
+
+        self.assertEqual(Booking.objects.get(id=self.booking1.id).invoice.full_amount, 450)
+
+    def test_invoice_gets_updated_when_duration_of_lesson_changed(self):
+        form_input2 = {
+            'time_of_the_day': self.booking1.time_of_the_day,
+            'day_of_the_week': self.booking1.day_of_the_week,
+            'user': self.booking1.user,
+            'relation_id': self.booking1.relation_id,
+            'teacher': self.booking1.teacher,
+            'start_date': self.booking1.start_date,
+            'end_date': self.booking1.end_date,
+            'duration_of_lessons': Booking.LessonDuration.THIRTY_MINUTES,
+            'interval_between_lessons': self.booking1.interval_between_lessons,
+            'number_of_lessons': self.booking1.number_of_lessons,
+            'further_information': self.booking1.further_information,
+            'hourly_cost': 20
+        }
+        form = BookingEditForm(instance_id=self.booking1.id, data=form_input2)
+        form.save()
+
+        self.assertEqual(Booking.objects.get(id=self.booking1.id).invoice.full_amount, 200)
+
+    def test_term_is_calculated_correctly_even_when_lessons_start_outside_of_term(self):
+        form_input = {
+            'time_of_the_day': self.booking1.time_of_the_day,
+            'day_of_the_week': self.booking1.day_of_the_week,
+            'user': self.booking1.user,
+            'relation_id': self.booking1.relation_id,
+            'teacher': self.booking1.teacher,
+            'start_date': (SchoolTerm.objects.all()[0].end_date + datetime.timedelta(days=1)),
+            'end_date': self.booking1.end_date,
+            'duration_of_lessons': self.booking1.duration_of_lessons,
+            'interval_between_lessons': self.booking1.interval_between_lessons,
+            'number_of_lessons': self.booking1.number_of_lessons,
+            'further_information': self.booking1.further_information,
+            'hourly_cost': 20
+        }
+        form = BookingEditForm(instance_id=self.booking1.id, data=form_input)
+        form.save()
+
+        self.assertEqual(Booking.objects.get(id=self.booking1.id).term_id, SchoolTerm.objects.all()[0])

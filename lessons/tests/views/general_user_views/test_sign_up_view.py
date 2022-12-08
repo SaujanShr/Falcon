@@ -27,10 +27,11 @@ class SignUpViewTestCase(TestCase):
 
     def test_get_sign_up(self):
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200) # Check that the response status code is 200.
-        self.assertTemplateUsed(response, 'sign_up.html') # Check that the template rendered is in the for of sign_up.html
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'sign_up.html')
+        
         form = response.context['form']
-        self.assertTrue(isinstance(form, SignUpForm)) # Check that the form is in the form of SignUpForm
+        self.assertTrue(isinstance(form, SignUpForm))
         self.assertFalse(form.is_bound)
 
     def test_unsuccessful_sign_up(self):
@@ -38,24 +39,28 @@ class SignUpViewTestCase(TestCase):
         before_count = User.objects.count()
         response = self.client.post(self.url, self.form_input)
         after_count = User.objects.count()
-        self.assertEqual(after_count, before_count)  # Check that the user count is the same, as we expect no user to be created.
+        
+        self.assertEqual(after_count, before_count)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'sign_up.html')
+        
         form = response.context['form']
         self.assertTrue(isinstance(form, SignUpForm))
         self.assertTrue(form.is_bound)
 
     def test_successful_sign_up(self):
         before_count = User.objects.count()
-        response = self.client.post(self.url, self.form_input, follow=True) # Follow = It makes sure that we follow the redirect.
+        response = self.client.post(self.url, self.form_input, follow=True)
         after_count = User.objects.count()
-        self.assertEqual(after_count, before_count+1) # Check that the user count has increased by 1
+        self.assertEqual(after_count, before_count+1)
+        
         response_url = reverse('log_in')
-        self.assertRedirects(response, response_url, status_code=302, target_status_code=200) # response_url = the url to be redirected to, status_code= what status code should be returned, target_status_code = The status code of the eventual code after the redirect.
-        self.assertTemplateUsed(response, 'log_in.html')
+        self.assertRedirects(response, response_url, status_code=302, target_status_code=200)
         user = User.objects.get(email='janedoe@example.org')
+        
         self.assertEqual(user.first_name, 'Jane')
         self.assertEqual(user.last_name, 'Doe')
         self.assertEqual(user.email, 'janedoe@example.org')
-        is_password_correct = check_password('Password123', user.password) # Uses check_password as the password stored is a hash, using this will allow us to compare whether the given password is the same as the one stored as a hash.
+        
+        is_password_correct = check_password('Password123', user.password)
         self.assertTrue(is_password_correct)
