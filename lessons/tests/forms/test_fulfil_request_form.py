@@ -64,6 +64,7 @@ class FulfilRequestFormTestCase(TestCase):
         
         self.assertIn('availability', form.fields)
         self.assertIn('time_of_lesson', form.fields)
+        self.assertIn('interval_between_lessons', form.fields)
         self.assertIn('teacher', form.fields)
         self.assertIn('start_date', form.fields)
         self.assertIn('end_date', form.fields)
