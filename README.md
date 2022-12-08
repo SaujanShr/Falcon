@@ -61,4 +61,7 @@ $ python3 manage.py test
 ## Sources
 The packages used by this application are specified in `requirements.txt`
 
+The image used in the Home view is free of rights.
+It was sourced from: https://pixabay.com/photos/piano-sheet-music-music-keyboard-1655558/?download
+And is specified to be placed "Free to use under the Pixabay license." with "No attribution required"
 *Declare are other sources here.*
