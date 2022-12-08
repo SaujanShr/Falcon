@@ -81,7 +81,7 @@ class Command(BaseCommand):
         self.pay_invoice(alice_invoice)
         bob_doe_request =self.create_random_request_for_user(john_doe_user,bob_doe.id,True)
         bob_doe_request.availability.set(sample(self.DAYS_OF_THE_WEEK_INSTANCES, randint(1,len(self.DAYS_OF_THE_WEEK_INSTANCES)-1)))
-        bob_invoice = self._create_booking_for_request_and_return_invoice(alice_doe_request)
+        bob_invoice = self._create_booking_for_request_and_return_invoice(bob_doe_request)
         self.pay_invoice(bob_invoice)
 
     def _create_required_users(self):
