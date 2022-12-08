@@ -364,6 +364,7 @@ class TransactionSubmitForm(forms.ModelForm):
         # alter string so that it fits the form xxxx-yyy
         pass
 
+
 class BookingEditForm(forms.ModelForm):
     class Meta:
         model = Booking
@@ -382,7 +383,7 @@ class BookingEditForm(forms.ModelForm):
         label='Lesson time:',
         widget=forms.TimeInput(
             attrs={'type': 'time'}
-        )
+        ),
     )
     teacher = forms.CharField(
         label='Teacher:',
