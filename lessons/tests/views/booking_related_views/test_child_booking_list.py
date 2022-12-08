@@ -1,37 +1,32 @@
-"""Unit tests of the lesson list View."""
+"""Unit tests of the child booking list view."""
 from django.test import TestCase
-from lessons.models import User, DayOfTheWeek, Booking, SchoolTerm, Invoice, Student
+from lessons.models import User, DayOfTheWeek, Booking, SchoolTerm, Invoice, Student, Child
 from lessons.tests.helpers import create_user_groups, create_days_of_the_week
 from django.urls import reverse
 import datetime
 
 
-class LessonListViewTestCase(TestCase):
-    """Unit tests of the lesson list View."""
+class ChildBookingListTestCase(TestCase):
+    """Unit tests of the child booking list view."""
     fixtures = ['lessons/tests/fixtures/default_user.json', 'lessons/tests/fixtures/other_users.json']
 
     def setUp(self):
         create_user_groups()
         create_days_of_the_week()
-
-        self.user1 = User.objects.get(email="johndoe@email.com")
-        self.user2 = User.objects.get(email="janedoe@email.com")
-
-        Student(user=self.user1, balance=0).save()
-        Student(user=self.user2, balance=0).save()
-
+        Student(user=User.objects.get(email="johndoe@email.com"), balance=0).save()
+        Child(parent=User.objects.get(email="johndoe@email.com"), first_name="child", last_name="doe").save()
+        Student(user=User.objects.get(email="janedoe@email.com"), balance=0).save()
         SchoolTerm(term_name="Term one", start_date=datetime.date(2029, 9, 1),
                    end_date=datetime.date(2029, 10, 21)).save()
         SchoolTerm(term_name="Term two", start_date=datetime.date(2029, 10, 31),
                    end_date=datetime.date(2029, 12, 16)).save()
-
         Invoice(invoice_number="0001-001", student=Student.objects.get(user__email="johndoe@email.com"),
                 full_amount=300, paid_amount=0, fully_paid=False).save()
-        Invoice(invoice_number="0002-001", student=Student.objects.get(user__email="janedoe@email.com"),
+        Invoice(invoice_number="0001-002", student=Student.objects.get(user__email="johndoe@email.com"),
                 full_amount=500, paid_amount=0, fully_paid=False).save()
 
         self.booking1 = Booking.objects.create(
-            user=self.user1,
+            user=User.objects.get(email="johndoe@email.com"),
             relation_id=-1,
             invoice=Invoice.objects.get(invoice_number="0001-001"),
             time_of_the_day="12:00",
@@ -47,9 +42,9 @@ class LessonListViewTestCase(TestCase):
         )
 
         self.booking2 = Booking.objects.create(
-            user=self.user2,
-            relation_id=-1,
-            invoice=Invoice.objects.get(invoice_number="0002-001"),
+            user=User.objects.get(email="johndoe@email.com"),
+            relation_id=1,
+            invoice=Invoice.objects.get(invoice_number="0001-002"),
             time_of_the_day="9:00",
             teacher="Mr Singh",
             number_of_lessons=5,
@@ -62,23 +57,35 @@ class LessonListViewTestCase(TestCase):
             further_information="Extra Information 2"
         )
 
-        self.url = reverse('lesson_list_student')
+        self.url = reverse('child_booking_list')
         self.client.login(email='johndoe@email.com', password='Password123')
 
-    def test_lesson_list_url(self):
-        self.assertEqual(self.url, '/lessons/student')
+    def test_child_booking_list_url(self):
+        self.assertEqual(self.url, '/child_booking_list/')
 
-    def test_get_lesson_list(self):
-        response = self.client.get(self.url)
+    def test_get_child_booking_list(self):
+        response = self.client.get(f"{self.url}?relation_id=1")
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'lesson_list.html')
-        lessons = response.context['lessons']
-        self.assertTrue(lessons)
-        self.assertTrue(isinstance(lessons, list))
+        self.assertTemplateUsed(response, 'child_booking_list.html')
+        bookings = response.context['child_bookings']
+        self.assertTrue(bookings)
 
-    def test_lesson_list_displays_only_users_lessons(self):
-        response = self.client.get(self.url)
+    def test_booking_list_displays_only_child_bookings(self):
+        response = self.client.get(f"{self.url}?relation_id=1")
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'lesson_list.html')
-        lessons = response.context['lessons']
-        self.assertEqual(len(lessons), self.booking1.number_of_lessons)
+        self.assertTemplateUsed(response, 'child_booking_list.html')
+        bookings = response.context['child_bookings']
+
+        self.assertTrue(bookings)
+
+        parent = User.objects.get(email="johndoe@email.com")
+        child_id = 1
+        self.assertQuerysetEqual(bookings, Booking.objects.filter(user=parent).filter(relation_id=child_id))
+
+    def test_booking_list_redirects_on_non_existent_child(self):
+        response = self.client.get(f"{self.url}?relation_id=500", follow=True)
+
+        response_url = reverse('children_list')
+        self.assertRedirects(response, response_url, status_code=302, target_status_code=200)
+        self.assertTemplateUsed(response, 'children_list.html')
+

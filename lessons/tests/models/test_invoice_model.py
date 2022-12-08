@@ -1,11 +1,12 @@
+"""Unit tests for the Invoice model"""
 from django.test import TestCase
-from sqlite3 import IntegrityError
 from django.core.exceptions import ValidationError
 from lessons.models import Invoice, User, Student
 from lessons.tests.helpers import create_user_groups
 
+
 class InvoiceModelTestCase(TestCase):
-    '''Unit tests for the Invoice model'''
+    """Unit tests for the Invoice model"""
 
     fixtures = ['lessons/tests/fixtures/default_user.json']
 

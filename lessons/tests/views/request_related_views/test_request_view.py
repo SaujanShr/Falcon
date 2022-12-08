@@ -58,7 +58,6 @@ class RequestViewTestCase(TestCase):
             further_information=further_information,
             fulfilled=True
         ).availability.add(DayOfTheWeek.objects.get(day=DayOfTheWeek.Day.TUESDAY))
-        # print(self.request)
         self.request = Request.objects.get(id=1)
 
     def test_request_url(self):
@@ -123,7 +122,6 @@ class RequestViewTestCase(TestCase):
         self.assertTemplateUsed(response, 'request_list.html')
 
     def test_unsuccessful_request_edit(self):
-        # self.form_input['request_id'] = 1
         payload = {'request_id': 1, 'relation_id': -1, 'full_name': 'john doe', 'availability': '-1',
                    'number_of_lessons': '2', 'interval_between_lessons': '7', 'duration_of_lessons': '30',
                    'further_information': 'None', 'update': ' '}

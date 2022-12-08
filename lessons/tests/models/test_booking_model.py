@@ -1,3 +1,4 @@
+"""Unit test for the Booking model"""
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 from lessons.models import User, DayOfTheWeek, Booking, SchoolTerm, Invoice, Student
@@ -7,8 +8,8 @@ import datetime
 
 
 class BookingModelTestCase(TestCase):
-    '''Unit test for the Booking model'''
-    
+    """Unit test for the Booking model"""
+
     fixtures = ['lessons/tests/fixtures/other_users.json', 'lessons/tests/fixtures/default_user.json']
 
     def setUp(self):
@@ -16,14 +17,35 @@ class BookingModelTestCase(TestCase):
         create_days_of_the_week()
         Student(user=User.objects.get(email="johndoe@email.com"), balance=0).save()
         Student(user=User.objects.get(email="janedoe@email.com"), balance=0).save()
-        SchoolTerm(term_name="Term one", start_date=datetime.date(2022, 9, 1),
-                   end_date=datetime.date(2022, 10, 21)).save()
-        SchoolTerm(term_name="Term two", start_date=datetime.date(2022, 10, 31),
-                   end_date=datetime.date(2022, 12, 16)).save()
-        i1 = Invoice(invoice_number="0001-001", student=Student.objects.get(user__email="johndoe@email.com"),
-                     full_amount=300, paid_amount=0, fully_paid=False)
-        i2 = Invoice(invoice_number="0002-001", student=Student.objects.get(user__email="janedoe@email.com"),
-                     full_amount=500, paid_amount=0, fully_paid=False)
+
+        SchoolTerm(
+            term_name="Term one",
+            start_date=datetime.date(2022, 9, 1),
+            end_date=datetime.date(2022, 10, 21)
+        ).save()
+
+        SchoolTerm(
+            term_name="Term two",
+            start_date=datetime.date(2022, 10, 31),
+            end_date=datetime.date(2022, 12, 16)
+        ).save()
+
+        i1 = Invoice(
+            invoice_number="0001-001",
+            student=Student.objects.get(user__email="johndoe@email.com"),
+            full_amount=300,
+            paid_amount=0,
+            fully_paid=False
+        )
+
+        i2 = Invoice(
+            invoice_number="0002-001",
+            student=Student.objects.get(user__email="janedoe@email.com"),
+            full_amount=500,
+            paid_amount=0,
+            fully_paid=False
+        )
+
         i1.save()
         i2.save()
 
@@ -95,15 +117,15 @@ class BookingModelTestCase(TestCase):
     def test_user_may_be_the_same(self):
         self.booking1.user = self.booking2.user
         self._assert_booking_is_valid()
-    
+
     def test_relation_id_may_be_the_same(self):
         self.booking1.relation_id = self.booking2.relation_id
         self._assert_booking_is_valid()
-    
+
     def test_relation_id_cannot_be_below_negative_one(self):
         self.booking1.relation_id = -2
         self._assert_booking_is_invalid()
-    
+
     def test_relation_id_can_be_negative_one(self):
         self.booking1.relation_id = -1
         self._assert_booking_is_valid()

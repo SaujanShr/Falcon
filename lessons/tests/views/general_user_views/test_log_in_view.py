@@ -6,6 +6,7 @@ from lessons.forms import LogInForm
 from lessons.models import User
 from lessons.tests.helpers import LogInTester, reverse_with_next,HandleGroups
 
+
 class LogInViewTestCase(TestCase, LogInTester):
     """Tests of the log in view."""
 

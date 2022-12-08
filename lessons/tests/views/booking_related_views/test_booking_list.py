@@ -1,4 +1,4 @@
-"""Unit tests of the Admin lesson list."""
+"""Unit tests of the booking list view."""
 from django.test import TestCase
 from lessons.models import User, DayOfTheWeek, Booking, SchoolTerm, Invoice, Student
 from lessons.tests.helpers import create_user_groups, create_days_of_the_week
@@ -6,28 +6,23 @@ from django.urls import reverse
 import datetime
 
 
-class AdminLessonListTestCase(TestCase):
-    """Unit tests of the Admin lesson list."""
-    fixtures = ['lessons/tests/fixtures/default_user.json','lessons/tests/fixtures/other_users.json']
+class BookingListTestCase(TestCase):
+    """Unit tests of the booking list view."""
+    fixtures = ['lessons/tests/fixtures/default_user.json', 'lessons/tests/fixtures/other_users.json']
 
     def setUp(self):
         create_user_groups()
         create_days_of_the_week()
         Student(user=User.objects.get(email="johndoe@email.com"), balance=0).save()
         Student(user=User.objects.get(email="janedoe@email.com"), balance=0).save()
-        self.superuser = User.objects.create_superuser(
-            email='admin@email.com',
-            password='password'
-        )
-
         SchoolTerm(term_name="Term one", start_date=datetime.date(2029, 9, 1),
                    end_date=datetime.date(2029, 10, 21)).save()
         SchoolTerm(term_name="Term two", start_date=datetime.date(2029, 10, 31),
                    end_date=datetime.date(2029, 12, 16)).save()
-        i1 = Invoice(invoice_number="0001-001", student=Student.objects.get(user__email="johndoe@email.com"),
-                     full_amount=300, paid_amount=0, fully_paid=False).save()
-        i2 = Invoice(invoice_number="0002-001", student=Student.objects.get(user__email="janedoe@email.com"),
-                     full_amount=500, paid_amount=0, fully_paid=False).save()
+        Invoice(invoice_number="0001-001", student=Student.objects.get(user__email="johndoe@email.com"),
+                full_amount=300, paid_amount=0, fully_paid=False).save()
+        Invoice(invoice_number="0002-001", student=Student.objects.get(user__email="janedoe@email.com"),
+                full_amount=500, paid_amount=0, fully_paid=False).save()
 
         self.booking1 = Booking.objects.create(
             user=User.objects.get(email="johndoe@email.com"),
@@ -61,24 +56,24 @@ class AdminLessonListTestCase(TestCase):
             further_information="Extra Information 2"
         )
 
-        self.url = reverse('lesson_list_admin')
-        self.client.login(email='admin@email.com', password='password')
+        self.url = reverse('booking_list')
+        self.client.login(email='johndoe@email.com', password='Password123')
 
-    def test_admin_lesson_list_url(self):
-        self.assertEqual(self.url, '/lessons/admin')
+    def test_booking_list_url(self):
+        self.assertEqual(self.url, '/booking_list/')
 
-    def test_get_admin_lesson_list(self):
+    def test_get_booking_list(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'lesson_list.html')
-        lessons = response.context['lessons']
-        self.assertTrue(lessons)
-        self.assertTrue(isinstance(lessons, list))
+        self.assertTemplateUsed(response, 'booking_list.html')
+        bookings = response.context['bookings']
+        self.assertTrue(bookings)
+        self.assertTrue(isinstance(bookings, list))
 
-    def test_admin_lesson_list_displays_all_users_lessons(self):
+    def test_booking_list_displays_only_users_booking(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'lesson_list.html')
-        lessons = response.context['lessons']
-        expected_lessons = self.booking1.number_of_lessons + self.booking2.number_of_lessons
-        self.assertEqual(len(lessons), expected_lessons)
+        self.assertTemplateUsed(response, 'booking_list.html')
+        bookings = response.context['bookings']
+        user = User.objects.get(email="johndoe@email.com")
+        self.assertEqual(len(bookings), len(Booking.objects.filter(user=user)))

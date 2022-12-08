@@ -1,9 +1,11 @@
+"""Unit tests for the NewChildForm form"""
 from django.test import TestCase
 from lessons.models import User, Child
 from lessons.forms import NewChildForm
 
+
 class NewChildFormTestCase(TestCase):
-    '''Unit tests for the NewChildForm form'''
+    """Unit tests for the NewChildForm form"""
     
     fixtures = ['lessons/tests/fixtures/default_user.json']
     

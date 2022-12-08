@@ -2,8 +2,9 @@ from django.test import TestCase
 from lessons.models import User, Booking, Invoice
 from lessons.forms import InvoiceEditForm
 
+
 class InvoiceViewFormTestCase(TestCase):
-    '''Unit tests for the InvoiceViewForm form'''
+    """Unit tests for the InvoiceViewForm form"""
     
     fixtures = ['lessons/tests/fixtures/default_user.json']
     

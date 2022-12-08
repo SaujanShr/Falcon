@@ -1,13 +1,14 @@
-"""Tests of the student creation view."""
+"""Tests of the admin creation view."""
 from django.contrib.auth.hashers import check_password
 from django.test import TestCase
 from django.urls import reverse
 from lessons.forms import CreateUser
 from lessons.models import User
-from lessons.tests.helpers import create_user_groups,HandleGroups
+from lessons.tests.helpers import create_user_groups
 
-class CreateUserViewTestCase(TestCase):
-    """Tests of the student creation view"""
+
+class CreateAdminUserViewTestCase(TestCase):
+    """Tests of the admin creation view"""
 
     fixtures = ['lessons/tests/fixtures/default_user.json']
 
@@ -25,7 +26,7 @@ class CreateUserViewTestCase(TestCase):
             'password_confirmation': 'Password123'
         }
 
-    def test_sign_up_url(self):
+    def test_create_admin_view_url(self):
         self.assertEqual(self.url, '/create_admin_user/')
 
     def test_get_create_admin_user(self):
