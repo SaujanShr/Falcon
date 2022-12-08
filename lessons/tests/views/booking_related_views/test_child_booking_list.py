@@ -81,3 +81,11 @@ class ChildBookingListTestCase(TestCase):
         parent = User.objects.get(email="johndoe@email.com")
         child_id = 1
         self.assertQuerysetEqual(bookings, Booking.objects.filter(user=parent).filter(relation_id=child_id))
+
+    def test_booking_list_redirects_on_non_existent_child(self):
+        response = self.client.get(f"{self.url}?relation_id=500", follow=True)
+
+        response_url = reverse('children_list')
+        self.assertRedirects(response, response_url, status_code=302, target_status_code=200)
+        self.assertTemplateUsed(response, 'children_list.html')
+
