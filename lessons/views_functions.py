@@ -18,7 +18,7 @@ def redirect_with_queries(url, **queries):
         response['location'] += '?' + query_string
     return response
 
-def get_prev_url_from_request(request) -> (str|None):
+def get_prev_url_from_request(request):
     '''Get the previous url of a request'''
     if request.method == 'GET':
         return request.GET.get('prev_url', None)
@@ -26,7 +26,7 @@ def get_prev_url_from_request(request) -> (str|None):
         return request.POST.get('prev_url', None)
     return None
 
-def get_invoice_id_from_request(request) -> (int|None):
+def get_invoice_id_from_request(request):
     '''Get the unique invoice id parameter from a request'''
     if request.method == 'GET':
         return request.GET.get('invoice_id', None)
@@ -62,7 +62,7 @@ def get_child_object(relation_id):
         return Child.objects.get(id=relation_id)
     return None
     
-def get_student_balance(request) -> (int|None):
+def get_student_balance(request):
     '''Get the balance of the student/parent'''
     if Student.objects.filter(user=request.user).exists():
         student = Student.objects.get(user=request.user)
@@ -115,7 +115,7 @@ def is_child(relation_id):
     '''Validate if a relation id belongs to a child'''
     return int(relation_id) != -1
 
-def get_client_from_relation_id(user, relation_id) -> (Child|User|None):
+def get_client_from_relation_id(user, relation_id):
     '''Get the object that matches the given user and relation id'''
     if is_child(relation_id):
         return get_child_object(relation_id=relation_id)
