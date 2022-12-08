@@ -16,7 +16,7 @@ def login_prohibited(view_function):
             return redirect(user_specific_redirect)
         else:
             return view_function(request)
-            # execute
+
     return modified_view_function
 
 def allowed_groups(allowed_groups_names = []):

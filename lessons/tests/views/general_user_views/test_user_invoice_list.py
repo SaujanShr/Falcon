@@ -16,8 +16,10 @@ class InvoiceStudentListTestCase(TestCase):
         self.john_doe_user = User.objects.get(email='johndoe@email.com')
         self.jane_doe_user = User.objects.get(email='janedoe@email.com')
         self.url = reverse('invoice_list_student')
+        
         self.student = Student.objects.create(user = self.john_doe_user)
         self.student2 = Student.objects.create(user = self.jane_doe_user)
+        
         self.superuser = User.objects.create_superuser(
             email='admin@email.com',
             password='password'
@@ -39,6 +41,7 @@ class InvoiceStudentListTestCase(TestCase):
     def test_get_invoice_student_view(self):
         self.client.login(email='johndoe@email.com', password='Password123')
         response = self.client.get(self.url)
+        
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'invoice_list.html')
         invoices = response.context['invoices']
@@ -47,6 +50,7 @@ class InvoiceStudentListTestCase(TestCase):
     def test_invoice_view_displays_only_users_invoices(self):
         self.client.login(email='johndoe@email.com', password='Password123')
         response = self.client.get(self.url)
+        
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'invoice_list.html')
         invoices = response.context['invoices']

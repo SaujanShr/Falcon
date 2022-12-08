@@ -60,7 +60,7 @@ class NewRequestViewTestCase(TestCase):
         before_count = Request.objects.count()
         response = self.client.post(self.url, self.form_input, follow=True)
         after_count = Request.objects.count()
-        self.assertEqual(after_count, before_count + 1)  # Check that the Request count has increased by 1
+        self.assertEqual(after_count, before_count + 1)
         response_url = reverse('request_list')
         self.assertRedirects(response, response_url, status_code=302,
                              target_status_code=200)

@@ -515,20 +515,15 @@ def booking_view(request):
                                                  'full_name': full_name, 'form': form, 'readonly': readonly, 'balance':balance})
 
 
-"""
-A view that presents a list of all terms.
-"""
 @login_required
-@allowed_groups(["Student"])  # Do Admins also need access to this page?
+@allowed_groups(["Student"])
 def student_term_view(request):
     terms = SchoolTerm.objects.all()
     balance = get_student_balance(request)
     return render(request, 'student_term_view.html', {'terms': terms, 'balance':balance})
 
 
-"""
-A view to see and edit all terms as well as create a new term.
-"""
+
 @login_required
 @allowed_groups(["Admin", "Director"])
 def admin_term_view(request):
@@ -536,9 +531,6 @@ def admin_term_view(request):
     return render(request, 'admin_term_view.html', {'terms': terms})
 
 
-"""
-A view that handles a single term.
-"""
 @login_required
 @allowed_groups(["Admin", "Director"])
 def term_view(request):
@@ -568,16 +560,12 @@ def term_view(request):
             form.save()
             messages.add_message(request, messages.SUCCESS, "Term updated!")
         else:
-            # If any other fields are invalid then recreate old term again, very bad!
             SchoolTerm(term_name=term.term_name, start_date=term.start_date, end_date=term.end_date).save()
             new_term = SchoolTerm.objects.get(term_name=term.term_name)
             return render(request, 'term_view.html', {'form': form, 'term_id': new_term.id, 'term_name': term.term_name})
 
     return redirect('admin_term_view')
 
-"""
-This view enables the creation of a new term.
-"""
 @login_required
 @allowed_groups(["Admin", "Director"])
 def new_term_view(request):
@@ -592,9 +580,6 @@ def new_term_view(request):
     return render(request, 'new_term_view.html', {'form': form})
 
 
-"""
-This view confirms the deletion of a term.
-"""
 @login_required
 @allowed_groups(["Admin", "Director"])
 def term_deletion_confirmation_view(request):

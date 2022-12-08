@@ -247,7 +247,7 @@ class SignUpForm(forms.ModelForm):
             self.add_error('password_confirmation', 'Confirmation does not match password.')
 
     def save(self):
-        super().save(commit=False)  # Do everything the save function would normally do except for storing the record in the database.
+        super().save(commit=False)
         user = User.objects.create_user(
             first_name=self.cleaned_data.get('first_name'),
             last_name=self.cleaned_data.get('last_name'),
@@ -258,8 +258,6 @@ class SignUpForm(forms.ModelForm):
         student_group.user_set.add(user) # Add user as a Student
         student = Student.objects.create(user=user)
         return student
-    #email = forms.EmailField(label='Email')
-    #password = forms.CharField(label='Password', widget=forms.PasswordInput())
 
 class CreateUser(forms.ModelForm):
     class Meta:
@@ -284,7 +282,7 @@ class CreateUser(forms.ModelForm):
             self.add_error('password_confirmation', 'Confirmation does not match password.')
 
     def save(self):
-        super().save(commit=False)  # Do everything the save function would normally do except for storing the record in the database.
+        super().save(commit=False)
         user = User.objects.create_user(
             first_name=self.cleaned_data.get('first_name'),
             last_name=self.cleaned_data.get('last_name'),

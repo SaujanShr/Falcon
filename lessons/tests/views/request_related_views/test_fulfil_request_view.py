@@ -10,6 +10,7 @@ from lessons.tests.helpers import create_user_groups, HandleGroups, create_days_
 
 class NewRequestViewTestCase(TestCase):
     """Tests of the fulfil request view"""
+    
     fixtures = ['lessons/tests/fixtures/default_user.json', 'lessons/tests/fixtures/default_terms.json',
                 'lessons/tests/fixtures/other_users.json']
 
@@ -89,7 +90,7 @@ class NewRequestViewTestCase(TestCase):
                    'end_date': self.term.end_date,
                    'duration_of_lessons': self.request.duration_of_lessons,
                    'interval_between_lessons': self.request.interval_between_lessons,
-                   'number_of_lessons': -1, #Invalid
+                   'number_of_lessons': -1,
                    'further_information': self.request.further_information,
                    'hourly_cost': 15
                    }
@@ -119,7 +120,7 @@ class NewRequestViewTestCase(TestCase):
         response_url = reverse('admin_booking_list')
         self.assertRedirects(response, response_url, status_code=302,
                              target_status_code=200)
-        self.assertEqual(after_count, before_count + 1)  # Check that the Booking count has increased by 1
+        self.assertEqual(after_count, before_count + 1)
 
         self.assertTemplateUsed(response, 'admin_booking_list.html')
 

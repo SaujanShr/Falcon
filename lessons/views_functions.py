@@ -465,7 +465,7 @@ def get_upcoming_term():
     return SchoolTerm.objects.all().filter(end_date__gt=datetime.date.today()) \
         .filter(start_date__gte=datetime.date.today()).order_by('start_date').first()
 
-#Finds term associated with date, but allows a None return when no term can be associated with the day.
+
 def find_term_from_date_allow_none(date):
     '''
     Finds term associated with date, but allows a None return when no term can be associated with the day.
