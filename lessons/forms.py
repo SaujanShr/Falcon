@@ -1,7 +1,7 @@
 import decimal
 
 from django import forms
-from django.core.validators import RegexValidator
+from django.core.validators import RegexValidator, MinValueValidator
 from django.contrib.auth.models import Group
 from .models import User, Child, DayOfTheWeek, Request, BankTransaction, Student, Invoice, SchoolTerm, Booking
 from .forms_functions import create_invoice, find_term_from_date
@@ -408,8 +408,9 @@ class BookingEditForm(forms.ModelForm):
     )
     hourly_cost = forms.CharField(
         widget=forms.TextInput(
-            attrs={'type': 'float'}
-        )
+            attrs={'type': 'decimal'},
+        ),
+        validators=[MinValueValidator('0.01')]
     )
 
     def __init__(self, *args, **kwargs):
