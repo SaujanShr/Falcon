@@ -374,6 +374,10 @@ class BookingEditForm(forms.ModelForm):
                   'further_information']
         widgets = {'further_information':forms.Textarea(attrs={'style': "width:100%;"})}
 
+    field_order = ['day_of_the_week', 'time_of_the_day', 'start_date', 'end_date',
+                   'duration_of_lessons', 'interval_between_lessons', 'number_of_lessons',
+                   'teacher', 'further_information', 'hourly_cost']
+
     day_of_the_week = forms.ModelChoiceField(
         queryset=DayOfTheWeek.objects.all(),
         label="Day of lessons:",
