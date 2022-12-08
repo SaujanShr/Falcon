@@ -442,22 +442,22 @@ def admin_request_list(request):
                                                        'unfulfilled_requests': requests['unfulfilled']})
 
 
-# @login_required
-# @allowed_groups(["Admin","Director"])
+@login_required
+@allowed_groups(["Admin","Director"])
 def fulfil_request_view(request):
     request_id = get_request_id_from_request(request)
 
     if request.method == 'POST':
         if request.POST.get('fulfil', None):
             form = FulfilRequestForm(request_id=request_id, data=request.POST)
-            booking = form.save()
+            if form.is_valid():
+                booking = form.save()
             return redirect('admin_booking_list')
         elif request.POST.get('delete', None):
             delete_request_object_from_request(request)
             return redirect('admin_request_list')
         elif request.POST.get('return', None):
             return redirect('admin_request_list')
-
     form = get_fulfil_request_form(request)
     return render(request, 'fulfil_view.html', {'request_id': request_id, 'form': form})
 
