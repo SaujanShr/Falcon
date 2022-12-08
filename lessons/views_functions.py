@@ -291,7 +291,6 @@ def update_booking(request):
 def delete_booking(request):
     booking = get_booking_object_from_request(request)
     refund_booking_if_valid(booking)
-    
     return booking.delete()
 
 def get_booking_form(booking_id):
