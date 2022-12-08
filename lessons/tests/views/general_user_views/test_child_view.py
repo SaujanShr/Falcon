@@ -1,11 +1,13 @@
+"""Unit test for the ChildView view"""
 from django.test import TestCase
 from django.urls import reverse
 from lessons.forms import ChildEditForm
 from lessons.models import User, Child, Student
 from lessons.tests.helpers import create_user_groups, HandleGroups
 
+
 class ChildViewTestCase(TestCase):
-    '''Unit test for the ChildView view'''
+    """Unit test for the ChildView view"""
     
     fixtures = ['lessons/tests/fixtures/default_user.json', 'lessons/tests/fixtures/other_users.json']
     
@@ -87,7 +89,7 @@ class ChildViewTestCase(TestCase):
         self.assertTemplateUsed(response, 'children_list.html')
         self.assertEqual(Child.objects.count(), 0)
         
-    def test_return_redirects_to_children_list(self):
+    def test_return_redirects_to_children_list_on_return_button(self):
         self.client.login(email='johndoe@email.com', password='Password123')
         self.url = f'{reverse("child_view")}'
         self.form_input['return'] = True

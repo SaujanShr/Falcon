@@ -64,7 +64,7 @@ class ChildRequestListTestCase(TestCase):
 
         parent = User.objects.get(email="johndoe@email.com")
         child_id = 1
-        self.assertQuerysetEqual(child_requests, Request.objects.filter(user_id=parent.id).filter(relation_id=child_id).order_by('-id'))
+        self.assertQuerysetEqual(child_requests, Request.objects.filter(user_id=parent.id).filter(relation_id=child_id).order_by('-id').order_by('-date'))
 
     def test_child_request_list_displays_no_requests_for_child_with_no_requests(self):
         response = self.client.get(f"{self.url}?relation_id=2")
