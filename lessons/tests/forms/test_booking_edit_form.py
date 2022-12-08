@@ -241,6 +241,26 @@ class BookingEditFormTestCase(TestCase):
 
         self.assertEqual(Booking.objects.get(id=self.booking1.id).invoice.full_amount, 200)
 
+    def test_term_is_calculated_correctly_even_when_lessons_start_outside_of_term(self):
+        form_input = {
+            'time_of_the_day': self.booking1.time_of_the_day,
+            'day_of_the_week': self.booking1.day_of_the_week,
+            'user': self.booking1.user,
+            'relation_id': self.booking1.relation_id,
+            'teacher': self.booking1.teacher,
+            'start_date': (self.term.end_date + datetime.timedelta(days=1)),
+            'end_date': self.booking1.end_date,
+            'duration_of_lessons': self.booking1.duration_of_lessons,
+            'interval_between_lessons': self.booking1.interval_between_lessons,
+            'number_of_lessons': self.booking1.number_of_lessons,
+            'further_information': self.booking1.further_information,
+            'hourly_cost': 20
+        }
+        form = BookingEditForm(instance_id=self.booking1.id, data=form_input)
+        form.save()
+
+        self.assertEqual(Booking.objects.get(id=self.booking1.id).term_id, SchoolTerm.objects.all()[0])
+
 
 
 
