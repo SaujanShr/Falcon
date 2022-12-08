@@ -178,7 +178,7 @@ def get_booking_objects(user, relation_id = -1):
     '''
     Get an ordered list of bookings, ordered by ascending start date
     '''
-    return Booking.objects.filter(user=user, relation_id=relation_id).order_by('start_date')
+    return Booking.objects.filter(user=user, relation_id=relation_id).order_by('-start_date')
 
 def get_full_name(student):
     '''
@@ -191,7 +191,6 @@ def get_full_name_by_relation_id(user, relation_id):
     '''
     Get the full name of the client with the given user and relation id
     '''
-    #get_full_name(get_client_from_relation_id(user, relation_id))
     if is_child(relation_id):
         child = get_child_object(relation_id)
         return get_full_name(child)
@@ -278,7 +277,7 @@ def get_and_format_requests_for_admin_display():
     '''
     Return a dictionary of all fulfilled and unfulfilled requests that have been formatted
     '''
-    requests = Request.objects.all()
+    requests = Request.objects.all().order_by("-date")
     formatted_request_set = {'fulfilled': [], 'unfulfilled': []}
     
     for request in requests:
@@ -322,7 +321,7 @@ def get_and_format_bookings_for_admin_display():
     '''
     Return a list of all bookings that have been formatted to display in a table
     '''
-    bookings = Booking.objects.all()
+    bookings = Booking.objects.all().order_by("-start_date")
     formatted_bookings = []
 
     for booking in bookings:
@@ -541,7 +540,7 @@ def get_invoice_list(request):
     try:
         r_user = request.user
         r_student = Student.objects.get(user=r_user)
-        invoices = Invoice.objects.all().filter(student=r_student).reverse()
+        invoices = Invoice.objects.all().filter(student=r_student).order_by('-invoice_number')
         return invoices
     except ObjectDoesNotExist:
         return Invoice.objects.none()
@@ -554,7 +553,7 @@ def get_transaction_list(request):
     try:
         r_user = request.user
         r_student = Student.objects.get(user=r_user)
-        transactions = BankTransaction.objects.order_by('date').filter(student=r_student)
+        transactions = BankTransaction.objects.order_by('-date').filter(student=r_student)
         return transactions
     except ObjectDoesNotExist:
         return BankTransaction.objects.none()
