@@ -22,12 +22,6 @@ class NewRequestViewTestCase(TestCase):
 
         create_days_of_the_week()
 
-        availability = 1
-        number_of_lessons = 1
-        interval_between_lessons = Request.IntervalBetweenLessons.ONE_WEEK
-        duration_of_lessons = Request.LessonDuration.THIRTY_MINUTES
-        further_information = 'Some information'
-
         self.term = SchoolTerm.objects.all()[0]
         student = Student.objects.create(user=User.objects.all()[0])
         student.save()
