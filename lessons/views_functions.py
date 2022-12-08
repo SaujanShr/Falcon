@@ -1,7 +1,7 @@
 import decimal
 import urllib
 from django.utils import timezone
-from .models import Request, Invoice, Student, Child, Booking, DayOfTheWeek, SchoolTerm, BankTransaction
+from .models import User, Request, Invoice, Student, Child, Booking, DayOfTheWeek, SchoolTerm, BankTransaction
 from .forms import RequestEditForm, FulfilRequestForm, BookingEditForm, ChildEditForm, TransactionSubmitForm, InvoiceEditForm
 from .utils import *
 from django.core.exceptions import ObjectDoesNotExist
@@ -11,6 +11,7 @@ from django.shortcuts import redirect
 import datetime
 
 def redirect_with_queries(url, **queries):
+    '''Redirect with a queryset of given queries'''
     response = redirect(url)
     if queries:
         query_string = urllib.parse.urlencode(queries)
@@ -18,6 +19,7 @@ def redirect_with_queries(url, **queries):
     return response
 
 def get_prev_url_from_request(request):
+    '''Get the previous url of a request'''
     if request.method == 'GET':
         return request.GET.get('prev_url', None)
     elif request.method == 'POST':
@@ -25,6 +27,7 @@ def get_prev_url_from_request(request):
     return None
 
 def get_invoice_id_from_request(request):
+    '''Get the unique invoice id parameter from a request'''
     if request.method == 'GET':
         return request.GET.get('invoice_id', None)
     elif request.method == 'POST':
@@ -32,32 +35,48 @@ def get_invoice_id_from_request(request):
     return None
 
 def get_invoice_object(invoice_id):
-    return Invoice.objects.get(invoice_number=invoice_id)
+    '''Get the invoice with the given id'''
+    if Invoice.objects.filter(invoice_number=invoice_id).exists():
+        return Invoice.objects.get(invoice_number=invoice_id)
+    return None
 
 def get_invoice_object_from_request(request):
+    '''Get the invoice with the invoice id parameter from a request'''
     return get_invoice_object(get_invoice_id_from_request(request))
 
 def get_request_object(request_id):
-    return Request.objects.get(id=request_id)
+    '''Get the request with the given id'''
+    if Request.objects.filter(id=request_id).exists:
+        return Request.objects.get(id=request_id)
+    return None
 
 def get_booking_object(booking_id):
-    return Booking.objects.get(id=booking_id)
+    '''Get the booking with the given id'''
+    if Booking.objects.filter(id=booking_id).exists:
+        return Booking.objects.get(id=booking_id)
+    return None
 
 def get_child_object(relation_id):
-    return Child.objects.get(id=relation_id)
+    '''Get the child with the given id'''
+    if Child.objects.filter(id=relation_id).exists:
+        return Child.objects.get(id=relation_id)
+    return None
     
 def get_student_balance(request):
-    user = request.user
-    try:
-        student = Student.objects.get(user=user)
+    '''Get the balance of the student/parent'''
+    if Student.objects.filter(user=request.user).exists():
+        student = Student.objects.get(user=request.user)
         return student.balance
-    except ObjectDoesNotExist:
-        return None
+    return None
 
 def get_invoice_object(invoice_number):
-    return Invoice.objects.get(invoice_number=invoice_number)
+    '''Get the invoice with the given invoice number'''
+    if Invoice.objects.filter(invoice_number=invoice_number).exists():
+        return Invoice.objects.get(invoice_number=invoice_number)
+    return None
 
 def get_request_id_from_request(request):
+    '''Get the unique request id parameter from a request'''
     if request.method == 'GET':
         return request.GET.get('request_id', None)
     elif request.method == 'POST':
@@ -65,6 +84,7 @@ def get_request_id_from_request(request):
     return None
 
 def get_relation_id_from_request(request):
+    '''Get the unique relation id parameter from a request'''
     if request.method == 'GET':
         return request.GET.get('relation_id', -1)
     elif request.method == 'POST':
@@ -72,6 +92,7 @@ def get_relation_id_from_request(request):
     return None
 
 def get_booking_id_from_request(request):
+    '''Get the unique booking id parameter from a request'''
     if request.method == 'GET':
         return request.GET.get('booking_id', None)
     elif request.method == 'POST':
@@ -79,30 +100,38 @@ def get_booking_id_from_request(request):
     return None
 
 def get_request_object_from_request(request):
+    '''Get the request with the request id parameter from a request'''
     return get_request_object(get_request_id_from_request(request))
 
 def get_child_object_from_request(request):
+    '''Get the child with the relation id parameter from a request'''
     return get_child_object(get_relation_id_from_request(request))
 
 def get_booking_object_from_request(request):
+    '''Get the booking with the booking id parameter from a request'''
     return get_booking_object(get_booking_id_from_request(request))
 
 def is_child(relation_id):
+    '''Validate if a relation id belongs to a child'''
     return int(relation_id) != -1
 
 def get_client_from_relation_id(user, relation_id):
+    '''Get the object that matches the given user and relation id'''
     if is_child(relation_id):
-        return Child.objects.get(id=relation_id)
+        return get_child_object(relation_id=relation_id)
     else:
         return user
 
 def get_request_objects(user, relation_id = -1):
+    '''Get a list of requests that match the given user and relation id in a descending date order'''
     return Request.objects.filter(user=user, relation_id=relation_id).order_by('-date')
 
 def delete_request_object_from_request(request):
+    '''Delete a request with the request id parameter from a request'''
     return get_request_object_from_request(request).delete()
 
 def update_request_object_from_request(request):
+    '''Update a request with the request id parameter from a request'''
     user_request = get_request_object_from_request(request)
     data = request.POST
     
@@ -112,26 +141,30 @@ def update_request_object_from_request(request):
         return form.save()
 
 def get_booking_objects(user, relation_id = -1):
+    '''Get a list of bookings that match the given user and relation id in a descending start date order'''
     return Booking.objects.filter(user=user, relation_id=relation_id).order_by('start_date')
 
 def get_full_name(student):
-    return f'{student.first_name} {student.last_name}'
+    '''Get the full name of a client (student or child)'''
+    if student:
+        return f'{student.first_name} {student.last_name}'
 
 def get_full_name_by_relation_id(user, relation_id):
-    if is_child(relation_id):
-        child = get_child_object(relation_id)
-        return get_full_name(child)
-    else:
-        return get_full_name(user)
+    '''Get the full name of the client with the given user and relation id'''
+    get_full_name(get_client_from_relation_id(user, relation_id))
 
 def get_child_idname(relation_id):
+    '''Get a child's id and full name pair (idname)'''
     child = get_child_object(relation_id)
-    return {'id':child.id, 'name':get_full_name(child)}
+    if child:
+        return {'id':child.id, 'name':get_full_name(child)}
 
 def get_children(user):
+    '''Get the children of a given user'''
     return Child.objects.filter(parent=user)
 
 def get_children_idname(user):
+    '''Get a list of the a user's children's idnames'''
     children = get_children(user)
     children_idname = []
     for child in children:
@@ -139,6 +172,7 @@ def get_children_idname(user):
     return children_idname
 
 def delete_child(user, relation_id):
+    '''Delete a child and their given requests and bookings. Refund bookings if valid'''
     get_request_objects(user, relation_id).delete()
     bookings = get_booking_objects(user, relation_id)
     for booking in bookings:
@@ -148,6 +182,7 @@ def delete_child(user, relation_id):
     return get_child_object(relation_id).delete()
 
 def update_child_object_from_request(request):
+    '''Update a child's details with the relation id from a request'''
     child = get_child_object_from_request(request)
     data = request.POST
     
@@ -156,10 +191,10 @@ def update_child_object_from_request(request):
         return form.save()
 
 def format_request_for_display(request: Request):
+    '''Get a request in a readable format'''
     request.interval_between_lessons = Request.IntervalBetweenLessons.choices[
         Request.IntervalBetweenLessons.values.index(request.interval_between_lessons)
     ][1]
-    Request.IntervalBetweenLessons._member_names_
     request.duration_of_lessons = request.LessonDuration.choices[
         request.LessonDuration.values.index(request.duration_of_lessons)
     ][1]
@@ -169,6 +204,7 @@ def format_request_for_display(request: Request):
     return request
 
 def get_and_format_requests_for_display(user, relation_id=-1):
+    '''Get the requests that match a given user and relation id in a readable format'''
     requests = get_request_objects(user, relation_id)
     formatted_requests = []
     
@@ -178,6 +214,7 @@ def get_and_format_requests_for_display(user, relation_id=-1):
     return formatted_requests
 
 def get_and_format_requests_for_admin_display():
+    '''Get a list of all fulfilled requests and a list of all unfulfilled requests in a readable format'''
     requests = Request.objects.all()
     formatted_request_set = {'fulfilled': [], 'unfulfilled': []}
     
@@ -192,6 +229,7 @@ def get_and_format_requests_for_admin_display():
     return formatted_request_set
 
 def format_booking_for_display(booking: Booking):
+    '''Get a booking in a readable format'''
     booking.interval_between_lessons = Booking.IntervalBetweenLessons.choices[
         Booking.IntervalBetweenLessons.values.index(booking.interval_between_lessons)
     ][1]
@@ -203,6 +241,7 @@ def format_booking_for_display(booking: Booking):
     return booking
 
 def get_and_format_bookings_for_display(user, relation_id=-1):
+    '''Get the requests that match a given user and relation id in a readable format'''
     bookings = get_booking_objects(user, relation_id)
     formatted_bookings = []
     
@@ -212,6 +251,7 @@ def get_and_format_bookings_for_display(user, relation_id=-1):
     return formatted_bookings
 
 def get_and_format_bookings_for_admin_display():
+    '''Get a list of all bookings in a readable format'''
     bookings = Booking.objects.all()
     formatted_bookings = []
 
@@ -274,6 +314,9 @@ def delete_booking(request):
 
 def get_booking_form(booking_id):
     booking = get_booking_object(booking_id)
+    if not booking:
+        return
+    
     invoice = Invoice.objects.get(invoice_number=booking.invoice_id)
     hourly_cost = float(invoice.full_amount / booking.duration_of_lessons / booking.number_of_lessons * 60)
     form = BookingEditForm(
@@ -295,6 +338,9 @@ def get_booking_form(booking_id):
 
 def get_child_view_form(request_id):
     child = get_child_object(request_id)
+    if not child:
+        return
+    
     form = ChildEditForm(
         initial={
             'first_name':child.first_name,
@@ -305,7 +351,9 @@ def get_child_view_form(request_id):
 
 def get_invoice_view_form(invoice_id):
     invoice = get_invoice_object(invoice_id)
-    #['invoice_number', 'student', 'full_amount', 'paid_amount', 'fully_paid']
+    if not invoice:
+        return
+    
     form = InvoiceEditForm(
         initial={
             'invoice_number':invoice.invoice_number,
@@ -320,6 +368,8 @@ def get_invoice_view_form(invoice_id):
 
 def get_request_view_form(request_id):
     user_request = get_request_object(request_id)
+    if not user_request:
+        return
 
     form = RequestEditForm(
         initial={
@@ -501,7 +551,6 @@ def generate_lessons_from_bookings(bookings):
 
 def check_if_lessons_not_in_termtime(lessons):
     for lesson in lessons:
-
         if find_term_from_date_allow_none(lesson.date_time) == None:
             return True
 
@@ -514,8 +563,7 @@ def user_authorised_to_see_invoice(request, invoice_id):
     invoice_object = get_invoice_object(invoice_id)
     student_object = get_student(request)
 
-    if invoice_object.student == student_object: return True
-    return False
+    return invoice_object.student == student_object
 
 def child_exists(relation_id):
     '''Checks if a child with given relation id exists'''
@@ -524,5 +572,4 @@ def child_exists(relation_id):
 def user_is_parent(request, relation_id):
     '''Checks if the user sending the request is the parent of the given relation id'''
     child = get_child_object(relation_id)
-    if request.user == child.parent: return True
-    return False
+    return request.user == child.parent

@@ -80,6 +80,8 @@ def request_view(request):
     readonly = user.is_admin_or_director() or user_request.fulfilled
 
     form = get_request_view_form(request_id)
+    if not form:
+        return redirect_to_request_list(user, relation_id)
 
     if readonly:
         form.set_read_only()
@@ -96,11 +98,11 @@ def invoice_view(request):
     # Only possible post request is the 'Return' button/
     if request.method == 'POST':
         return redirect_to_invoice_list(user)
-
-    try:
-        invoice_id = get_invoice_id_from_request(request)
-        form = get_invoice_view_form(invoice_id)
-    except ObjectDoesNotExist:
+    
+    invoice_id = get_invoice_id_from_request(request)
+    form = get_invoice_view_form(invoice_id)
+    
+    if not form:
         return redirect_to_invoice_list(user)
 
     if not user_authorised_to_see_invoice(request, invoice_id): return redirect_to_invoice_list(user)
@@ -171,8 +173,9 @@ def child_page(request):
 def new_child_view(request):
     if request.method == 'POST':
         form = NewChildForm(user=request.user, data=request.POST)
-        form.save()
-        return redirect('children_list')
+        if form.is_valid():
+            form.save()
+            return redirect('children_list')
 
     form = NewChildForm()
     return render(request, 'new_child_view.html', {'form': form})
@@ -182,10 +185,10 @@ def new_child_view(request):
 @allowed_groups(['Student'])
 def child_view(request):
     relation_id = get_relation_id_from_request(request)
-
+    
     if not child_exists(relation_id) or not user_is_parent(request, relation_id): 
         return redirect('children_list')
-
+    
     if request.method == 'POST':
         if request.POST.get('update', None) and update_child_object_from_request(request):
             return redirect('children_list')
@@ -198,6 +201,9 @@ def child_view(request):
             return redirect('children_list')
 
     form = get_child_view_form(relation_id)
+    
+    if not form:
+        return redirect('children_list')
 
     return render(request, 'child_view.html', {'relation_id': relation_id, 'form': form})
 
@@ -446,13 +452,11 @@ def fulfil_request_view(request):
             form = FulfilRequestForm(request_id=request_id, data=request.POST)
             booking_req = form.save()
 
-            if not booking_req[1].fulfilled:
-                invoice_no = create_invoice(booking_req[0], booking_req[2])
+            if booking_req[0]:
+                invoice_no = create_invoice(booking_req[0], booking_req[1])
                 booking_req[0].invoice = Invoice.objects.get(invoice_number=invoice_no)
                 booking_req[0].term_id = find_term_from_date(booking_req[0].start_date)
                 booking_req[0].full_clean()
-                booking_req[1].fulfilled = True
-                booking_req[1].save()
                 booking_req[0].save()
                 return redirect('admin_booking_list')
             else:

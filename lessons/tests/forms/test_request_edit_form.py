@@ -139,10 +139,6 @@ class RequestViewFormTestCase(TestCase):
         self.assertTrue(form.fields['duration_of_lessons'].disabled)
         self.assertTrue(form.fields['further_information'].disabled)
 
-    # Todo: add form_must_save_properly()
-
-    # This test is broken, the availability part.
-
     def test_form_must_save_properly(self):
         request = Request.objects.create(
             user=self.user,
