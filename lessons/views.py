@@ -633,8 +633,12 @@ def admin_user_list(request):
         elif request.POST.get('create_administrator') == '':
             return redirect("create_admin_user")
 
-    users = User.objects.all().order_by("groups")
-    return render(request, 'admin_user_list.html', {'users': users})
+    users = User.objects.order_by("groups")
+    user_to_display = []
+    for user in users:
+        if user.is_admin_or_director():
+            user_to_display.append(user)
+    return render(request, 'admin_user_list.html', {'users': user_to_display})
 
 @login_required
 @allowed_groups("Director")
