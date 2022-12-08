@@ -131,7 +131,9 @@ class Command(BaseCommand):
         # Fulfill 90% of requests in average.
         if randint(0,10) <=9:
             invoice = self._create_booking_for_request_and_return_invoice(request)
+            request = Request.objects.get(id=request.id)
             request.fulfilled = True
+            request.save()
             self.decide_and_pay_invoice_for_random_user(invoice)
     
     def decide_and_pay_invoice_for_random_user(self, invoice):
@@ -209,8 +211,6 @@ class Command(BaseCommand):
             amount = amount_paid,
             invoice = invoice
         )
-        invoice.paid_amount = amount_paid
-        invoice.fully_paid=True
    
     def overpay_invoice(self,invoice):
         amount_paid = invoice.full_amount + randint(5,100)
@@ -220,8 +220,6 @@ class Command(BaseCommand):
             amount = amount_paid,
             invoice = invoice
         )
-        invoice.paid_amount = amount_paid
-        invoice.fully_paid=True
 
     def underpay_invoice(self,invoice):
         amount_paid = invoice.full_amount - randint(0,int(invoice.full_amount-1))
@@ -231,7 +229,6 @@ class Command(BaseCommand):
             amount = amount_paid,
             invoice = invoice
         )
-        invoice.paid_amount = amount_paid
 
     def create_invoice(self,request, hourly_cost):
         _student = Student.objects.get(user__email=request.user)
