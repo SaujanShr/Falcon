@@ -56,6 +56,11 @@ Run all tests with:
 $ python3 manage.py test
 ```
 
+Creating user Groups to enable various levels of authorisations:
+'''
+$ python3 manage.py create_groups
+'''
+
 *The above instructions should work in your version of the application.  If there are deviations, declare those here in bold.  Otherwise, remove this line.*
 
 ## Sources
